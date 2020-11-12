@@ -9,8 +9,8 @@ import (
 )
 
 type HomeResponse struct {
-	Status string `json:"system_status"`
-	Time string `json:"request_time"`
+	Status string   `json:"system_status"`
+	Time   string   `json:"request_time"`
 	Routes []string `json:"routes"`
 }
 
@@ -31,14 +31,17 @@ func HomeHandler(c *gin.Context) {
 func main() {
 
 	r := gin.Default()
+
+	// GET Routes
 	r.GET("/", HomeHandler)
 	r.GET("/network/interfaces", handlers.GetInterfacesHandler)
 	r.GET("/network/interfaces/names", handlers.GetInterfaceNamesHandler)
 	r.GET("/network/interface/:name", handlers.GetInterfaceByNameHandler)
 
+	// POST Routes
+	r.POST("/login", handlers.LoginHandler)
 
 	log.Println("system-api server is running http://localhost:8080")
 	r.Run()
-
 
 }

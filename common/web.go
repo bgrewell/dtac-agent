@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func WriteResponseJSON(c *gin.Context, obj interface{}){
+func WriteResponseJSON(c *gin.Context, obj interface{}) {
 	jout, err := json.Marshal(obj)
 	if err != nil {
 		WriteErrorResponseJSON(c, err)
@@ -17,7 +17,7 @@ func WriteResponseJSON(c *gin.Context, obj interface{}){
 }
 
 type ErrorResponse struct {
-	Err string `json:"error"`
+	Err  string `json:"error"`
 	Time string `json:"time"`
 }
 
