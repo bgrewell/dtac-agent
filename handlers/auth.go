@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/base64"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -10,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -20,7 +22,7 @@ const (
 var (
 	DB *bolt.DB
 	// Test User
-	user = User{
+	testUser = User{
 		ID:       1,
 		Username: "intel",
 		Password: "intel123",
@@ -42,6 +44,11 @@ type TokenDetails struct {
 	RtExpires int64
 }
 
+type AccessDetails struct {
+	AccessUuid string
+	UserId uint64
+}
+
 func init() {
 	// Initialize Database
 	var err error
@@ -60,6 +67,7 @@ func init() {
 }
 
 func UpdateDB(key string, value string) (err error) {
+	log.Printf("key: %s value: %s bucket %s\n", key, value, bucket)
 	err = DB.Update(func(tx *bolt.Tx) error {
 		b :=tx.Bucket([]byte(bucket))
 		err := b.Put([]byte(key), []byte(value))
@@ -85,20 +93,22 @@ func LoginHandler(c *gin.Context) {
 		return
 	}
 
-	// check the user
-	if user.Username != u.Username || user.Password != u.Password {
+	// check the testUser
+	if testUser.Username != u.Username || testUser.Password != u.Password {
 		c.JSON(http.StatusUnauthorized, "invalid login credentials")
+		return
 	}
 
-	token, err := CreateToken(user.ID)
+	token, err := CreateToken(testUser.ID)
 	if err != nil {
 		c.JSON(http.StatusUnprocessableEntity, err.Error())
 		return
 	}
 
-	saveErr := CreateAuth(user.ID, token)
+	saveErr := CreateAuth(testUser.ID, token)
 	if saveErr != nil {
-		c.JSON(http.StatusUnprocessableEntity, saveErr.Error())
+		c.JSON(http.StatusUnprocessableEntity, fmt.Sprintf("CreateAuth: %s", saveErr.Error()))
+		return
 	}
 
 	tokens := map[string]string{
@@ -114,7 +124,7 @@ func CreateToken(userid uint64) (token *TokenDetails, err error) {
 		AtExpires: time.Now().Add(time.Minute * 15).Unix(),
 		AccessUuid: uuid.NewV4().String(),
 		RtExpires: time.Now().Add(time.Hour * 24 * 7).Unix(),
-		RefreshToken: uuid.NewV4().String(),
+		RefreshUuid: uuid.NewV4().String(),
 	}
 
 	os.Setenv("ACCESS_SECRET", "FAKESECRETDONTUSEME") //todo: set this from an env file or externally
@@ -124,7 +134,8 @@ func CreateToken(userid uint64) (token *TokenDetails, err error) {
 	atClaims["user_id"] = userid
 	atClaims["exp"] = td.AtExpires
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
-	td.AccessToken, err = at.SignedString([]byte(os.Getenv("ACCESS_SECRET")))
+	accessSecret := base64.URLEncoding.EncodeToString([]byte(os.Getenv("ACCESS_SECRET")))
+	td.AccessToken, err = at.SignedString([]byte(accessSecret))
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +146,8 @@ func CreateToken(userid uint64) (token *TokenDetails, err error) {
 	rtClaims["user_id"] = userid
 	rtClaims["exp"] = td.RtExpires
 	rt := jwt.NewWithClaims(jwt.SigningMethodHS256, rtClaims)
-	td.RefreshToken, err = rt.SignedString([]byte(os.Getenv("REFRESH_SECRET")))
+	refreshSecret := base64.URLEncoding.EncodeToString([]byte(os.Getenv("REFRESH_SECRET")))
+	td.RefreshToken, err = rt.SignedString([]byte(refreshSecret))
 	if err != nil {
 		return nil, err
 	}
@@ -157,4 +169,92 @@ func CreateAuth(userid uint64, td *TokenDetails) (err error) {
 		return errRefresh
 	}
 	return nil
+}
+
+func ExtractToken(r *http.Request) string {
+	bearToken := r.Header.Get("Authorization")
+	if bearToken == "" {
+		return ""
+	}
+	tokenArr := strings.Split(bearToken, " ")
+	if len(tokenArr) == 2 {
+		return tokenArr[1]
+	}
+	return ""
+}
+
+func VerifyToken(r *http.Request) (*jwt.Token, error) {
+	tokenString := ExtractToken(r)
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok :=token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(base64.URLEncoding.EncodeToString([]byte("FAKESECRETDONTUSEME"))), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return token, nil
+}
+
+func TokenValid(r *http.Request) error {
+	token, err := VerifyToken(r)
+	if err != nil {
+		return err
+	}
+	if _, ok :=token.Claims.(jwt.Claims); !ok && !token.Valid {
+		return fmt.Errorf("token is invalid")
+	}
+	return nil
+}
+
+func ExtractTokenMetadata(r *http.Request) (*AccessDetails, error) {
+	token, err := VerifyToken(r)
+	if err != nil {
+		return nil, err
+	}
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if ok && token.Valid {
+		accessUuid, ok := claims["access_uuid"].(string)
+		if !ok {
+			return nil, err
+		}
+		userId, err := strconv.ParseUint(fmt.Sprintf("%.f", claims["user_id"]), 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		return &AccessDetails{
+			AccessUuid: accessUuid,
+			UserId: userId,
+		}, nil
+	}
+
+	return nil, err
+}
+
+func FetchAuth(authD *AccessDetails) (userId uint64, err error) {
+	userIdStr := ViewDB(authD.AccessUuid)
+	if userIdStr == "" {
+		return 0, fmt.Errorf("unable to find testUser auth details in database")
+	}
+	userId, _ = strconv.ParseUint(userIdStr, 10, 64)
+	return userId, nil
+}
+
+func AuthorizeUser(r *http.Request) (user *User, err error) {
+	tokenAuth, err := ExtractTokenMetadata(r)
+	if err != nil {
+		log.Printf("error getting token metadata: %s", err.Error())
+		return nil, fmt.Errorf("unauthorized")
+	}
+	userId, err := FetchAuth(tokenAuth)
+	if err != nil {
+		return nil, err
+	}
+	//todo: lookup testUser when we have a users database
+	if userId == testUser.ID {
+		return &testUser, nil
+	} else {
+		return nil, fmt.Errorf("unable to find testUser")
+	}
 }

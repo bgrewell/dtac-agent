@@ -5,6 +5,7 @@ import (
 	"github.com/BGrewell/system-api/handlers"
 	"github.com/gin-gonic/gin"
 	"log"
+	"net/http"
 	"time"
 )
 
@@ -18,7 +19,7 @@ func HomeHandler(c *gin.Context) {
 	h := &HomeResponse{
 		Status: "OK",
 		Time:   time.Now().Format(time.RFC3339Nano),
-		Routes: []string{
+		Routes: []string{ //todo: auto-populate
 			"/",
 			"/network/interfaces",
 			"/network/interfaces/names",
@@ -26,6 +27,14 @@ func HomeHandler(c *gin.Context) {
 		},
 	}
 	WriteResponseJSON(c, h)
+}
+
+func SecretTestHandler(c *gin.Context) {
+	user, err := handlers.AuthorizeUser(c.Request)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error(), "time": time.Now().Format(time.RFC3339Nano)})
+	}
+	c.JSON(http.StatusOK, gin.H{"user": user.ID, "secret": "somesupersecretvalue"})
 }
 
 func main() {
@@ -37,6 +46,7 @@ func main() {
 	r.GET("/network/interfaces", handlers.GetInterfacesHandler)
 	r.GET("/network/interfaces/names", handlers.GetInterfaceNamesHandler)
 	r.GET("/network/interface/:name", handlers.GetInterfaceByNameHandler)
+	r.GET("/secret", SecretTestHandler)
 
 	// POST Routes
 	r.POST("/login", handlers.LoginHandler)
