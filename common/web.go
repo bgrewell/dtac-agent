@@ -2,17 +2,18 @@ package common
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
-func WriteResponseJSON(w http.ResponseWriter, obj interface{}){
+func WriteResponseJSON(c *gin.Context, obj interface{}){
 	jout, err := json.Marshal(obj)
 	if err != nil {
-		WriteErrorResponseJSON(w, err)
+		WriteErrorResponseJSON(c, err)
 	}
-	_, _ = w.Write(jout)
+	c.Data(http.StatusOK, gin.MIMEJSON, jout)
 }
 
 type ErrorResponse struct {
@@ -20,15 +21,14 @@ type ErrorResponse struct {
 	Time string `json:"time"`
 }
 
-func WriteErrorResponseJSON(w http.ResponseWriter, err error) {
+func WriteErrorResponseJSON(c *gin.Context, err error) {
 	er := ErrorResponse{
 		Err:  err.Error(),
 		Time: time.Now().Format(time.RFC3339Nano),
 	}
-	w.WriteHeader(http.StatusInternalServerError)
 	jerr, err := json.Marshal(er)
 	if err != nil {
-		_, _ = fmt.Fprintf(w, fmt.Sprintf("{error: %s}", err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error(), "time": time.Now().Format(time.RFC3339Nano)})
 	}
-	_, _ = w.Write(jerr)
+	c.Data(http.StatusInternalServerError, gin.MIMEJSON, jerr)
 }

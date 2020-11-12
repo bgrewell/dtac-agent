@@ -3,9 +3,8 @@ package main
 import (
 	. "github.com/BGrewell/system-api/common"
 	"github.com/BGrewell/system-api/handlers"
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 	"log"
-	"net/http"
 	"time"
 )
 
@@ -15,7 +14,7 @@ type HomeResponse struct {
 	Routes []string `json:"routes"`
 }
 
-func HomeHandler(w http.ResponseWriter, r *http.Request) {
+func HomeHandler(c *gin.Context) {
 	h := &HomeResponse{
 		Status: "OK",
 		Time:   time.Now().Format(time.RFC3339Nano),
@@ -23,23 +22,23 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 			"/",
 			"/network/interfaces",
 			"/network/interfaces/names",
-			"/network/interface/{name:str}",
-			"/network/interface/idx/{idx:int}",
+			"/network/interface/{name:str} or {idx:int}",
 		},
 	}
-	WriteResponseJSON(w, h)
+	WriteResponseJSON(c, h)
 }
 
 func main() {
 
-	router := mux.NewRouter()
-	router.HandleFunc("/", HomeHandler)
-	router.HandleFunc("/network/interfaces", handlers.GetInterfacesHandler)
-	router.HandleFunc("/network/interfaces/names", handlers.GetInterfaceNamesHandler)
-	router.HandleFunc("/network/interface/{name}", handlers.GetInterfaceByNameHandler)
-	router.HandleFunc("/network/interface/idx/{idx:[0-9]+}", handlers.GetInterfaceByIdxHandler)
+	r := gin.Default()
+	r.GET("/", HomeHandler)
+	r.GET("/network/interfaces", handlers.GetInterfacesHandler)
+	r.GET("/network/interfaces/names", handlers.GetInterfaceNamesHandler)
+	r.GET("/network/interface/:name", handlers.GetInterfaceByNameHandler)
 
-	http.Handle("/", router)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+
+	log.Println("system-api server is running http://localhost:8080")
+	r.Run()
+
 
 }

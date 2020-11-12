@@ -4,52 +4,58 @@ import (
 	"fmt"
 	. "github.com/BGrewell/system-api/common"
 	"github.com/BGrewell/system-api/network"
-	"github.com/gorilla/mux"
-	"net/http"
+	"github.com/gin-gonic/gin"
+	"strconv"
 )
 
-func GetInterfacesHandler(w http.ResponseWriter, r *http.Request) {
+func GetInterfacesHandler(c *gin.Context) {
 	ifaces, err := network.GetInterfaces()
 	if err != nil {
-		WriteErrorResponseJSON(w, err)
+		WriteErrorResponseJSON(c, err)
 		return
 	}
-	WriteResponseJSON(w, ifaces)
+	WriteResponseJSON(c, ifaces)
 }
 
-func GetInterfaceNamesHandler(w http.ResponseWriter, r *http.Request) {
+func GetInterfaceNamesHandler(c *gin.Context) {
 	names, err := network.GetInterfaceNames()
 	if err != nil {
-		WriteErrorResponseJSON(w, err)
+		WriteErrorResponseJSON(c, err)
 		return
 	}
-	WriteResponseJSON(w, names)
+	WriteResponseJSON(c, names)
 }
 
-func GetInterfaceByNameHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	if val, ok := vars["name"]; ok {
-		iface, err := network.GetInterfaceByName(val)
+func GetInterfaceByNameHandler(c *gin.Context) {
+	name := c.Param("name")
+	if name != "" {
+		var iface *network.Interface
+		_, err := strconv.ParseInt(name, 10, 64)
+		if err == nil {
+			iface, err = network.GetInterfaceByIdx(name)
+		} else {
+			iface, err = network.GetInterfaceByName(name)
+		}
 		if err != nil {
-			WriteErrorResponseJSON(w, err)
+			WriteErrorResponseJSON(c, err)
 			return
 		}
-		WriteResponseJSON(w, iface)
+		WriteResponseJSON(c, iface)
 	} else {
-		WriteErrorResponseJSON(w, fmt.Errorf("error retrieving name: %v", vars))
+		WriteErrorResponseJSON(c, fmt.Errorf("error retrieving name"))
 	}
 }
 
-func GetInterfaceByIdxHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	if val, ok := vars["id"]; ok {
-		iface, err := network.GetInterfaceByIdx(val)
+func GetInterfaceByIdxHandler(c *gin.Context) {
+	id := c.Param("id")
+	if id != "" {
+		iface, err := network.GetInterfaceByIdx(id)
 		if err != nil {
-			WriteErrorResponseJSON(w, err)
+			WriteErrorResponseJSON(c, err)
 			return
 		}
-		WriteResponseJSON(w, iface)
+		WriteResponseJSON(c, iface)
 	} else {
-		WriteErrorResponseJSON(w, fmt.Errorf("error retrieving id: %v", vars))
+		WriteErrorResponseJSON(c, fmt.Errorf("error retrieving id"))
 	}
 }
