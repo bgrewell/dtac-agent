@@ -2,6 +2,7 @@ package network
 
 import (
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"net"
 	"strconv"
 )
@@ -14,14 +15,15 @@ type Addr struct {
 
 // Interface is an override to control how the net.Interface is marshalled to json
 type Interface struct {
-	Index              int     `json:"index"`         // positive integer that starts at one, zero is never used
-	MTU                int     `json:"mtu"`           // maximum transmission unit
-	Name               string  `json:"name"`          // e.g., "en0", "lo0", "eth0.100"
-	HardwareAddr       string  `json:"hardware_addr"` // IEEE MAC-48, EUI-48 and EUI-64 form
-	Flags              string  `json:"flags"`         // e.g., FlagUp, FlagLoopback, FlagMulticast
-	FlagsInt           int     `json:"flags_int"`
-	Addresses          []*Addr `json:"addresses"`
-	MulticastAddresses []*Addr `json:"multicast_addresses"`
+	Index              int             `json:"index"`         // positive integer that starts at one, zero is never used
+	MTU                int             `json:"mtu"`           // maximum transmission unit
+	Name               string          `json:"name"`          // e.g., "en0", "lo0", "eth0.100"
+	HardwareAddr       string          `json:"hardware_addr"` // IEEE MAC-48, EUI-48 and EUI-64 form
+	Flags              string          `json:"flags"`         // e.g., FlagUp, FlagLoopback, FlagMulticast
+	FlagsInt           int             `json:"flags_int"`
+	Addresses          []*Addr         `json:"addresses"`
+	MulticastAddresses []*Addr         `json:"multicast_addresses"`
+	Statistics         *InterfaceStats `json:"statistics"`
 }
 
 func GetInterfaces() (ifaces []*Interface, err error) {
@@ -55,7 +57,14 @@ func GetInterfaces() (ifaces []*Interface, err error) {
 				Network: addr.Network(),
 			}
 		}
-
+		stats, err := GetInterfaceStats(iface.Name)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"name":  iface.Name,
+				"stats": stats,
+				"err":   err,
+			}).Debug("failed to get interface statistics")
+		}
 		i := &Interface{
 			Index:              iface.Index,
 			MTU:                iface.MTU,
@@ -65,6 +74,7 @@ func GetInterfaces() (ifaces []*Interface, err error) {
 			FlagsInt:           int(iface.Flags),
 			Addresses:          addresses,
 			MulticastAddresses: maddresses,
+			Statistics:         stats,
 		}
 		ifaces[idx] = i
 	}

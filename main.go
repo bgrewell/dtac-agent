@@ -4,7 +4,7 @@ import (
 	. "github.com/BGrewell/system-api/common"
 	"github.com/BGrewell/system-api/handlers"
 	"github.com/gin-gonic/gin"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"time"
 )

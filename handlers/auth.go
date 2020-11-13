@@ -3,11 +3,11 @@ package handlers
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/boltdb/bolt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"github.com/boltdb/bolt"
+	log "github.com/sirupsen/logrus"
 	"github.com/twinj/uuid"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -30,23 +30,23 @@ var (
 )
 
 type User struct {
-	ID uint64 `json:"id"`
+	ID       uint64 `json:"id"`
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
 type TokenDetails struct {
-	AccessToken string
+	AccessToken  string
 	RefreshToken string
-	AccessUuid string
-	RefreshUuid string
-	AtExpires int64
-	RtExpires int64
+	AccessUuid   string
+	RefreshUuid  string
+	AtExpires    int64
+	RtExpires    int64
 }
 
 type AccessDetails struct {
 	AccessUuid string
-	UserId uint64
+	UserId     uint64
 }
 
 func init() {
@@ -69,7 +69,7 @@ func init() {
 func UpdateDB(key string, value string) (err error) {
 	log.Printf("key: %s value: %s bucket %s\n", key, value, bucket)
 	err = DB.Update(func(tx *bolt.Tx) error {
-		b :=tx.Bucket([]byte(bucket))
+		b := tx.Bucket([]byte(bucket))
 		err := b.Put([]byte(key), []byte(value))
 		return err
 	})
@@ -112,7 +112,7 @@ func LoginHandler(c *gin.Context) {
 	}
 
 	tokens := map[string]string{
-		"access_token": token.AccessToken,
+		"access_token":  token.AccessToken,
 		"refresh_token": token.RefreshToken,
 	}
 	c.JSON(http.StatusOK, tokens)
@@ -121,9 +121,9 @@ func LoginHandler(c *gin.Context) {
 func CreateToken(userid uint64) (token *TokenDetails, err error) {
 
 	td := &TokenDetails{
-		AtExpires: time.Now().Add(time.Minute * 15).Unix(),
-		AccessUuid: uuid.NewV4().String(),
-		RtExpires: time.Now().Add(time.Hour * 24 * 7).Unix(),
+		AtExpires:   time.Now().Add(time.Minute * 15).Unix(),
+		AccessUuid:  uuid.NewV4().String(),
+		RtExpires:   time.Now().Add(time.Hour * 24 * 7).Unix(),
 		RefreshUuid: uuid.NewV4().String(),
 	}
 
@@ -186,7 +186,7 @@ func ExtractToken(r *http.Request) string {
 func VerifyToken(r *http.Request) (*jwt.Token, error) {
 	tokenString := ExtractToken(r)
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		if _, ok :=token.Method.(*jwt.SigningMethodHMAC); !ok {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte(base64.URLEncoding.EncodeToString([]byte("FAKESECRETDONTUSEME"))), nil
@@ -202,7 +202,7 @@ func TokenValid(r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	if _, ok :=token.Claims.(jwt.Claims); !ok && !token.Valid {
+	if _, ok := token.Claims.(jwt.Claims); !ok && !token.Valid {
 		return fmt.Errorf("token is invalid")
 	}
 	return nil
@@ -225,7 +225,7 @@ func ExtractTokenMetadata(r *http.Request) (*AccessDetails, error) {
 		}
 		return &AccessDetails{
 			AccessUuid: accessUuid,
-			UserId: userId,
+			UserId:     userId,
 		}, nil
 	}
 
