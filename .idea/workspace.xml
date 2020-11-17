@@ -3,6 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="9298405f-af3f-4ccc-af92-9aab41e4122b" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/network/interfaces_darwin.go" beforeDir="false" afterPath="$PROJECT_DIR$/network/interfaces_darwin.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/network/interfaces_win.go" beforeDir="false" afterPath="$PROJECT_DIR$/network/interfaces_win.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
