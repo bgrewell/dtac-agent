@@ -20,10 +20,10 @@ archives:
       windows: Windows
       386: i386
       amd64: x86_64
-  - format_overrides:
-    - goos: windows
-      format: zip
-  - files:
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
       - README.md
 checksum:
   name_template: 'checksums.txt'
