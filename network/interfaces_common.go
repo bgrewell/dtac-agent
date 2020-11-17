@@ -7,6 +7,25 @@ import (
 	"strconv"
 )
 
+type InterfaceStats struct {
+	RxBytes   uint64 `json:"rx_bytes"`
+	TxBytes   uint64 `json:"tx_bytes"`
+	RxPackets uint64 `json:"rx_packets"`
+	TxPackets uint64 `json:"tx_packets"`
+	RxErrors  uint64 `json:"rx_errors"`
+	TxErrors  uint64 `json:"tx_errors"`
+	RxDropped uint64 `json:"rx_dropped"`
+	TxDropped uint64 `json:"tx_dropped"`
+	RxOverrun uint64 `json:"rx_overrun"`
+	TxCarrier uint64 `json:"tx_carrier"`
+	RxMcast   uint64 `json:"rx_mcast"`
+	TxCollsns uint64 `json:"tx_collsns"`
+	RxMbps float32 `json:"rx_mbps"`
+	TxMbps float32 `json:"tx_mbps"`
+	Period float32 `json:"period_sec"`
+	recordTime int64
+}
+
 // Addr is an override to control how net.Addr is marshaled to json
 type Addr struct {
 	IP      string `json:"ip"`

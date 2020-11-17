@@ -2,15 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9298405f-af3f-4ccc-af92-9aab41e4122b" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/common/conversion.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/common/execution.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/network/interfaces_linux.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/network/interfaces_darwin.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/network/interfaces_win.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/handlers/auth.go" beforeDir="false" afterPath="$PROJECT_DIR$/handlers/auth.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/network/interfaces_common.go" beforeDir="false" afterPath="$PROJECT_DIR$/network/interfaces_common.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/network/interfaces_linux.go" beforeDir="false" afterPath="$PROJECT_DIR$/network/interfaces_linux.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -97,6 +93,10 @@
     </state>
     <state x="696" y="412" key="#Go_Modules/0.23.1792.1097@0.23.1792.1097" timestamp="1605138656635" />
     <state x="1336" y="508" width="400" height="334" key="#Go_Modules/0.27.3440.1356@0.27.3440.1356" timestamp="1605191586295" />
+    <state x="564" y="507" width="584" height="403" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1605542690848">
+      <screen x="0" y="27" width="3440" height="1356" />
+    </state>
+    <state x="564" y="507" width="584" height="403" key="#com.intellij.fileTypes.FileTypeChooser/0.27.3440.1356@0.27.3440.1356" timestamp="1605542690848" />
     <state x="619" y="449" key="#xdebugger.evaluate" timestamp="1605231088574">
       <screen x="0" y="27" width="3440" height="1356" />
     </state>
@@ -105,26 +105,26 @@
       <screen x="0" y="27" width="3440" height="1356" />
     </state>
     <state width="536" height="506" key="DebuggerActiveHint/0.27.3440.1356@0.27.3440.1356" timestamp="1605229167341" />
-    <state width="1677" height="375" key="GridCell.Tab.0.bottom" timestamp="1605233374017">
+    <state width="1677" height="375" key="GridCell.Tab.0.bottom" timestamp="1605233509760">
       <screen x="0" y="27" width="3440" height="1356" />
     </state>
     <state width="1750" height="303" key="GridCell.Tab.0.bottom/0.23.1792.1097@0.23.1792.1097" timestamp="1605151209967" />
-    <state width="1677" height="375" key="GridCell.Tab.0.bottom/0.27.3440.1356@0.27.3440.1356" timestamp="1605233374017" />
-    <state width="1677" height="375" key="GridCell.Tab.0.center" timestamp="1605233374016">
+    <state width="1677" height="375" key="GridCell.Tab.0.bottom/0.27.3440.1356@0.27.3440.1356" timestamp="1605233509760" />
+    <state width="1677" height="375" key="GridCell.Tab.0.center" timestamp="1605233509759">
       <screen x="0" y="27" width="3440" height="1356" />
     </state>
     <state width="1750" height="303" key="GridCell.Tab.0.center/0.23.1792.1097@0.23.1792.1097" timestamp="1605151209967" />
-    <state width="1677" height="375" key="GridCell.Tab.0.center/0.27.3440.1356@0.27.3440.1356" timestamp="1605233374016" />
-    <state width="1677" height="375" key="GridCell.Tab.0.left" timestamp="1605233374016">
+    <state width="1677" height="375" key="GridCell.Tab.0.center/0.27.3440.1356@0.27.3440.1356" timestamp="1605233509759" />
+    <state width="1677" height="375" key="GridCell.Tab.0.left" timestamp="1605233509759">
       <screen x="0" y="27" width="3440" height="1356" />
     </state>
     <state width="1750" height="303" key="GridCell.Tab.0.left/0.23.1792.1097@0.23.1792.1097" timestamp="1605151209966" />
-    <state width="1677" height="375" key="GridCell.Tab.0.left/0.27.3440.1356@0.27.3440.1356" timestamp="1605233374016" />
-    <state width="1677" height="375" key="GridCell.Tab.0.right" timestamp="1605233374016">
+    <state width="1677" height="375" key="GridCell.Tab.0.left/0.27.3440.1356@0.27.3440.1356" timestamp="1605233509759" />
+    <state width="1677" height="375" key="GridCell.Tab.0.right" timestamp="1605233509759">
       <screen x="0" y="27" width="3440" height="1356" />
     </state>
     <state width="1750" height="303" key="GridCell.Tab.0.right/0.23.1792.1097@0.23.1792.1097" timestamp="1605151209967" />
-    <state width="1677" height="375" key="GridCell.Tab.0.right/0.27.3440.1356@0.27.3440.1356" timestamp="1605233374016" />
+    <state width="1677" height="375" key="GridCell.Tab.0.right/0.27.3440.1356@0.27.3440.1356" timestamp="1605233509759" />
     <state width="1677" height="461" key="GridCell.Tab.1.bottom" timestamp="1605233215346">
       <screen x="0" y="27" width="3440" height="1356" />
     </state>
