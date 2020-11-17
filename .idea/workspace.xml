@@ -2,11 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9298405f-af3f-4ccc-af92-9aab41e4122b" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/network/interfaces_darwin.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/network/interfaces_win.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network/interfaces_common.go" beforeDir="false" afterPath="$PROJECT_DIR$/network/interfaces_common.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network/interfaces_linux.go" beforeDir="false" afterPath="$PROJECT_DIR$/network/interfaces_linux.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/network/interfaces_darwin.go" beforeDir="false" afterPath="$PROJECT_DIR$/network/interfaces_darwin.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
