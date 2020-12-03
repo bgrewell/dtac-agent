@@ -3,6 +3,7 @@ package main
 import (
 	. "github.com/BGrewell/system-api/common"
 	"github.com/BGrewell/system-api/handlers"
+	"github.com/BGrewell/system-api/operatingsystem"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"net/http"
@@ -39,6 +40,7 @@ func SecretTestHandler(c *gin.Context) {
 
 func main() {
 
+	// Default Router
 	r := gin.Default()
 
 	// GET Routes
@@ -51,7 +53,11 @@ func main() {
 	// POST Routes
 	r.POST("/login", handlers.LoginHandler)
 
-	log.Println("system-api server is running http://localhost:8080")
-	r.Run()
+	// OS Specific Routes
+	operatingsystem.AddOSSpecificRoutes(r)
 
+	log.Println("system-api server is running http://localhost:8080")
+	if err := r.Run(); err != nil {
+		log.Fatalf("error running server: %v", err)
+	}
 }
