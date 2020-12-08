@@ -9,8 +9,8 @@ import (
 )
 
 type OKResponse struct {
-	Time string `json:"time"'`
-	Status string `json:"status"`
+	Time   string      `json:"time"'`
+	Status string      `json:"status"`
 	Output interface{} `json:"output"`
 }
 

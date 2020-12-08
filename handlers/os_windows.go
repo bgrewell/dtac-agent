@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
 func GetNetQosPolicies(c *gin.Context) {
 	policies, err := network.GetNetQosPolicies()
 	if err != nil {

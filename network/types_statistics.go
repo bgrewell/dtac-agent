@@ -11,45 +11,45 @@ type IStatistics interface {
 }
 
 type WindowsNetworkStats struct {
-	StatsType string
-	IpForwardingEnabled bool
-	IpDefaultTTL int
-	IpDatagramsReceived int
-	IpDatagramsReceivedHeaderErrors int
-	IpDatagramsReceivedAddressErrors int
-	IpDatagramsForwarded int
-	IpDatagramsUnknownProtocol int
-	IpDatagramsReceivedDiscarded int
-	IpDatagramsDelivered int
-	IpDatagramsSent int
-	IpDatagramsRoutingDiscards int
-	IpDatagramsSentDiscarded int
-	IpDatagramsSentNoRouteDiscarded int
+	StatsType                           string
+	IpForwardingEnabled                 bool
+	IpDefaultTTL                        int
+	IpDatagramsReceived                 int
+	IpDatagramsReceivedHeaderErrors     int
+	IpDatagramsReceivedAddressErrors    int
+	IpDatagramsForwarded                int
+	IpDatagramsUnknownProtocol          int
+	IpDatagramsReceivedDiscarded        int
+	IpDatagramsDelivered                int
+	IpDatagramsSent                     int
+	IpDatagramsRoutingDiscards          int
+	IpDatagramsSentDiscarded            int
+	IpDatagramsSentNoRouteDiscarded     int
 	IpDatagramFragmentReassemblyTimeout int
-	IpDatagramsRequiredReassembled int
-	IpDatagramsReassembledOk int
-	IpDatagramsReassembledFail int
-	IpDatagramsFragmentOk int
-	IpDatagramsFragmentFail int
-	IpDatagramsFragmentCreated int
-	IpInterfaceCount int
-	IpAddressCount int
-	IpRouteCount int
-	TcpRTOAlgo int
-	TcpRTOMinValue int
-	TcpRTOMaxValue int
-	TcpConnMax int
-	TcpConnActiveOpens int
-	TcpConnPassiveOpens int
-	TcpConnFailed int
-	TcpConnEstablishedReset int
-	TcpConnCurrentEstablished int
-	TcpSegmentsIn int
-	TcpSegmentsOut int
-	TcpSegmentsRetrans int
-	TcpSegmentsInErrors int
-	TcpSegmentsOutReset int
-	TcpConnCurrent int
+	IpDatagramsRequiredReassembled      int
+	IpDatagramsReassembledOk            int
+	IpDatagramsReassembledFail          int
+	IpDatagramsFragmentOk               int
+	IpDatagramsFragmentFail             int
+	IpDatagramsFragmentCreated          int
+	IpInterfaceCount                    int
+	IpAddressCount                      int
+	IpRouteCount                        int
+	TcpRTOAlgo                          int
+	TcpRTOMinValue                      int
+	TcpRTOMaxValue                      int
+	TcpConnMax                          int
+	TcpConnActiveOpens                  int
+	TcpConnPassiveOpens                 int
+	TcpConnFailed                       int
+	TcpConnEstablishedReset             int
+	TcpConnCurrentEstablished           int
+	TcpSegmentsIn                       int
+	TcpSegmentsOut                      int
+	TcpSegmentsRetrans                  int
+	TcpSegmentsInErrors                 int
+	TcpSegmentsOutReset                 int
+	TcpConnCurrent                      int
 }
 
 func (s *WindowsNetworkStats) Parse(json string) (err error) {

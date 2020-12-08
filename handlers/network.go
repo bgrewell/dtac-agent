@@ -68,3 +68,54 @@ func GetRoutesHandler(c *gin.Context) {
 	}
 	WriteResponseJSON(c, routes)
 }
+
+func CreateRouteHandler(c *gin.Context) {
+	var input *network.RouteTableRow
+	if err := c.ShouldBindJSON(&input); err != nil {
+		WriteErrorResponseJSON(c, err)
+		return
+	}
+	if err := network.CreateRoute(*input); err != nil {
+		WriteErrorResponseJSON(c, fmt.Errorf("failed to create route: %v", err))
+		return
+	}
+	output, err := network.GetRouteTable()
+	if err != nil {
+		WriteErrorResponseJSON(c, fmt.Errorf("route may not have been created. failed to retreive route table: %v", err))
+	}
+	WriteResponseJSON(c, output)
+}
+
+func UpdateRouteHandler(c *gin.Context) {
+	var input *network.RouteTableRow
+	if err := c.ShouldBindJSON(&input); err != nil {
+		WriteErrorResponseJSON(c, err)
+		return
+	}
+	if err := network.UpdateRoute(*input); err != nil {
+		WriteErrorResponseJSON(c, fmt.Errorf("failed to update route: %v", err))
+		return
+	}
+	output, err := network.GetRouteTable()
+	if err != nil {
+		WriteErrorResponseJSON(c, fmt.Errorf("route may not have been updated. failed to retreive route table: %v", err))
+	}
+	WriteResponseJSON(c, output)
+}
+
+func DeleteRouteHandler(c *gin.Context) {
+	var input *network.RouteTableRow
+	if err := c.ShouldBindJSON(&input); err != nil {
+		WriteErrorResponseJSON(c, err)
+		return
+	}
+	if err := network.DeleteRoute(*input); err != nil {
+		WriteErrorResponseJSON(c, fmt.Errorf("failed to delete route: %v", err))
+		return
+	}
+	output, err := network.GetRouteTable()
+	if err != nil {
+		WriteErrorResponseJSON(c, fmt.Errorf("route may not have been deleted. failed to retreive route table: %v", err))
+	}
+	WriteResponseJSON(c, output)
+}

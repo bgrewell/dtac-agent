@@ -2,10 +2,13 @@ package network
 
 import (
 	"fmt"
-	"github.com/BGrewell/system-api/common"
+	"github.com/BGrewell/go-conversions"
+	"golang.org/x/sys/windows"
+	"syscall"
 	"unsafe"
 )
 
+// GetRouteTable retrieves the full route table on the system
 func GetRouteTable() (routes []RouteTableRow, err error) {
 	ft := MIB_IPFORWARDTABLE{}
 	dwSize := uint32(0)
@@ -23,9 +26,9 @@ func GetRouteTable() (routes []RouteTableRow, err error) {
 	for i := 0; i < int(ft.dwNumEntries); i++ {
 		entry := ft.table[i]
 		row := RouteTableRow{
-			Destination:    common.Inet_ntoha(entry.dwForwardDest),
-			Mask:           common.Inet_ntoha(entry.dwForwardMask),
-			NextHop:        common.Inet_ntoha(entry.dwForwardNextHop),
+			Destination:    conversions.Inet4_ntoha(entry.dwForwardDest),
+			Mask:           conversions.Inet4_ntoha(entry.dwForwardMask),
+			NextHop:        conversions.Inet4_ntoha(entry.dwForwardNextHop),
 			Policy:         entry.dwForwardPolicy,
 			InterfaceIndex: entry.dwForwardIfIndex,
 			Type:           ForwardType(entry.dwForwardType),
@@ -42,4 +45,44 @@ func GetRouteTable() (routes []RouteTableRow, err error) {
 	}
 
 	return rows, nil
+}
+
+// UpdateRoute updates a given route on the system
+func UpdateRoute(route RouteTableRow) (err error) {
+	return modifyRoute(route, fSetIpForwardEntry)
+}
+
+// CreateRoute creates a new route on the system
+func CreateRoute(route RouteTableRow) (err error) {
+	return modifyRoute(route, fCreateIpForwardEntry)
+}
+
+// DeleteRoute removes a route from the system
+func DeleteRoute(route RouteTableRow) (err error) {
+	return modifyRoute(route, fDeleteIpForwardEntry)
+}
+
+// modifyRoute is the core function that handles all changes to routes
+func modifyRoute(route RouteTableRow, win32func *windows.LazyProc) (err error) {
+	row := MIB_IPFORWARDROW{
+		dwForwardDest:      conversions.Inet4_haton(route.Destination),
+		dwForwardMask:      conversions.Inet4_haton(route.Mask),
+		dwForwardPolicy:    route.Policy,
+		dwForwardNextHop:   conversions.Inet4_haton(route.NextHop),
+		dwForwardIfIndex:   route.InterfaceIndex,
+		dwForwardType:      uint32(route.Type),
+		dwForwardProto:     uint32(route.Protocol),
+		dwForwardAge:       route.Age,
+		dwForwardNextHopAs: route.NextHopAs,
+		dwForwardMetric1:   route.Metric1,
+		dwForwardMetric2:   route.Metric2,
+		dwForwardMetric3:   route.Metric3,
+		dwForwardMetric4:   route.Metric4,
+		dwForwardMetric5:   route.Metric5,
+	}
+	ret, _, err := win32func.Call(uintptr(unsafe.Pointer(&row)))
+	if ret != windows.NO_ERROR {
+		return fmt.Errorf("error: %v", syscall.Errno(ret).Error())
+	}
+	return nil
 }

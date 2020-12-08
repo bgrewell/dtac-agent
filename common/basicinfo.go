@@ -9,16 +9,16 @@ import (
 )
 
 type BasicInfo struct {
-	Host *host.InfoStat `json:"host"`
-	CPU []cpu.InfoStat `json:"cpu"`
-	Memory *mem.VirtualMemoryStat `json:"memory"`
-	Network []net.InterfaceStat `json:"network"`
-	Routes RoutesInfoParser `json:"route_info"`
+	Host    *host.InfoStat         `json:"host"`
+	CPU     []cpu.InfoStat         `json:"cpu"`
+	Memory  *mem.VirtualMemoryStat `json:"memory"`
+	Network []net.InterfaceStat    `json:"network"`
+	Routes  RoutesInfoParser       `json:"route_info"`
 }
 
 type RouteInfoParser struct {
-	Method string `json:"method"`
-	Path string `json:"path"`
+	Method  string `json:"method"`
+	Path    string `json:"path"`
 	Handler string `json:"-"`
 }
 

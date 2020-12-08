@@ -3,6 +3,7 @@ module github.com/BGrewell/system-api
 go 1.15
 
 require (
+	github.com/BGrewell/go-conversions v0.0.0-20201208222221-82181d5fd43a
 	github.com/BGrewell/go-execute v0.0.0-20201203155726-b7c037ebde49
 	github.com/BGrewell/go-netqospolicy v0.0.0-20201207170710-eb97b3455d4f
 	github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d // indirect
@@ -21,8 +22,8 @@ require (
 	github.com/sirupsen/logrus v1.7.0
 	github.com/twinj/uuid v1.0.0
 	github.com/ugorji/go v1.2.1 // indirect
-	golang.org/x/crypto v0.0.0-20201203163018-be400aefbc4c // indirect
-	golang.org/x/sys v0.0.0-20201204225414-ed752295db88
+	golang.org/x/crypto v0.0.0-20201208171446-5f87f3452ae9 // indirect
+	golang.org/x/sys v0.0.0-20201207223542-d4d67f95c62d
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/stretchr/testify.v1 v1.2.2 // indirect

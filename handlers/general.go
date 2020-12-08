@@ -9,7 +9,7 @@ import (
 
 var (
 	Routes gin.RoutesInfo
-	Info BasicInfo
+	Info   BasicInfo
 )
 
 func init() {

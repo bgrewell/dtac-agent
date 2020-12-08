@@ -6,7 +6,7 @@ import (
 )
 
 func AddGeneralHandlers(r *gin.Engine) {
-	// GET Routes
+	// GET Routes - Retrieve information
 	r.GET("/", handlers.HomeHandler)
 	r.GET("/network/interfaces", handlers.GetInterfacesHandler)
 	r.GET("/network/interfaces/names", handlers.GetInterfaceNamesHandler)
@@ -14,6 +14,13 @@ func AddGeneralHandlers(r *gin.Engine) {
 	r.GET("/network/routes", handlers.GetRoutesHandler)
 	r.GET("/secret", handlers.SecretTestHandler)
 
-	// POST Routes
+	// PUT Routes - Update information
+	r.PUT("/network/route", handlers.UpdateRouteHandler)
+
+	// Delete Routes - Remove information
+	r.DELETE("/network/route", handlers.DeleteRouteHandler)
+
+	// POST Routes - Create information
 	r.POST("/login", handlers.LoginHandler)
+	r.POST("/network/route", handlers.CreateRouteHandler)
 }

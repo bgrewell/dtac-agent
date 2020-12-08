@@ -4,7 +4,7 @@ package network
 
 import (
 	"fmt"
-	. "github.com/BGrewell/system-api/common"
+	"github.com/BGrewell/go-conversions"
 	"strings"
 	"time"
 )
@@ -36,23 +36,23 @@ func GetInterfaceStats(name string) (stats *InterfaceStats, err error) {
 		lastRecord = stats.recordTime
 	}
 	stats = &InterfaceStats{
-		RxBytes:   ConvertStringToUInt64or0(rxFields[0]),
-		TxBytes:   ConvertStringToUInt64or0(txFields[0]),
-		RxPackets: ConvertStringToUInt64or0(rxFields[1]),
-		TxPackets: ConvertStringToUInt64or0(txFields[1]),
-		RxErrors:  ConvertStringToUInt64or0(rxFields[2]),
-		TxErrors:  ConvertStringToUInt64or0(txFields[2]),
-		RxDropped: ConvertStringToUInt64or0(rxFields[3]),
-		TxDropped: ConvertStringToUInt64or0(txFields[3]),
-		RxOverrun: ConvertStringToUInt64or0(rxFields[4]),
-		TxCarrier: ConvertStringToUInt64or0(txFields[4]),
-		RxMcast:   ConvertStringToUInt64or0(rxFields[5]),
-		TxCollsns: ConvertStringToUInt64or0(txFields[5]),
+		RxBytes:   conversions.ConvertStringToUInt64or0(rxFields[0]),
+		TxBytes:   conversions.ConvertStringToUInt64or0(txFields[0]),
+		RxPackets: conversions.ConvertStringToUInt64or0(rxFields[1]),
+		TxPackets: conversions.ConvertStringToUInt64or0(txFields[1]),
+		RxErrors:  conversions.ConvertStringToUInt64or0(rxFields[2]),
+		TxErrors:  conversions.ConvertStringToUInt64or0(txFields[2]),
+		RxDropped: conversions.ConvertStringToUInt64or0(rxFields[3]),
+		TxDropped: conversions.ConvertStringToUInt64or0(txFields[3]),
+		RxOverrun: conversions.ConvertStringToUInt64or0(rxFields[4]),
+		TxCarrier: conversions.ConvertStringToUInt64or0(txFields[4]),
+		RxMcast:   conversions.ConvertStringToUInt64or0(rxFields[5]),
+		TxCollsns: conversions.ConvertStringToUInt64or0(txFields[5]),
 	}
 	stats.recordTime = time.Now().UnixNano()
-	stats.Period = float32(stats.recordTime - lastRecord) / float32(time.Second)
-	stats.RxMbps = ConvertToRateMbps(lastRx, stats.RxBytes, lastRecord, stats.recordTime)
-	stats.TxMbps = ConvertToRateMbps(lastTx, stats.TxBytes, lastRecord, stats.recordTime)
+	stats.Period = float32(stats.recordTime-lastRecord) / float32(time.Second)
+	stats.RxMbps = conversions.ConvertToRateMbps(lastRx, stats.RxBytes, lastRecord, stats.recordTime)
+	stats.TxMbps = conversions.ConvertToRateMbps(lastTx, stats.TxBytes, lastRecord, stats.recordTime)
 	statsCache[name] = stats
 	return stats, nil
 }
