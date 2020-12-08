@@ -2,15 +2,40 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9298405f-af3f-4ccc-af92-9aab41e4122b" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/handlers/os_darwin.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/handlers/os_linux.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/handlers/os_windows.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/operatingsystem/dscp_windows.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/operatingsystem/routes_darwin.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/operatingsystem/routes_linux.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/operatingsystem/routes_windows.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/common/basicinfo.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/common/basicinfo_darwin.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/common/basicinfo_linux.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/common/basicinfo_windows.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/common/network.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/handlers/general.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/httprouting/main.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/httprouting/routes_windows.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/network/interop_windows.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/network/qos_windows.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/network/routing_windows.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/network/stack_common.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/network/stack_darwin.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/network/stack_linux.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/network/stack_windows.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/network/types_capabilities.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/network/types_statistics.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/conversion.go" beforeDir="false" afterPath="$PROJECT_DIR$/common/conversion.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/execution.go" beforeDir="false" afterPath="$PROJECT_DIR$/common/execution.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/web.go" beforeDir="false" afterPath="$PROJECT_DIR$/common/web.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/handlers/auth.go" beforeDir="false" afterPath="$PROJECT_DIR$/handlers/auth.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/handlers/network.go" beforeDir="false" afterPath="$PROJECT_DIR$/handlers/network.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/handlers/os_windows.go" beforeDir="false" afterPath="$PROJECT_DIR$/handlers/os_windows.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/network/.gitkeep" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/network/interfaces_win.go" beforeDir="false" afterPath="$PROJECT_DIR$/network/interfaces_windows.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/operatingsystem/dscp_windows.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/operatingsystem/routes_darwin.go" beforeDir="false" afterPath="$PROJECT_DIR$/httprouting/routes_darwin.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/operatingsystem/routes_linux.go" beforeDir="false" afterPath="$PROJECT_DIR$/httprouting/routes_linux.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/operatingsystem/routes_windows.go" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -25,7 +50,7 @@
       </list>
     </option>
   </component>
-  <component name="GOROOT" path="/usr/local/go" />
+  <component name="GOROOT" path="C:\Go" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="ROOT_SYNC" value="DONT_SYNC" />
@@ -93,9 +118,10 @@
     <integration-enabled>true</integration-enabled>
   </component>
   <component name="WindowStateProjectService">
-    <state x="651" y="638" key="#GOROOT" timestamp="1605191601479">
-      <screen x="0" y="27" width="3440" height="1356" />
+    <state x="651" y="631" key="#GOROOT" timestamp="1607022226644">
+      <screen x="0" y="0" width="3440" height="1400" />
     </state>
+    <state x="651" y="631" key="#GOROOT/0.0.3440.1400@0.0.3440.1400" timestamp="1607022226644" />
     <state x="651" y="638" key="#GOROOT/0.27.3440.1356@0.27.3440.1356" timestamp="1605191601479" />
     <state x="1336" y="508" width="400" height="334" key="#Go_Modules" timestamp="1605191586295">
       <screen x="0" y="27" width="3440" height="1356" />
@@ -114,41 +140,49 @@
       <screen x="0" y="27" width="3440" height="1356" />
     </state>
     <state width="536" height="506" key="DebuggerActiveHint/0.27.3440.1356@0.27.3440.1356" timestamp="1605229167341" />
-    <state width="1677" height="461" key="GridCell.Tab.0.bottom" timestamp="1605743378066">
-      <screen x="0" y="27" width="3440" height="1356" />
+    <state width="1676" height="399" key="GridCell.Tab.0.bottom" timestamp="1607450445547">
+      <screen x="0" y="0" width="3440" height="1400" />
     </state>
+    <state width="1676" height="399" key="GridCell.Tab.0.bottom/0.0.3440.1400@0.0.3440.1400" timestamp="1607450445547" />
     <state width="1750" height="303" key="GridCell.Tab.0.bottom/0.23.1792.1097@0.23.1792.1097" timestamp="1605151209967" />
     <state width="1677" height="461" key="GridCell.Tab.0.bottom/0.27.3440.1356@0.27.3440.1356" timestamp="1605743378066" />
-    <state width="1677" height="461" key="GridCell.Tab.0.center" timestamp="1605743378066">
-      <screen x="0" y="27" width="3440" height="1356" />
+    <state width="1676" height="399" key="GridCell.Tab.0.center" timestamp="1607450445546">
+      <screen x="0" y="0" width="3440" height="1400" />
     </state>
+    <state width="1676" height="399" key="GridCell.Tab.0.center/0.0.3440.1400@0.0.3440.1400" timestamp="1607450445546" />
     <state width="1750" height="303" key="GridCell.Tab.0.center/0.23.1792.1097@0.23.1792.1097" timestamp="1605151209967" />
     <state width="1677" height="461" key="GridCell.Tab.0.center/0.27.3440.1356@0.27.3440.1356" timestamp="1605743378066" />
-    <state width="1677" height="461" key="GridCell.Tab.0.left" timestamp="1605743378066">
-      <screen x="0" y="27" width="3440" height="1356" />
+    <state width="1676" height="399" key="GridCell.Tab.0.left" timestamp="1607450445546">
+      <screen x="0" y="0" width="3440" height="1400" />
     </state>
+    <state width="1676" height="399" key="GridCell.Tab.0.left/0.0.3440.1400@0.0.3440.1400" timestamp="1607450445546" />
     <state width="1750" height="303" key="GridCell.Tab.0.left/0.23.1792.1097@0.23.1792.1097" timestamp="1605151209966" />
     <state width="1677" height="461" key="GridCell.Tab.0.left/0.27.3440.1356@0.27.3440.1356" timestamp="1605743378066" />
-    <state width="1677" height="461" key="GridCell.Tab.0.right" timestamp="1605743378066">
-      <screen x="0" y="27" width="3440" height="1356" />
+    <state width="1676" height="399" key="GridCell.Tab.0.right" timestamp="1607450445546">
+      <screen x="0" y="0" width="3440" height="1400" />
     </state>
+    <state width="1676" height="399" key="GridCell.Tab.0.right/0.0.3440.1400@0.0.3440.1400" timestamp="1607450445546" />
     <state width="1750" height="303" key="GridCell.Tab.0.right/0.23.1792.1097@0.23.1792.1097" timestamp="1605151209967" />
     <state width="1677" height="461" key="GridCell.Tab.0.right/0.27.3440.1356@0.27.3440.1356" timestamp="1605743378066" />
-    <state width="1677" height="461" key="GridCell.Tab.1.bottom" timestamp="1605743378067">
-      <screen x="0" y="27" width="3440" height="1356" />
+    <state width="1676" height="494" key="GridCell.Tab.1.bottom" timestamp="1607450168228">
+      <screen x="0" y="0" width="3440" height="1400" />
     </state>
+    <state width="1676" height="494" key="GridCell.Tab.1.bottom/0.0.3440.1400@0.0.3440.1400" timestamp="1607450168228" />
     <state width="1677" height="461" key="GridCell.Tab.1.bottom/0.27.3440.1356@0.27.3440.1356" timestamp="1605743378067" />
-    <state width="1677" height="461" key="GridCell.Tab.1.center" timestamp="1605743378066">
-      <screen x="0" y="27" width="3440" height="1356" />
+    <state width="1676" height="494" key="GridCell.Tab.1.center" timestamp="1607450168228">
+      <screen x="0" y="0" width="3440" height="1400" />
     </state>
+    <state width="1676" height="494" key="GridCell.Tab.1.center/0.0.3440.1400@0.0.3440.1400" timestamp="1607450168228" />
     <state width="1677" height="461" key="GridCell.Tab.1.center/0.27.3440.1356@0.27.3440.1356" timestamp="1605743378066" />
-    <state width="1677" height="461" key="GridCell.Tab.1.left" timestamp="1605743378066">
-      <screen x="0" y="27" width="3440" height="1356" />
+    <state width="1676" height="494" key="GridCell.Tab.1.left" timestamp="1607450168228">
+      <screen x="0" y="0" width="3440" height="1400" />
     </state>
+    <state width="1676" height="494" key="GridCell.Tab.1.left/0.0.3440.1400@0.0.3440.1400" timestamp="1607450168228" />
     <state width="1677" height="461" key="GridCell.Tab.1.left/0.27.3440.1356@0.27.3440.1356" timestamp="1605743378066" />
-    <state width="1677" height="461" key="GridCell.Tab.1.right" timestamp="1605743378067">
-      <screen x="0" y="27" width="3440" height="1356" />
+    <state width="1676" height="494" key="GridCell.Tab.1.right" timestamp="1607450168228">
+      <screen x="0" y="0" width="3440" height="1400" />
     </state>
+    <state width="1676" height="494" key="GridCell.Tab.1.right/0.0.3440.1400@0.0.3440.1400" timestamp="1607450168228" />
     <state width="1677" height="461" key="GridCell.Tab.1.right/0.27.3440.1356@0.27.3440.1356" timestamp="1605743378067" />
     <state x="397" y="210" key="SettingsEditor" timestamp="1605138731464">
       <screen x="0" y="23" width="1792" height="1097" />
@@ -158,5 +192,9 @@
       <screen x="0" y="27" width="3440" height="1356" />
     </state>
     <state width="855" height="678" key="XDebugger.FullValuePopup/0.27.3440.1356@0.27.3440.1356" timestamp="1605201586913" />
+    <state x="523" y="323" width="672" height="678" key="search.everywhere.popup" timestamp="1607387481578">
+      <screen x="0" y="0" width="3440" height="1400" />
+    </state>
+    <state x="523" y="323" width="672" height="678" key="search.everywhere.popup/0.0.3440.1400@0.0.3440.1400" timestamp="1607387481578" />
   </component>
 </project>

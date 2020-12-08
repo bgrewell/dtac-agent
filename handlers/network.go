@@ -59,3 +59,12 @@ func GetInterfaceByIdxHandler(c *gin.Context) {
 		WriteErrorResponseJSON(c, fmt.Errorf("error retrieving id"))
 	}
 }
+
+func GetRoutesHandler(c *gin.Context) {
+	routes, err := network.GetRouteTable()
+	if err != nil {
+		WriteErrorResponseJSON(c, err)
+		return
+	}
+	WriteResponseJSON(c, routes)
+}

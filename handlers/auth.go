@@ -50,6 +50,14 @@ type AccessDetails struct {
 }
 
 func init() {
+	// Ensure db directory exits
+	if _, err := os.Stat("db"); os.IsNotExist(err) {
+		err = os.Mkdir("db", os.ModePerm)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+
 	// Initialize Database
 	var err error
 	DB, err = bolt.Open("db/auth.db", 0600, &bolt.Options{Timeout: 1 * time.Second})
