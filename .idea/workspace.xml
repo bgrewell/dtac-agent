@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9298405f-af3f-4ccc-af92-9aab41e4122b" name="Default Changelist" comment="" />
+    <list default="true" id="9298405f-af3f-4ccc-af92-9aab41e4122b" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/network/routing_windows.go" beforeDir="false" afterPath="$PROJECT_DIR$/network/routing_windows.go" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -144,6 +147,10 @@
       <screen x="0" y="27" width="3440" height="1356" />
     </state>
     <state width="1674" height="461" key="GridCell.Tab.1.right/0.27.3440.1356@0.27.3440.1356" timestamp="1607533867933" />
+    <state x="443" y="451" width="824" height="515" key="IDE.errors.dialog" timestamp="1607543592164">
+      <screen x="0" y="27" width="3440" height="1356" />
+    </state>
+    <state x="443" y="451" width="824" height="515" key="IDE.errors.dialog/0.27.3440.1356@0.27.3440.1356" timestamp="1607543592164" />
     <state x="397" y="210" key="SettingsEditor" timestamp="1605138731464">
       <screen x="0" y="23" width="1792" height="1097" />
     </state>

@@ -1,8 +1,11 @@
 package network
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/BGrewell/go-conversions"
+	"golang.org/x/sys/windows"
+	"syscall"
 	"unsafe"
 )
 
@@ -36,7 +39,7 @@ func (rtr RouteTableRow) JSON() string {
 }
 
 func (rtr RouteTableRow) Create() error {
-	return 	rtr.modifyRoute(fCreateIpForwardEntry)
+	return rtr.modifyRoute(fCreateIpForwardEntry)
 }
 
 func (rtr RouteTableRow) Update() error {
@@ -75,7 +78,6 @@ func (rtr RouteTableRow) modifyRoute(win32func *windows.LazyProc) (err error) {
 	}
 	return nil
 }
-
 
 // GetRouteTable retrieves the full route table on the system
 func GetRouteTable() (routes []RouteTableRow, err error) {
@@ -130,4 +132,3 @@ func CreateRoute(route RouteTableRow) (err error) {
 func DeleteRoute(route RouteTableRow) (err error) {
 	return route.Remove()
 }
-
