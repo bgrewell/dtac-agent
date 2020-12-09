@@ -4,9 +4,10 @@ package network
 
 import (
 	"fmt"
-	"github.com/BGrewell/go-conversions"
 	"strings"
 	"time"
+	"github.com/BGrewell/go-execute"
+	"github.com/BGrewell/go-conversions"
 )
 
 var (
@@ -15,7 +16,7 @@ var (
 
 func GetInterfaceStats(name string) (stats *InterfaceStats, err error) {
 	cmds := []string{fmt.Sprintf("ip -s link show %s", name), "sed -n -e 4p -e 6p"}
-	output, err := ExecutePipedCmds(cmds)
+	output, err := execute.ExecutePipedCmds(cmds)
 	if err != nil {
 		return nil, err
 	}

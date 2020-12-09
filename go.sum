@@ -5,6 +5,8 @@ github.com/BGrewell/go-conversions v0.0.0-20201208211600-3ac175aebb64 h1:8wkWvvE
 github.com/BGrewell/go-conversions v0.0.0-20201208211600-3ac175aebb64/go.mod h1:XtXcz/MP04vhr6c6R/5gZPJZVQpbXlFsKTHr5yy/5sU=
 github.com/BGrewell/go-conversions v0.0.0-20201208222221-82181d5fd43a h1:Mhxb5DPCHIYlCpYitT4V1Oe8HxZltqcvd6HjqvmpRw8=
 github.com/BGrewell/go-conversions v0.0.0-20201208222221-82181d5fd43a/go.mod h1:XtXcz/MP04vhr6c6R/5gZPJZVQpbXlFsKTHr5yy/5sU=
+github.com/BGrewell/go-conversions v0.0.0-20201209022520-4bea413ce41c h1:t32T8CE9gbD5ZcdzagPntjND5AMiwi6oC+tyHtks9oY=
+github.com/BGrewell/go-conversions v0.0.0-20201209022520-4bea413ce41c/go.mod h1:XtXcz/MP04vhr6c6R/5gZPJZVQpbXlFsKTHr5yy/5sU=
 github.com/BGrewell/go-execute v0.0.0-20201203155726-b7c037ebde49 h1:HV+WdlqXjmzP59lhgb100vTSIcDuKuLmK11KdnPY0cg=
 github.com/BGrewell/go-execute v0.0.0-20201203155726-b7c037ebde49/go.mod h1:vQZr3vuuuKuknvi74K22ne7NzOlwKTPKXOFMVr9Qa6A=
 github.com/BGrewell/go-netqospolicy v0.0.0-20201207170710-eb97b3455d4f h1:KY+V1Q5fzS2OvQDpJ4uUb+txvgrRKiXZBUrubN1sGsY=
