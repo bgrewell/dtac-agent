@@ -9,15 +9,17 @@ import (
 )
 
 func GetNetQosPolicies(c *gin.Context) {
+	start := time.Now()
 	policies, err := network.GetNetQosPolicies()
 	if err != nil {
 		WriteErrorResponseJSON(c, err)
 		return
 	}
-	WriteResponseJSON(c, policies)
+	WriteResponseJSON(c, time.Since(start), policies)
 }
 
 func GetNetQosPolicy(c *gin.Context) {
+	start := time.Now()
 	name := c.Param("name")
 	if name != "" {
 		policy, err := network.GetNetQosPolicy(name)
@@ -25,7 +27,7 @@ func GetNetQosPolicy(c *gin.Context) {
 			WriteErrorResponseJSON(c, err)
 			return
 		}
-		WriteResponseJSON(c, policy)
+		WriteResponseJSON(c, time.Since(start), policy)
 	} else {
 		WriteErrorResponseJSON(c, fmt.Errorf("error retrieving name"))
 		return
@@ -33,6 +35,7 @@ func GetNetQosPolicy(c *gin.Context) {
 }
 
 func UpdateNetQosPolicy(c *gin.Context) {
+	start := time.Now()
 	var input *netqospolicy.NetQoSPolicy
 	if err := c.ShouldBindJSON(&input); err != nil {
 		WriteErrorResponseJSON(c, err)
@@ -47,10 +50,11 @@ func UpdateNetQosPolicy(c *gin.Context) {
 		WriteErrorResponseJSON(c, fmt.Errorf("policy may not have been updated. failed to retreive newly created policy: %v", err))
 		return
 	}
-	WriteResponseJSON(c, output)
+	WriteResponseJSON(c, time.Since(start), output)
 }
 
 func CreateNetQosPolicy(c *gin.Context) {
+	start := time.Now()
 	var input *netqospolicy.NetQoSPolicy
 	if err := c.ShouldBindJSON(&input); err != nil {
 		WriteErrorResponseJSON(c, err)
@@ -64,20 +68,22 @@ func CreateNetQosPolicy(c *gin.Context) {
 	if err != nil {
 		WriteErrorResponseJSON(c, fmt.Errorf("policy may not have been created. failed to retreive newly created policy: %v", err))
 	}
-	WriteResponseJSON(c, output)
+	WriteResponseJSON(c, time.Since(start), output)
 }
 
 func DeleteNetQosPolicies(c *gin.Context) {
+	start := time.Now()
 	var policies []*netqospolicy.NetQoSPolicy
 	policies, _ = network.GetNetQosPolicies()
 	if err := network.DeleteNetQosPolicies(); err != nil {
 		WriteErrorResponseJSON(c, fmt.Errorf("failed to delete policies: %v", err))
 		return
 	}
-	WriteResponseJSON(c, policies)
+	WriteResponseJSON(c, time.Since(start), policies)
 }
 
 func DeleteNetQosPolicy(c *gin.Context) {
+	start := time.Now()
 	name := c.Param("name")
 	if name != "" {
 		var policy *netqospolicy.NetQoSPolicy
@@ -86,7 +92,7 @@ func DeleteNetQosPolicy(c *gin.Context) {
 			WriteErrorResponseJSON(c, fmt.Errorf("failed to delete policy: %v", err))
 			return
 		}
-		WriteResponseJSON(c, policy)
+		WriteResponseJSON(c, time.Since(start), policy)
 	} else {
 		WriteErrorResponseJSON(c, fmt.Errorf("error retrieving name"))
 		return
