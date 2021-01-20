@@ -2,11 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9298405f-af3f-4ccc-af92-9aab41e4122b" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/common/web.go" beforeDir="false" afterPath="$PROJECT_DIR$/common/web.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/handlers/general.go" beforeDir="false" afterPath="$PROJECT_DIR$/handlers/general.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/handlers/network.go" beforeDir="false" afterPath="$PROJECT_DIR$/handlers/network.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/handlers/os_windows.go" beforeDir="false" afterPath="$PROJECT_DIR$/handlers/os_windows.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/network/interfaces_linux.go" beforeDir="false" afterPath="$PROJECT_DIR$/network/interfaces_linux.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/network/routing_darwin.go" beforeDir="false" afterPath="$PROJECT_DIR$/network/routing_darwin.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/network/routing_linux.go" beforeDir="false" afterPath="$PROJECT_DIR$/network/routing_linux.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/network/stack_windows.go" beforeDir="false" afterPath="$PROJECT_DIR$/network/stack_windows.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

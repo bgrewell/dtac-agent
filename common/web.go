@@ -10,18 +10,18 @@ import (
 )
 
 type OKResponse struct {
-	Time   string      `json:"time"'`
-	Status string      `json:"status"`
-	Elapsed string `json:"elapsed_time"`
-	Output interface{} `json:"output"`
+	Time    string      `json:"time"'`
+	Status  string      `json:"status"`
+	Elapsed string      `json:"elapsed_time"`
+	Output  interface{} `json:"output"`
 }
 
 func WriteResponseJSON(c *gin.Context, duration time.Duration, obj interface{}) {
 	response := OKResponse{
-		Time:   time.Now().Format(time.RFC3339Nano),
-		Status: "success",
+		Time:    time.Now().Format(time.RFC3339Nano),
+		Status:  "success",
 		Elapsed: fmt.Sprintf("%s", duration),
-		Output: obj,
+		Output:  obj,
 	}
 	jout, err := json.Marshal(response)
 	if err != nil {

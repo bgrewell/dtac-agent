@@ -16,7 +16,7 @@ var (
 	logger service.Logger
 )
 
-type program struct{
+type program struct {
 	exit chan struct{}
 }
 
@@ -53,7 +53,7 @@ func (p *program) run() {
 
 	log.Println("system-api server is running http://localhost:8080")
 	srv := &http.Server{
-		Addr: ":8080",
+		Addr:    ":8080",
 		Handler: r,
 	}
 	// Run in a goroutine so that it won't block the graceful shutdown handling
@@ -84,7 +84,7 @@ func main() {
 	options["Restart"] = "on-success"
 	options["SuccessExitStatus"] = "1 2 8 SKIGKILL"
 	svcConfig := &service.Config{
-		Name: "system-api.service",
+		Name:        "system-api.service",
 		DisplayName: "System-API Service",
 		Description: "System-API provides access to many system details via REST endpoints",
 		Dependencies: []string{
