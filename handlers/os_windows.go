@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetNetQosPolicies(c *gin.Context) {
+func GetNetQosPoliciesHandler(c *gin.Context) {
 	start := time.Now()
 	policies, err := network.GetNetQosPolicies()
 	if err != nil {
@@ -18,7 +18,7 @@ func GetNetQosPolicies(c *gin.Context) {
 	WriteResponseJSON(c, time.Since(start), policies)
 }
 
-func GetNetQosPolicy(c *gin.Context) {
+func GetNetQosPolicyHandler(c *gin.Context) {
 	start := time.Now()
 	name := c.Param("name")
 	if name != "" {
@@ -34,7 +34,7 @@ func GetNetQosPolicy(c *gin.Context) {
 	}
 }
 
-func UpdateNetQosPolicy(c *gin.Context) {
+func UpdateNetQosPolicyHandler(c *gin.Context) {
 	start := time.Now()
 	var input *netqospolicy.NetQoSPolicy
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -53,7 +53,7 @@ func UpdateNetQosPolicy(c *gin.Context) {
 	WriteResponseJSON(c, time.Since(start), output)
 }
 
-func CreateNetQosPolicy(c *gin.Context) {
+func CreateNetQosPolicyHandler(c *gin.Context) {
 	start := time.Now()
 	var input *netqospolicy.NetQoSPolicy
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -71,7 +71,7 @@ func CreateNetQosPolicy(c *gin.Context) {
 	WriteResponseJSON(c, time.Since(start), output)
 }
 
-func DeleteNetQosPolicies(c *gin.Context) {
+func DeleteNetQosPoliciesHandler(c *gin.Context) {
 	start := time.Now()
 	var policies []*netqospolicy.NetQoSPolicy
 	policies, _ = network.GetNetQosPolicies()
@@ -82,7 +82,7 @@ func DeleteNetQosPolicies(c *gin.Context) {
 	WriteResponseJSON(c, time.Since(start), policies)
 }
 
-func DeleteNetQosPolicy(c *gin.Context) {
+func DeleteNetQosPolicyHandler(c *gin.Context) {
 	start := time.Now()
 	name := c.Param("name")
 	if name != "" {
