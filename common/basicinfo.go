@@ -23,7 +23,7 @@ type RouteInfoParser struct {
 }
 
 type RoutesInfoParser struct {
-	Routes []*RouteInfoParser
+	Routes []*RouteInfoParser `json:"routes"`
 }
 
 func (bi *BasicInfo) Update() {

@@ -6,27 +6,31 @@ import (
 	"github.com/BGrewell/system-api/network"
 	"github.com/gin-gonic/gin"
 	"strconv"
+	"time"
 )
 
 func GetInterfacesHandler(c *gin.Context) {
+	start := time.Now()
 	ifaces, err := network.GetInterfaces()
 	if err != nil {
 		WriteErrorResponseJSON(c, err)
 		return
 	}
-	WriteResponseJSON(c, ifaces)
+	WriteResponseJSON(c, time.Since(start), ifaces)
 }
 
 func GetInterfaceNamesHandler(c *gin.Context) {
+	start := time.Now()
 	names, err := network.GetInterfaceNames()
 	if err != nil {
 		WriteErrorResponseJSON(c, err)
 		return
 	}
-	WriteResponseJSON(c, names)
+	WriteResponseJSON(c, time.Since(start), names)
 }
 
 func GetInterfaceByNameHandler(c *gin.Context) {
+	start := time.Now()
 	name := c.Param("name")
 	if name != "" {
 		var iface *network.Interface
@@ -40,13 +44,14 @@ func GetInterfaceByNameHandler(c *gin.Context) {
 			WriteErrorResponseJSON(c, err)
 			return
 		}
-		WriteResponseJSON(c, iface)
+		WriteResponseJSON(c, time.Since(start), iface)
 	} else {
 		WriteErrorResponseJSON(c, fmt.Errorf("error retrieving name"))
 	}
 }
 
 func GetInterfaceByIdxHandler(c *gin.Context) {
+	start := time.Now()
 	id := c.Param("id")
 	if id != "" {
 		iface, err := network.GetInterfaceByIdx(id)
@@ -54,22 +59,24 @@ func GetInterfaceByIdxHandler(c *gin.Context) {
 			WriteErrorResponseJSON(c, err)
 			return
 		}
-		WriteResponseJSON(c, iface)
+		WriteResponseJSON(c, time.Since(start), iface)
 	} else {
 		WriteErrorResponseJSON(c, fmt.Errorf("error retrieving id"))
 	}
 }
 
 func GetRoutesHandler(c *gin.Context) {
+	start := time.Now()
 	routes, err := network.GetRouteTable()
 	if err != nil {
 		WriteErrorResponseJSON(c, err)
 		return
 	}
-	WriteResponseJSON(c, routes)
+	WriteResponseJSON(c, time.Since(start), routes)
 }
 
 func CreateRouteHandler(c *gin.Context) {
+	start := time.Now()
 	var input *network.RouteTableRow
 	if err := c.ShouldBindJSON(&input); err != nil {
 		WriteErrorResponseJSON(c, err)
@@ -83,10 +90,11 @@ func CreateRouteHandler(c *gin.Context) {
 	if err != nil {
 		WriteErrorResponseJSON(c, fmt.Errorf("route may not have been created. failed to retreive route table: %v", err))
 	}
-	WriteResponseJSON(c, output)
+	WriteResponseJSON(c, time.Since(start), output)
 }
 
 func UpdateRouteHandler(c *gin.Context) {
+	start := time.Now()
 	var input *network.RouteTableRow
 	if err := c.ShouldBindJSON(&input); err != nil {
 		WriteErrorResponseJSON(c, err)
@@ -100,10 +108,11 @@ func UpdateRouteHandler(c *gin.Context) {
 	if err != nil {
 		WriteErrorResponseJSON(c, fmt.Errorf("route may not have been updated. failed to retreive route table: %v", err))
 	}
-	WriteResponseJSON(c, output)
+	WriteResponseJSON(c, time.Since(start), output)
 }
 
 func DeleteRouteHandler(c *gin.Context) {
+	start := time.Now()
 	var input *network.RouteTableRow
 	if err := c.ShouldBindJSON(&input); err != nil {
 		WriteErrorResponseJSON(c, err)
@@ -117,5 +126,5 @@ func DeleteRouteHandler(c *gin.Context) {
 	if err != nil {
 		WriteErrorResponseJSON(c, fmt.Errorf("route may not have been deleted. failed to retreive route table: %v", err))
 	}
-	WriteResponseJSON(c, output)
+	WriteResponseJSON(c, time.Since(start), output)
 }

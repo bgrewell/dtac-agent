@@ -16,3 +16,6 @@
 
 # Database directory
 db/
+
+# bin directory
+bin/

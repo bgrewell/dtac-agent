@@ -27,6 +27,7 @@ func SecretTestHandler(c *gin.Context) {
 
 func HomeHandler(c *gin.Context) {
 	// Update Routes
+	start := time.Now()
 	Info.UpdateRoutes(Routes)
-	WriteResponseJSON(c, Info)
+	WriteResponseJSON(c, time.Since(start), Info)
 }

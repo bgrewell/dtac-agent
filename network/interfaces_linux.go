@@ -4,10 +4,10 @@ package network
 
 import (
 	"fmt"
+	"github.com/BGrewell/go-conversions"
+	"github.com/BGrewell/go-execute"
 	"strings"
 	"time"
-	"github.com/BGrewell/go-execute"
-	"github.com/BGrewell/go-conversions"
 )
 
 var (

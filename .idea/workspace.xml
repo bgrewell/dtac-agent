@@ -18,8 +18,17 @@
       </list>
     </option>
   </component>
+<<<<<<< HEAD
   <component name="GOROOT" path="/usr/local/go" />
+=======
+  <component name="GOROOT" url="file:///usr/local/go" />
+>>>>>>> feature-service_wrapper
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="ROOT_SYNC" value="DONT_SYNC" />
   </component>
@@ -85,6 +94,7 @@
   <component name="VgoProject">
     <integration-enabled>true</integration-enabled>
   </component>
+<<<<<<< HEAD
   <component name="WindowStateProjectService">
     <state x="651" y="638" key="#GOROOT" timestamp="1605191601479">
       <screen x="0" y="27" width="3440" height="1356" />
@@ -160,4 +170,6 @@
     </state>
     <state width="855" height="678" key="XDebugger.FullValuePopup/0.27.3440.1356@0.27.3440.1356" timestamp="1605201586913" />
   </component>
+=======
+>>>>>>> feature-service_wrapper
 </project>
