@@ -6,6 +6,7 @@ require (
 	github.com/BGrewell/go-conversions v0.0.0-20201209195015-9410edf1c8c9
 	github.com/BGrewell/go-execute v0.0.0-20201203155726-b7c037ebde49
 	github.com/BGrewell/go-netqospolicy v0.0.0-20201207170710-eb97b3455d4f
+	github.com/BGrewell/iptables v0.0.0-20201214220734-da54185fc435
 	github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d // indirect
 	github.com/boltdb/bolt v1.3.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -13,6 +14,7 @@ require (
 	github.com/go-ole/go-ole v1.2.4 // indirect
 	github.com/go-playground/validator/v10 v10.4.1 // indirect
 	github.com/golang/protobuf v1.4.3 // indirect
+	github.com/google/uuid v1.2.0
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/kardianos/service v1.2.0
 	github.com/kr/pretty v0.1.0 // indirect
