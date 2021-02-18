@@ -9,10 +9,10 @@ import (
 
 func AddOSSpecificHandlers(r *gin.Engine) {
 	// NetQosPolicy Routes
-	r.GET("/network/qos/policies", handlers.GetNetQosPolicies)         //Return all NetQosPolicy objects
-	r.GET("/network/qos/policy/:name", handlers.GetNetQosPolicy)       //Return named NetQosPolicy object
-	r.PUT("/network/qos/policy/:name", handlers.UpdateNetQosPolicy)    //Update a NetQosPolicy object
-	r.POST("/network/qos/policy", handlers.CreateNetQosPolicy)         //Create a new NetQosPolicy object
-	r.DELETE("/network/qos/policy/:name", handlers.DeleteNetQosPolicy) //Remove a NetQosPolicy object
-	r.DELETE("/network/qos/policies", handlers.DeleteNetQosPolicies)   //Remove all NetQosPolicy objects
+	r.GET("/network/qos/policies", handlers.GetNetQosPoliciesHandler)         //Return all NetQosPolicy objects
+	r.GET("/network/qos/policy/:name", handlers.GetNetQosPolicyHandler)       //Return named NetQosPolicy object
+	r.PUT("/network/qos/policy/:name", handlers.UpdateNetQosPolicyHandler)    //Update a NetQosPolicy object
+	r.POST("/network/qos/policy", handlers.CreateNetQosPolicyHandler)         //Create a new NetQosPolicy object
+	r.DELETE("/network/qos/policy/:name", handlers.DeleteNetQosPolicyHandler) //Remove a NetQosPolicy object
+	r.DELETE("/network/qos/policies", handlers.DeleteNetQosPoliciesHandler)   //Remove all NetQosPolicy objects
 }

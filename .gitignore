@@ -19,3 +19,4 @@ db/
 
 # bin directory
 bin/
+dist/
