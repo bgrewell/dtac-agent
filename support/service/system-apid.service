@@ -1,0 +1,20 @@
+[Unit]
+Description=Systemapi Service Daemon
+ConditionPathExists=/opt/system-api/bin/system-apid
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+Restart=on-failure
+RestartSec=10
+StartLimitInterval=60
+WorkingDirectory=/opt/system-api/bin
+ExecStart=/opt/system-api/bin/system-apid
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=system-apid
+
+[Install]
+WantedBy=multi-user.target

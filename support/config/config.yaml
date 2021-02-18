@@ -1,0 +1,37 @@
+listen_port: 8080
+
+https: true
+# cert_file: /certs/tls.crt
+# key_file: /certs/tls.key
+
+custom:
+  - passwd:
+      wrap_json: no
+      source:
+        type: file
+        value: "/etc/passwd"
+      methods: ["GET"]
+      access: open
+      blocking:
+        trigger: change
+        detect: hash
+        timeout_ms: 10000
+
+  - test:
+      wrap_json: no
+      source:
+        type: file
+        value: "/tmp/test.txt"
+      methods: ["GET"]
+      access: open
+      blocking:
+        trigger: change
+        detect: hash
+        timeout_ms: 10000
+
+  - date:
+      wrap_json: yes
+      source:
+        type: cmd
+        value: date
+      methods: ["GET"]

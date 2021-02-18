@@ -2,8 +2,8 @@ package network
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	"github.com/BGrewell/iptables"
+	"github.com/google/uuid"
 )
 
 var (

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"github.com/BGrewell/system-api/configuration"
 	"github.com/BGrewell/system-api/handlers"
 	"github.com/BGrewell/system-api/httprouting"
 	"github.com/gin-gonic/gin"
@@ -47,6 +48,15 @@ func (p *program) run() {
 
 	// OS Specific Routes
 	httprouting.AddOSSpecificHandlers(r)
+
+	// Custom Configuration Routes
+	c, err := configuration.Load("support/config/config.yaml")
+	if err != nil {
+		logger.Errorf("failed to load configuration file: %v", err)
+	} else {
+		httprouting.AddCustomHandlers(c, r)
+	}
+
 
 	// Before starting update the handlers Routes var
 	handlers.Routes = r.Routes()
