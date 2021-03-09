@@ -1,6 +1,6 @@
 // +build darwin
 
-package os_darwin
+package httprouting
 
 import "github.com/gin-gonic/gin"
 
