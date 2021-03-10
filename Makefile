@@ -44,6 +44,14 @@ deploy: build
 		ssh intel@$(HOST) -C 'sudo systemctl daemon-reload'
 		ssh intel@$(HOST) -C 'sudo systemctl start system-apid'
 
+deploy-local: build
+		sudo systemctl stop system-apid || true
+		sudo mkdir -p /opt/system-api/bin || true
+		sudo cp bin/system-apid /opt/system-api/bin/.
+		sudo cp support/service/system-apid.service /lib/systemd/system/.
+		sudo systemctl daemon-reload
+		sudo systemctl start system-apid
+
 tag:
 		go get github.com/fatih/gomodifytags
 		gomodifytags -file $(FILE) -all -add-tags $(TAGS) -w
