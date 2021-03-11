@@ -115,3 +115,13 @@ This endpoint provides details about the named network interface.
 - addresses
 - multicast addresses
 - statistics
+
+### QOS Policies
+
+`/network/qos/policies`
+
+**Support:** `Windows`
+
+**Method:** `GET`
+
+This endpoint is used to get Windows based network QoS policies also known as `NetQoSPolicies`
