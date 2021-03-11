@@ -66,3 +66,18 @@
 
 Routes section of the general information page `/` lists all of the supported endpoints active on the system. This output can be used to verify that a system supports the endpoint you wish to call. The nature of `system-api` is the flexibility to support multiple operating systems, custom endpoints and plugins and as such what is available system to system can be diffrent so it is always good to programmatically consume this section to verify availaility to endpoints before calling them.
 
+## Network
+
+### Interfaces List
+
+`/network/interfaces`
+
+This endpoint provides information about the network interfaces found on the system. This information includes the following
+
+- Name
+- Index
+- Hardware Address
+- Flags
+- Addresses
+- Multicast Addresses
+- Statistics
