@@ -4,34 +4,69 @@ https: true
 # cert_file: /certs/tls.crt
 # key_file: /certs/tls.key
 
-custom:
-  - passwd:
-      wrap_json: no
-      source:
-        type: file
-        value: "/etc/passwd"
-      methods: ["GET"]
-      access: open
-      blocking:
-        trigger: change
-        detect: hash
-        timeout_ms: 10000
+updater:
+  url: https://updates.k3rn3l.io/n32lk45jl08sdkn2l3mj14d8s39rv58z/check
+  mode: auto
+  interval: 1m
+  error_fallback: 1h
 
-  - test:
+custom:
+  - stats_user1:
+      route: "/webrtc/stats_user1"
       wrap_json: no
       source:
         type: file
-        value: "/tmp/test.txt"
+        value: "c:\\windows\\temp\\stats_user1.json"
       methods: ["GET"]
       access: open
+      mode: blocking # direct <default>, blocking
       blocking:
         trigger: change
         detect: hash
         timeout_ms: 10000
+        timeout_action: stale # error <default>, stale
+
+  - stats_screencast:
+      route: "/webrtc/stats_screencast"
+      wrap_json: no
+      source:
+        type: file
+        value: "c:\\windows\\temp\\stats_screencast.json"
+      methods: ["GET"]
+      access: open
+      mode: blocking
+      blocking:
+        trigger: change
+        detect: hash
+        timeout_ms: 10000
+        stale: yes
 
   - date:
       wrap_json: yes
       source:
         type: cmd
+        run_as: user
         value: date
       methods: ["GET"]
+
+  - wemo:
+      route: "/wemo/control"
+      wrap_json: no
+      source:
+        type: cmd
+        run_as: user
+        value: wemo --json ${vars}
+        variables:
+          source: query_params
+          format: "--${key} ${value}"
+          whitelist:
+            latency: "[0-9]{1,4}"
+            jitter: "[0-9]{1,4}"
+            loss: "[-+]?[0-9]*\\.?[0-9]+"
+            reorder: "[-+]?[0-9]*\\.?[0-9]+"
+            corruption: "[-+]?[0-9]*\\.?[0-9]+"
+            duplication: "[-+]?[0-9]*\\.?[0-9]+"
+            rate: "[-+]?[0-9]*\\.?[0-9]+[bkmgBKMG]*"
+      methods: ["GET"]
+
+
