@@ -2,6 +2,12 @@
 
 ## Basic Info
 
+`/`
+
+**Support:** `Windows` and `Linux`
+
+The home page provides some basic information about the system. The type of information to expect is shown below. While much of this is available in both `Windows` and `Linux` there are some diffrences in the type of information that can be found so when leveraging this information on both types of systems ensure that the fields you are using are available and populated on both systems.
+
 ### Host
 
 - hostname
@@ -18,40 +24,40 @@
 
 ### CPU
 
- - cpu_num
- - vendor_id
- - family
- - model
- - stepping
- - physical_id
- - core_id
- - core_count
- - model_name
- - speed
- - cache
- - flags
- - microcode
+- cpu_num
+- vendor_id
+- family
+- model
+- stepping
+- physical_id
+- core_id
+- core_count
+- model_name
+- speed
+- cache
+- flags
+- microcode
  
  ### Memory
  
- - total
- - available
- - used
- - used_percent
- - free
- - active
- - inactive
- - wired
- - laundry
- - buffers
- - cached
- - writeback
- - dirty
- - shared
- - slab
- - huge_pages_total
- - huge_pages_free
- - huge_pages_size
+- total
+- available
+- used
+- used_percent
+- free
+- active
+- inactive
+- wired
+- laundry
+- buffers
+- cached
+- writeback
+- dirty
+- shared
+- slab
+- huge_pages_total
+- huge_pages_free
+- huge_pages_size
 
 ### Network
 
@@ -72,12 +78,40 @@ Routes section of the general information page `/` lists all of the supported en
 
 `/network/interfaces`
 
+**Support:** `Windows` and `Linux`
+
 This endpoint provides information about the network interfaces found on the system. This information includes the following
 
-- Name
-- Index
-- Hardware Address
-- Flags
-- Addresses
-- Multicast Addresses
-- Statistics
+- name
+- index
+- hardware address
+- flags
+- addresses
+- multicast addresses
+- statistics
+
+### Interface Names
+
+`/network/interfaces/names`
+
+**Support:** `Windows` and `Linux`
+
+This endpoint provides a list of names of the interfaces on the system.
+
+- interface name list
+
+### Interface Details
+
+`/network/interface/<name>`
+
+**Support:** `Windows` and `Linux`
+
+This endpoint provides details about the named network interface.
+
+- name
+- index
+- hardware address
+- flags
+- addresses
+- multicast addresses
+- statistics
