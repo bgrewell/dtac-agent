@@ -18,10 +18,10 @@ var (
 )
 
 type CustomHandlerSettings struct {
-	Value string
-	Type string
-	Settings *configuration.BlockingEntry
-	LastHash string
+	Value      string
+	Type       string
+	Settings   *configuration.BlockingEntry
+	LastHash   string
 	LastAccess string
 }
 
@@ -34,7 +34,7 @@ func AddCustomHandlers(c *configuration.Config, r *gin.Engine) {
 				Type:     value.Source.Type,
 				Settings: value.Blocking,
 			}
-			switch (value.Source.Type) {
+			switch value.Source.Type {
 			case "file":
 				r.GET(fmt.Sprintf("/custom/%s", value.Name), CustomFileHandler)
 			case "net":
@@ -85,12 +85,12 @@ func CustomFileHandler(c *gin.Context) {
 
 		// If they didn't then setup a fsnotify watcher to watch for the file to change and if it does then check again
 		select {
-		case <- watcher.Events:
+		case <-watcher.Events:
 			// if the event fires break out of the select and the for loop will check for file changes
 			break
 		case err := <-watcher.Errors:
 			log.Printf("fsnotify error: %v", err)
-		case <- time.After(time.Duration(entry.Settings.TimeoutMs) * time.Millisecond):
+		case <-time.After(time.Duration(entry.Settings.TimeoutMs) * time.Millisecond):
 			break
 		}
 

@@ -59,8 +59,11 @@ tag:
 
 package: build
 		[ -d update ] || mkdir update
-		copy bin/$(BINARY_NAME) update/.
-		copy bin/$(BINARY_NAME).exe update/.
-		copy support/config/config.yaml update/.
-		copy support/service/system-apid.service update/.
-		tar -czvf system-api_date.tar.gz update/
+		[ -d package ] || mkdir package
+		rm -rf update/*
+		cp bin/$(BINARY_NAME) update/.
+		cp bin/$(BINARY_NAME).exe update/.
+		cp support/config/config.yaml update/.
+		cp support/service/system-apid.service update/.
+		tar -czvf package/system-api_$$(date +"%Y.%m.%d_%H%M%S").tar.gz update/
+		rm -rf update

@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	iperfClients map[string]*iperf.Client
-	iperfServers map[string]*iperf.Server
+	iperfClients     map[string]*iperf.Client
+	iperfServers     map[string]*iperf.Server
 	iperfLiveResults map[string]<-chan *iperf.StreamIntervalReport
 )
 
@@ -39,7 +39,7 @@ func GetIperfClientTestLiveHandler(c *gin.Context) {
 			case report := <-val:
 				c.SSEvent("report", report)
 				return true
-			case <- time.After(time.Duration(cli.Interval()) * time.Second + (100 * time.Millisecond)):
+			case <-time.After(time.Duration(cli.Interval())*time.Second + (100 * time.Millisecond)):
 				return false
 			}
 		})

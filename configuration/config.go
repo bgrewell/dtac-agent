@@ -17,19 +17,19 @@ type BlockingEntry struct {
 }
 
 type CustomEntry struct {
-	Name     string        `json:"name" yaml:"name" xml:"name"`
+	Name     string         `json:"name" yaml:"name" xml:"name"`
 	Source   *SourceEntry   `json:"source" yaml:"source" xml:"source"`
-	Methods  []string      `json:"methods" yaml:"methods" xml:"methods"`
-	Access   string        `json:"access" yaml:"access" xml:"access"`
+	Methods  []string       `json:"methods" yaml:"methods" xml:"methods"`
+	Access   string         `json:"access" yaml:"access" xml:"access"`
 	Blocking *BlockingEntry `json:"blocking" yaml:"blocking" xml:"blocking"`
-	WrapJson bool          `json:"wrap_json" yaml:"wrap_json" xml:"wrap_json"`
+	WrapJson bool           `json:"wrap_json" yaml:"wrap_json" xml:"wrap_json"`
 }
 
 type Config struct {
-	ListenPort int                    `json:"listen_port" yaml:"listen_port" xml:"listen_port"`
-	HTTPS      bool                   `json:"https" yaml:"https" xml:"https"`
-	CertFile   string                 `json:"cert_file" yaml:"cert_file" xml:"cert_file"`
-	KeyFile    string                 `json:"key_file" yaml:"key_file" xml:"key_file"`
+	ListenPort int                       `json:"listen_port" yaml:"listen_port" xml:"listen_port"`
+	HTTPS      bool                      `json:"https" yaml:"https" xml:"https"`
+	CertFile   string                    `json:"cert_file" yaml:"cert_file" xml:"cert_file"`
+	KeyFile    string                    `json:"key_file" yaml:"key_file" xml:"key_file"`
 	Custom     []map[string]*CustomEntry `json:"custom" yaml:"custom" xml:"custom"`
 }
 

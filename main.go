@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"flag"
+	"github.com/BGrewell/go-update"
+	"github.com/BGrewell/go-update/progress"
+	"github.com/BGrewell/go-update/stores/github"
 	"github.com/BGrewell/system-api/configuration"
 	"github.com/BGrewell/system-api/handlers"
 	"github.com/BGrewell/system-api/httprouting"
@@ -10,6 +13,7 @@ import (
 	"github.com/kardianos/service"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"runtime"
 	"time"
 )
 
@@ -57,7 +61,6 @@ func (p *program) run() {
 		httprouting.AddCustomHandlers(c, r)
 	}
 
-
 	// Before starting update the handlers Routes var
 	handlers.Routes = r.Routes()
 
@@ -85,7 +88,62 @@ func (p *program) run() {
 	logger.Info("server has exited")
 }
 
+func checkForUpdates() {
+
+	token := "7888124ef00163d6bddc618bcc627b1a4c0d0564"
+	binaryName := "system-apid"
+	if runtime.GOOS == "windows" {
+		binaryName = "system-apid.exe"
+	}
+
+	m := &update.Manager{
+		Command: binaryName,
+		Store: &github.Store{
+			Owner:   "BGrewell",
+			Repo:    "system-api",
+			Version: "",
+			Token: &token,
+		},
+	}
+
+	releases, err := m.LatestReleases()
+	if err != nil {
+		log.Infof("error getting releases: %s\n", err)
+		return
+	}
+
+	if len(releases) == 0 {
+		log.Info("no updates available")
+		return
+	}
+
+	latest := releases[0]
+
+	archive := latest.FindTarball(runtime.GOOS, runtime.GOARCH)
+	if archive == nil {
+		log.Info("unable to find binary for this system")
+		return
+	}
+
+	tarball, err := archive.DownloadProxy(progress.Reader)
+	if err != nil {
+		log.Infof("failed to download update: %s\n", err)
+		return
+	}
+
+	if err := m.Install(tarball); err != nil {
+		log.Infof("failed to install update: %s\n", err)
+		return
+	}
+
+	log.Infof("updated to version %s\n", latest.Version)
+}
+
 func main() {
+
+	log.Println("checking for updates")
+	checkForUpdates()
+	log.Println("finished checking for updates")
 
 	svcFlag := flag.String("service", "", "control the service")
 	flag.Parse()
