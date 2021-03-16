@@ -20,3 +20,4 @@ db/
 # bin directory
 bin/
 dist/
+update/

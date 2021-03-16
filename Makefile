@@ -12,7 +12,8 @@ all: build
 build:	deps
 		export GO111MODULE=on
 		[ -d bin ] || mkdir bin
-		$(GOBUILD) -ldflags "$(LD_FLAGS)" -o bin/$(BINARY_NAME) -v .
+		GOOS=linux $(GOBUILD) -ldflags "$(LD_FLAGS)" -o bin/$(BINARY_NAME) -v .
+		GOOS=windows $(GOBUILD) -ldflags "$(LD_FLAGS)" -o bin/$(BINARY_NAME).exe -v .
 
 test:
 		$(GOTEST) -v ./...
@@ -55,3 +56,11 @@ deploy-local: build
 tag:
 		go get github.com/fatih/gomodifytags
 		gomodifytags -file $(FILE) -all -add-tags $(TAGS) -w
+
+package: build
+		[ -d update ] || mkdir update
+		copy bin/$(BINARY_NAME) update/.
+		copy bin/$(BINARY_NAME).exe update/.
+		copy support/config/config.yaml update/.
+		copy support/service/system-apid.service update/.
+		tar -czvf system-api_date.tar.gz update/

@@ -1,0 +1,19 @@
+# STOP = Stop Service
+# START = Start Service
+# KILL = Kill Process
+# EXEC = Execute Process
+# NOHUP = Execute Process with no hang up
+# COPY = Copy File
+# MERGE = Merge missing fields into yaml file but don't change existing values
+
+windows:
+  STOP system-apid
+  COPY system-apid.exe c:\program files\system-api\system-apid.exe
+  MERGE config.yaml c:\program files\system-api\config.yaml
+  START system-apid
+
+linux:
+  STOP system-apid
+  COPY system-api /opt/system-api/bin/system-apid
+  MERGE config.yaml /etc/system-api/config.yaml
+  START system-apid
