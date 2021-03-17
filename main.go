@@ -141,7 +141,7 @@ func checkForUpdates() {
 
 		log.Infof("updated to version %s\n", latest.Version)
 	} else {
-		log.Info("local version is newer than online version")
+		log.Info("local version is the latest version")
 	}
 
 }
