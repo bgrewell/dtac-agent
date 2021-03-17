@@ -12,14 +12,15 @@ import (
 	"github.com/kardianos/service"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"os"
 	"runtime"
 	"time"
 )
 
 var (
-	date string
-	rev string
-	branch string
+	date = time.Now().Format("2006-01-02 15:04:05")
+	rev = "DEBUG"
+	branch = "DEBUG"
 	version = "DEBUG"
 	logger service.Logger
 )
@@ -94,10 +95,7 @@ func (p *program) run() {
 func checkForUpdates() {
 
 	token := "7888124ef00163d6bddc618bcc627b1a4c0d0564"
-	binaryName := "/opt/system-api/bin/system-apid"
-	if runtime.GOOS == "windows" {
-		binaryName = "c:\\program files\\system-api\\system-apid.exe"
-	}
+	binaryName, _ := os.Executable()
 
 	m := &update.Manager{
 		Command: binaryName,
@@ -150,8 +148,10 @@ func checkForUpdates() {
 
 func main() {
 
-	log.Printf("Date: %s\nRev: %s\nBranch: %s\nVersion: %s\n", date, rev, branch, version)
-
+	log.Printf("Date: %s\n", date)
+	log.Printf("Rev: %s\n", rev)
+	log.Printf("Branch: %s\n", branch)
+	log.Printf("Version: %s\n", version)
 	log.Println("checking for updates")
 	checkForUpdates()
 
