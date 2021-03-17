@@ -7,7 +7,7 @@ require (
 	github.com/BGrewell/go-execute v0.0.0-20201203155726-b7c037ebde49
 	github.com/BGrewell/go-iperf v0.0.0-20210311171621-1dd7340d4bbe
 	github.com/BGrewell/go-netqospolicy v0.0.0-20201207170710-eb97b3455d4f
-	github.com/BGrewell/go-update v0.0.0-20210316194111-d9b4ab9d3a0e
+	github.com/BGrewell/go-update v0.0.0-20210317195128-dfe40a6eb7e9
 	github.com/BGrewell/iptables v0.0.0-20201214220734-da54185fc435
 	github.com/StackExchange/wmi v0.0.0-20210224194228-fe8f1750fd46 // indirect
 	github.com/apex/log v1.9.0 // indirect
@@ -30,7 +30,9 @@ require (
 	github.com/hooklift/assert v0.1.0 // indirect
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/kardianos/service v1.2.0
+	github.com/kierdavis/ansi v0.0.0-20180105022324-90d93b0fcae2 // indirect
 	github.com/klauspost/compress v1.11.12 // indirect
+	github.com/klauspost/cpuid v1.3.1 // indirect
 	github.com/klauspost/pgzip v1.2.5 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
@@ -47,9 +49,11 @@ require (
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/vishvananda/netlink v1.1.0
 	github.com/vishvananda/netns v0.0.0-20210104183010-2eb08e3e575f // indirect
-	golang.org/x/crypto v0.0.0-20210314154223-e6e6c4f2bb5b // indirect
-	golang.org/x/sys v0.0.0-20210316164454-77fc1eacc6aa
+	golang.org/x/crypto v0.0.0-20210317152858-513c2a44f670 // indirect
+	golang.org/x/net v0.0.0-20210316092652-d523dce5a7f4 // indirect
+	golang.org/x/sys v0.0.0-20210317091845-390168757d9c
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
+	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/stretchr/testify.v1 v1.2.2 // indirect

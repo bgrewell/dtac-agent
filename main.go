@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"github.com/BGrewell/go-update"
-	"github.com/BGrewell/go-update/progress"
 	"github.com/BGrewell/go-update/stores/github"
 	"github.com/BGrewell/system-api/configuration"
 	"github.com/BGrewell/system-api/handlers"
@@ -18,6 +17,10 @@ import (
 )
 
 var (
+	date string
+	rev string
+	branch string
+	version = "DEBUG"
 	logger service.Logger
 )
 
@@ -91,9 +94,9 @@ func (p *program) run() {
 func checkForUpdates() {
 
 	token := "7888124ef00163d6bddc618bcc627b1a4c0d0564"
-	binaryName := "system-apid"
+	binaryName := "/opt/system-api/bin/system-apid"
 	if runtime.GOOS == "windows" {
-		binaryName = "system-apid.exe"
+		binaryName = "c:\\program files\\system-api\\system-apid.exe"
 	}
 
 	m := &update.Manager{
@@ -119,31 +122,38 @@ func checkForUpdates() {
 
 	latest := releases[0]
 
-	archive := latest.FindTarball(runtime.GOOS, runtime.GOARCH)
-	if archive == nil {
-		log.Info("unable to find binary for this system")
-		return
+	if latest.Newer(version) {
+		archive := latest.FindTarball(runtime.GOOS, runtime.GOARCH)
+		if archive == nil {
+			log.Info("unable to find binary for this system")
+			return
+		}
+
+		tarball, err := archive.DownloadSecure(token)
+		if err != nil {
+			log.Infof("failed to download update: %s\n", err)
+			return
+		}
+
+		log.Printf("tarball: %s", tarball)
+		if err := m.Install(tarball); err != nil {
+			log.Infof("failed to install update: %s\n", err)
+			return
+		}
+
+		log.Infof("updated to version %s\n", latest.Version)
+	} else {
+		log.Info("local version is newer than online version")
 	}
 
-	tarball, err := archive.DownloadProxy(progress.Reader)
-	if err != nil {
-		log.Infof("failed to download update: %s\n", err)
-		return
-	}
-
-	if err := m.Install(tarball); err != nil {
-		log.Infof("failed to install update: %s\n", err)
-		return
-	}
-
-	log.Infof("updated to version %s\n", latest.Version)
 }
 
 func main() {
 
+	log.Printf("Date: %s\nRev: %s\nBranch: %s\nVersion: %s\n", date, rev, branch, version)
+
 	log.Println("checking for updates")
 	checkForUpdates()
-	log.Println("finished checking for updates")
 
 	svcFlag := flag.String("service", "", "control the service")
 	flag.Parse()
