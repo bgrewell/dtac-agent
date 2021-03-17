@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"github.com/BGrewell/go-conversions"
 	"github.com/BGrewell/go-update"
@@ -162,27 +163,27 @@ func checkForUpdates(token *string) (applied bool, err error) {
 		archive := latest.FindTarball(runtime.GOOS, runtime.GOARCH)
 		if archive == nil {
 			log.Info("unable to find binary for this system")
-			return
+			return false, errors.New("unable to find binary for this system")
 		}
 
-		tarball, err := archive.DownloadSecure(token)
+		tarball, err := archive.DownloadSecure(*token)
 		if err != nil {
 			log.Infof("failed to download update: %s\n", err)
-			return
+			return false, err
 		}
 
 		log.Printf("tarball: %s", tarball)
 		if err := m.Install(tarball); err != nil {
 			log.Infof("failed to install update: %s\n", err)
-			return
+			return false, err
 		}
 
 		log.Infof("updated to version %s\n", latest.Version)
-		return true
+		return true, nil
 	} else {
 		log.Info("local version is the latest version")
 	}
-	return false
+	return false, nil
 }
 
 func main() {
@@ -191,8 +192,6 @@ func main() {
 	log.Printf("Rev: %s\n", rev)
 	log.Printf("Branch: %s\n", branch)
 	log.Printf("Version: %s\n", version)
-	log.Println("checking for updates")
-	checkForUpdates()
 
 	svcFlag := flag.String("service", "", "control the service")
 	flag.Parse()
