@@ -34,6 +34,8 @@ dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7
 github.com/BGrewell/go-conversions v0.0.0-20201203155646-5e189e4ca087/go.mod h1:XtXcz/MP04vhr6c6R/5gZPJZVQpbXlFsKTHr5yy/5sU=
 github.com/BGrewell/go-conversions v0.0.0-20201209195015-9410edf1c8c9 h1:s8TRXJ8YHMf1++2qiTkhucE2v44c22LUl4eKK78DYWM=
 github.com/BGrewell/go-conversions v0.0.0-20201209195015-9410edf1c8c9/go.mod h1:XtXcz/MP04vhr6c6R/5gZPJZVQpbXlFsKTHr5yy/5sU=
+github.com/BGrewell/go-conversions v0.0.0-20210317212624-d5f0f6d11c03 h1:RolXlRus5X6u9jzxn1jj5r6b71tTLdMabqfkAACtCGw=
+github.com/BGrewell/go-conversions v0.0.0-20210317212624-d5f0f6d11c03/go.mod h1:XtXcz/MP04vhr6c6R/5gZPJZVQpbXlFsKTHr5yy/5sU=
 github.com/BGrewell/go-execute v0.0.0-20201203155726-b7c037ebde49 h1:HV+WdlqXjmzP59lhgb100vTSIcDuKuLmK11KdnPY0cg=
 github.com/BGrewell/go-execute v0.0.0-20201203155726-b7c037ebde49/go.mod h1:vQZr3vuuuKuknvi74K22ne7NzOlwKTPKXOFMVr9Qa6A=
 github.com/BGrewell/go-iperf v0.0.0-20210311171621-1dd7340d4bbe h1:D1BAxsaSEwnTTLl0ReZpKJZZdpD4qBk5Hb6kAduewQE=

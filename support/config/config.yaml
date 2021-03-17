@@ -3,12 +3,12 @@ listen_port: 8080
 https: true
 # cert_file: /certs/tls.crt
 # key_file: /certs/tls.key
-
 updater:
-  url: https://updates.k3rn3l.io/n32lk45jl08sdkn2l3mj14d8s39rv58z/check
+  token: 7888124ef00163d6bddc618bcc627b1a4c0d0564
   mode: auto
   interval: 1m
   error_fallback: 1h
+  restart_on_update: true
 
 custom:
   - stats_user1:

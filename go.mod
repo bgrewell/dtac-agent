@@ -3,7 +3,7 @@ module github.com/BGrewell/system-api
 go 1.15
 
 require (
-	github.com/BGrewell/go-conversions v0.0.0-20201209195015-9410edf1c8c9
+	github.com/BGrewell/go-conversions v0.0.0-20210317212624-d5f0f6d11c03
 	github.com/BGrewell/go-execute v0.0.0-20201203155726-b7c037ebde49
 	github.com/BGrewell/go-iperf v0.0.0-20210311171621-1dd7340d4bbe
 	github.com/BGrewell/go-netqospolicy v0.0.0-20201207170710-eb97b3455d4f

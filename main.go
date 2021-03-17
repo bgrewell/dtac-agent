@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"github.com/BGrewell/go-conversions"
 	"github.com/BGrewell/go-update"
 	"github.com/BGrewell/go-update/stores/github"
 	"github.com/BGrewell/system-api/configuration"
@@ -18,11 +19,11 @@ import (
 )
 
 var (
-	date = time.Now().Format("2006-01-02 15:04:05")
-	rev = "DEBUG"
-	branch = "DEBUG"
+	date    = time.Now().Format("2006-01-02 15:04:05")
+	rev     = "DEBUG"
+	branch  = "DEBUG"
 	version = "DEBUG"
-	logger service.Logger
+	logger  service.Logger
 )
 
 type program struct {
@@ -65,6 +66,9 @@ func (p *program) run() {
 		httprouting.AddCustomHandlers(c, r)
 	}
 
+	// Check for updates
+	go runUpdateChecker(c)
+
 	// Before starting update the handlers Routes var
 	handlers.Routes = r.Routes()
 
@@ -92,9 +96,43 @@ func (p *program) run() {
 	logger.Info("server has exited")
 }
 
-func checkForUpdates() {
+func runUpdateChecker(c *configuration.Config) {
+	//todo: make run periodic checks
+	sleepTime, err := conversions.ConvertStringTimeToNanoseconds(c.Updater.Interval)
+	if err != nil {
+		log.Infof("failed to convert update interval: %s\n", err)
+	}
+	errorTime, err := conversions.ConvertStringTimeToNanoseconds(c.Updater.ErrorFallback)
+	if err != nil {
+		log.Infof("failed to convert update fallback interval: %s\n", err)
+	}
+	for {
+		log.Info("checking for updates...")
+		updated, err := checkForUpdates(&c.Updater.Token)
+		//todo: make restart on update
+		if updated && c.Updater.RestartOnUpdate {
+			log.Println("application updated. need to restart")
+		} else if updated && !c.Updater.RestartOnUpdate {
+			log.Println("application updated but auto-restart is off. updater is now disabled")
+			return
+		}
 
-	token := "7888124ef00163d6bddc618bcc627b1a4c0d0564"
+		if c.Updater.Mode != "auto" {
+			return
+		}
+
+		t := sleepTime
+		if err != nil {
+			t = errorTime
+		}
+
+		time.Sleep(time.Duration(t) * time.Nanosecond)
+	}
+
+}
+
+func checkForUpdates(token *string) (applied bool, err error) {
+
 	binaryName, _ := os.Executable()
 
 	m := &update.Manager{
@@ -103,7 +141,7 @@ func checkForUpdates() {
 			Owner:   "BGrewell",
 			Repo:    "system-api",
 			Version: "",
-			Token: &token,
+			Token:   token,
 		},
 	}
 
@@ -140,10 +178,11 @@ func checkForUpdates() {
 		}
 
 		log.Infof("updated to version %s\n", latest.Version)
+		return true
 	} else {
 		log.Info("local version is the latest version")
 	}
-
+	return false
 }
 
 func main() {

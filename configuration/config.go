@@ -25,11 +25,20 @@ type CustomEntry struct {
 	WrapJson bool           `json:"wrap_json" yaml:"wrap_json" xml:"wrap_json"`
 }
 
+type UpdaterEntry struct {
+	Token           string `json:"token" yaml:"token" xml:"token"`
+	Mode            string `json:"mode" yaml:"mode" xml:"mode"`
+	Interval        string `json:"interval" yaml:"interval" xml:"interval"`
+	ErrorFallback   string `json:"error_fallback" yaml:"error_fallback" xml:"error_fallback"`
+	RestartOnUpdate bool   `json:"restart_on_update" yaml:"restart_on_update" xml:"restart_on_update"`
+}
+
 type Config struct {
 	ListenPort int                       `json:"listen_port" yaml:"listen_port" xml:"listen_port"`
 	HTTPS      bool                      `json:"https" yaml:"https" xml:"https"`
 	CertFile   string                    `json:"cert_file" yaml:"cert_file" xml:"cert_file"`
 	KeyFile    string                    `json:"key_file" yaml:"key_file" xml:"key_file"`
+	Updater    UpdaterEntry              `json:"updater" yaml:"updater" xml:"updater"`
 	Custom     []map[string]*CustomEntry `json:"custom" yaml:"custom" xml:"custom"`
 }
 
