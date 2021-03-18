@@ -1,5 +1,10 @@
 # SYSTEM API
 
+## TODO BEFORE RELEASE
+
+ - Auto-Restart on update
+ - Deploy to all systems
+
 ## Basic Info
 
 `/`
