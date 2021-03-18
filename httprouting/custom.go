@@ -9,7 +9,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
-	"path/filepath"
 	"time"
 )
 
@@ -29,18 +28,23 @@ func AddCustomHandlers(c *configuration.Config, r *gin.Engine) {
 	customHandlerMap = make(map[string]*CustomHandlerSettings)
 	for _, entry := range c.Custom {
 		for _, value := range entry {
-			customHandlerMap[value.Name] = &CustomHandlerSettings{
+			route := fmt.Sprintf("/custom/%s", value.Name)
+			if value.Route != "" {
+				route = value.Route
+			}
+			//TODO: Check for existing key in map, if found warn user that the existing route is being shadowed
+			customHandlerMap[route] = &CustomHandlerSettings{
 				Value:    value.Source.Value,
 				Type:     value.Source.Type,
 				Settings: value.Blocking,
 			}
 			switch value.Source.Type {
 			case "file":
-				r.GET(fmt.Sprintf("/custom/%s", value.Name), CustomFileHandler)
+				r.GET(route, CustomFileHandler)
 			case "net":
-				r.GET(fmt.Sprintf("/custom/%s", value.Name), CustomNetHandler)
+				r.GET(route, CustomNetHandler)
 			case "cmd":
-				r.GET(fmt.Sprintf("/custom/%s", value.Name), CustomCmdHandler)
+				r.GET(route, CustomCmdHandler)
 			default:
 				// todo: need to push logging throughout the code
 				log.Printf("unrecognized custom route source: %v. skipping", value.Source.Type)
@@ -49,9 +53,11 @@ func AddCustomHandlers(c *configuration.Config, r *gin.Engine) {
 	}
 }
 
+//TODO: Needs to be updated for new configuration parameters
 func CustomFileHandler(c *gin.Context) {
 	// Get path value to map to a file entry
-	key := filepath.Base(c.Request.URL.Path)
+	key := c.Request.URL.Path
+	//key := filepath.Base(c.Request.URL.Path)
 	value := ""
 	var entry *CustomHandlerSettings
 	var ok bool
@@ -115,9 +121,29 @@ func contentsChanged(filepath string, previousHash string) (changed bool, conten
 }
 
 func CustomNetHandler(c *gin.Context) {
+	// Get path value to map to a file entry
+	key := c.Request.URL.Path
+	//key := filepath.Base(c.Request.URL.Path)
+	value := ""
+	var entry *CustomHandlerSettings
+	var ok bool
+	if entry, ok = customHandlerMap[key]; ok {
+		value = entry.Value
+	}
+	fmt.Println(value)
 	c.JSON(http.StatusInternalServerError, gin.H{"error": "this method has not been implemented", "time": time.Now().Format(time.RFC3339Nano)})
 }
 
 func CustomCmdHandler(c *gin.Context) {
+	// Get path value to map to a file entry
+	key := c.Request.URL.Path
+	//key := filepath.Base(c.Request.URL.Path)
+	value := ""
+	var entry *CustomHandlerSettings
+	var ok bool
+	if entry, ok = customHandlerMap[key]; ok {
+		value = entry.Value
+	}
+	fmt.Println(value)
 	c.JSON(http.StatusInternalServerError, gin.H{"error": "this method has not been implemented", "time": time.Now().Format(time.RFC3339Nano)})
 }

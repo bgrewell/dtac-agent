@@ -39,14 +39,23 @@ custom:
         trigger: change
         detect: hash
         timeout_ms: 10000
-        stale: yes
+        timeout_action: stale
 
   - date:
       wrap_json: yes
       source:
         type: cmd
-        run_as: user
+        run_as: intel
         value: date
+      methods: ["GET"]
+
+  - whoami:
+      route: "/cmds/whoami"
+      wrap_json: yes
+      source:
+        type: cmd
+        run_as: sudo
+        value: whoami
       methods: ["GET"]
 
   - wemo:
@@ -54,7 +63,7 @@ custom:
       wrap_json: no
       source:
         type: cmd
-        run_as: user
+        run_as: intel
         value: wemo --json ${vars}
         variables:
           source: query_params

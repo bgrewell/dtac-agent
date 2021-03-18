@@ -59,8 +59,12 @@ func (p *program) run() {
 	// OS Specific Routes
 	httprouting.AddOSSpecificHandlers(r)
 
-	// Custom Configuration Routes
-	c, err := configuration.Load("support/config/config.yaml")
+	// Load Configuration and Custom Routes
+	cfgfile := "/etc/system-api/config.yaml"
+	if runtime.GOOS == "windows" {
+		cfgfile = "config.yaml"
+	}
+	c, err := configuration.Load(cfgfile)
 	if err != nil {
 		logger.Errorf("failed to load configuration file: %v", err)
 	} else {
