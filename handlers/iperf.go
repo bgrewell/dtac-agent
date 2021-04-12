@@ -121,6 +121,7 @@ func CreateIperfClientTestHandler(c *gin.Context) {
 		return
 	}
 	if options != nil {
+		options.Port = cli.Options.Port // override port with the server assigned port
 		cli.LoadOptions(options)
 		cli.SetHost(host)
 	}
