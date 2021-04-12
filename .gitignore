@@ -22,3 +22,6 @@ bin/
 dist/
 update/
 package/
+
+# For some reason on IT Machine it's picking up %SystemDrive% as a directory and trying to add files
+%SystemDrive%/

@@ -26,7 +26,6 @@ func init() {
 	iperfClients = make(map[string]*iperf.Client)
 	iperfServers = make(map[string]*iperf.Server)
 	iperfLiveResults = make(map[string]<-chan *iperf.StreamIntervalReport)
-	iperf.DEBUG = true
 	iperfController, err = iperf.NewController(8090) //TODO: Expose in configuration file
 	if err != nil {
 		log.Printf("[WARNING] unable to instantiate iperf controller: %v\n", err)
