@@ -16,12 +16,19 @@ var (
 	iperfClients     map[string]*iperf.Client
 	iperfServers     map[string]*iperf.Server
 	iperfLiveResults map[string]<-chan *iperf.StreamIntervalReport
+	iperfController *iperf.Controller
 )
 
 func init() {
+	var err error
 	iperfClients = make(map[string]*iperf.Client)
 	iperfServers = make(map[string]*iperf.Server)
 	iperfLiveResults = make(map[string]<-chan *iperf.StreamIntervalReport)
+	iperfController, err = iperf.NewController(8090) //TODO: Expose in configuration file
+	if err != nil {
+		log.Printf("[WARNING] unable to instantiate iperf controller: %v\n", err)
+		log.Printf("[WARNING] iperf will be unavailable")
+	}
 }
 
 func GetIperfClientTestLiveHandler(c *gin.Context) {
@@ -37,9 +44,9 @@ func GetIperfClientTestLiveHandler(c *gin.Context) {
 		c.Stream(func(w io.Writer) bool {
 			select {
 			case report := <-val:
-				c.SSEvent("report", report)
+				c.SSEvent("iperf-interval", report)
 				return true
-			case <-time.After(time.Duration(cli.Interval())*time.Second + (100 * time.Millisecond)):
+			case <-time.After(time.Duration(cli.Interval())*time.Second + (500 * time.Millisecond)):
 				return false
 			}
 		})
@@ -98,7 +105,11 @@ func CreateIperfClientTestHandler(c *gin.Context) {
 	if err := c.ShouldBindJSON(&options); err != nil {
 		options = nil
 	}
-	cli := iperf.NewClient(host)
+	cli, err := iperfController.NewClient(host)
+	if err != nil {
+		WriteErrorResponseJSON(c, err)
+		return
+	}
 	if options != nil {
 		cli.LoadOptions(options)
 		cli.SetHost(host)
@@ -108,7 +119,7 @@ func CreateIperfClientTestHandler(c *gin.Context) {
 		ch := cli.SetModeLive()
 		iperfLiveResults[cli.Id] = ch
 	}
-	err := cli.Start()
+	err = cli.Start()
 	if err != nil {
 		log.Fatalf("error starting: %v", err)
 	}
@@ -120,8 +131,12 @@ func CreateIperfClientTestHandler(c *gin.Context) {
 
 func CreateIperfServerTestHandler(c *gin.Context) {
 	start := time.Now()
-	s := iperf.NewServer()
-	err := s.Start()
+	s, err := iperfController.NewServer()
+	if err != nil {
+		WriteErrorResponseJSON(c, err)
+		return
+	}
+	err = s.Start()
 	if err != nil {
 		WriteErrorResponseJSON(c, err)
 		return
@@ -144,6 +159,7 @@ func DeleteIperfServerTestHandler(c *gin.Context) {
 	if val, ok := iperfServers[id]; ok {
 		val.Stop()
 		delete(iperfServers, id)
+		iperfController.StopServer(id)
 		WriteResponseJSON(c, time.Since(start), val)
 		return
 	}

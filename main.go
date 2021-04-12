@@ -64,6 +64,13 @@ func (p *program) run() {
 	if runtime.GOOS == "windows" {
 		cfgfile = "config.yaml"
 	}
+
+	// Check for custom config file location
+	customCfgFile := os.Getenv("SYSTEMAPI_CFG_LOCATION")
+	if customCfgFile != "" {
+		cfgfile = customCfgFile
+	}
+
 	c, err := configuration.Load(cfgfile)
 	if err != nil {
 		logger.Errorf("failed to load configuration file: %v", err)
