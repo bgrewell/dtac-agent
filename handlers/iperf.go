@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"github.com/BGrewell/go-iperf"
 	. "github.com/BGrewell/system-api/common"
+	"github.com/gin-contrib/sse"
 	"github.com/gin-gonic/gin"
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -22,6 +24,7 @@ func init() {
 	iperfClients = make(map[string]*iperf.Client)
 	iperfServers = make(map[string]*iperf.Server)
 	iperfLiveResults = make(map[string]<-chan *iperf.StreamIntervalReport)
+	iperf.DEBUG = true
 }
 
 func GetIperfClientTestLiveHandler(c *gin.Context) {
@@ -34,12 +37,19 @@ func GetIperfClientTestLiveHandler(c *gin.Context) {
 	if val, ok := iperfLiveResults[id]; ok {
 		cli := iperfClients[id]
 
+		count := 0
 		c.Stream(func(w io.Writer) bool {
 			select {
 			case report := <-val:
-				c.SSEvent("report", report)
+				c.Render(-1, sse.Event{
+					Event: "iperf-interval",
+					Id:    strconv.Itoa(count),
+					Data:  report,
+				})
+				count++
 				return true
 			case <-time.After(time.Duration(cli.Interval())*time.Second + (100 * time.Millisecond)):
+				c.SSEvent("timeout", "a timeout occured while trying to get report")
 				return false
 			}
 		})

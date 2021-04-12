@@ -12,21 +12,21 @@ type SourceEntry struct {
 }
 
 type BlockingEntry struct {
-	Trigger   string `json:"trigger" yaml:"trigger" xml:"trigger"`
-	Detect    string `json:"detect" yaml:"detect" xml:"detect"`
-	TimeoutMs int    `json:"timeout_ms" yaml:"timeout_ms" xml:"timeout_ms"`
+	Trigger       string `json:"trigger" yaml:"trigger" xml:"trigger"`
+	Detect        string `json:"detect" yaml:"detect" xml:"detect"`
+	TimeoutMs     int    `json:"timeout_ms" yaml:"timeout_ms" xml:"timeout_ms"`
 	TimeoutAction string `json:"timeout_action" yaml:"timeout_action" xml:"timeout_action"`
 }
 
 type CustomEntry struct {
 	Name     string         `json:"name" yaml:"name" xml:"name"`
-	Route string `json:"route" yaml:"route" xml:"route"`
+	Route    string         `json:"route" yaml:"route" xml:"route"`
 	Source   *SourceEntry   `json:"source" yaml:"source" xml:"source"`
 	Methods  []string       `json:"methods" yaml:"methods" xml:"methods"`
 	Access   string         `json:"access" yaml:"access" xml:"access"`
 	Blocking *BlockingEntry `json:"blocking" yaml:"blocking" xml:"blocking"`
 	WrapJson bool           `json:"wrap_json" yaml:"wrap_json" xml:"wrap_json"`
-	Mode string `json:"mode" yaml:"mode" xml:"mode"`
+	Mode     string         `json:"mode" yaml:"mode" xml:"mode"`
 }
 
 type UpdaterEntry struct {
