@@ -18,7 +18,7 @@ var (
 	iperfClients     map[string]*iperf.Client
 	iperfServers     map[string]*iperf.Server
 	iperfLiveResults map[string]<-chan *iperf.StreamIntervalReport
-	iperfController *iperf.Controller
+	iperfController  *iperf.Controller
 )
 
 func init() {
