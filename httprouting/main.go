@@ -24,6 +24,7 @@ func AddGeneralHandlers(r *gin.Engine) {
 	r.DELETE("/network/route", handlers.DeleteRouteHandler)
 	r.DELETE("/iperf/client/stop/:id", handlers.DeleteIperfClientTestHandler)
 	r.DELETE("/iperf/server/stop/:id", handlers.DeleteIperfServerTestHandler)
+	r.DELETE("/iperf/reset", handlers.DeleteIperfResetHandler)
 
 	// POST Routes - Create information
 	r.POST("/login", handlers.LoginHandler)

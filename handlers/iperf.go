@@ -176,3 +176,22 @@ func DeleteIperfServerTestHandler(c *gin.Context) {
 
 	WriteErrorResponseJSON(c, errors.New(fmt.Sprintf("the specified id %s was not found on the system", id)))
 }
+
+func DeleteIperfResetHandler(c *gin.Context) {
+	start := time.Now()
+	servers := 0
+	for key, value := range iperfServers {
+		value.Stop()
+		delete(iperfServers, key)
+		servers++
+	}
+
+	clients := 0
+	for key, value := range iperfClients {
+		value.Stop()
+		delete(iperfClients, key)
+		clients++
+	}
+
+	WriteResponseJSON(c, time.Since(start), fmt.Sprintf("stopped %d servers and %d clients", servers, clients))
+}
