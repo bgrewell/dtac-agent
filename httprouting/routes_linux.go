@@ -4,6 +4,7 @@ package httprouting
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/BGrewell/system-api/handlers"
 )
 
 func AddOSSpecificHandlers(r *gin.Engine) {
