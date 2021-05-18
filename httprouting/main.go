@@ -16,6 +16,7 @@ func AddGeneralHandlers(r *gin.Engine) {
 	r.GET("/iperf/client/results/:id", handlers.GetIperfClientTestResultsHandler)
 	r.GET("/iperf/client/live/:id", handlers.GetIperfClientTestLiveHandler)
 	r.GET("/iperf/server/results/:id", handlers.GetIperfServerTestResultsHandler)
+	r.GET("/iperf/stoptest/:host", handlers.GetIperfStopTestHandler)
 
 	// PUT Routes - Update information
 	r.PUT("/network/route", handlers.UpdateRouteHandler)

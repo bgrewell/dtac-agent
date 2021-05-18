@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -193,5 +194,55 @@ func DeleteIperfResetHandler(c *gin.Context) {
 		clients++
 	}
 
-	WriteResponseJSON(c, time.Since(start), fmt.Sprintf("stopped %d servers and %d clients", servers, clients))
+	WriteResponseJSON(c, time.Since(start), fmt.Sprintf("stopped %d servers and %d clients.", servers, clients))
+}
+
+//TODO: REMOVE AFTER TESTING
+func GetIperfStopTestHandler(c *gin.Context) {
+	// Start an iperf session
+	logBuilder := strings.Builder{}
+	start := time.Now()
+	host := c.Param("host")
+	logBuilder.WriteString(fmt.Sprintf("host: %s\n", host))
+	var options *iperf.ClientOptions
+	if err := c.ShouldBindJSON(&options); err != nil {
+		options = nil
+	}
+	cli, err := iperfController.NewClient(host)
+	if err != nil {
+		WriteErrorResponseJSON(c, err)
+		return
+	}
+	if options != nil {
+		options.Port = cli.Options.Port // override port with the server assigned port
+		cli.LoadOptions(options)
+		cli.SetHost(host)
+	}
+	if _, ok := c.GetQuery("live"); ok {
+		cli.SetJSON(false)
+		ch := cli.SetModeLive()
+		iperfLiveResults[cli.Id] = ch
+	}
+	cli.SetTimeSec(300)
+	cli.SetBandwidth("20M")
+	if err != nil {
+		WriteErrorResponseJSON(c, err)
+		return
+	}
+	err = cli.Start()
+	if err != nil {
+		WriteErrorResponseJSON(c, err)
+		return
+	}
+
+	logBuilder.WriteString("Traffic running...will attempt to stop in 30 seconds\n")
+	time.Sleep(30 * time.Second)
+	logBuilder.WriteString("Attempting to cancel the iperf session\n")
+	cancelStart := time.Now()
+	go cli.Stop()
+	for cli.Running && time.Since(cancelStart) < 30 * time.Second {
+	}
+	finished := cli.Running
+	logBuilder.WriteString(fmt.Sprintf("Iperf3 session canceled? %v\n", !finished))
+	WriteResponseJSON(c, time.Since(start), logBuilder.String())
 }

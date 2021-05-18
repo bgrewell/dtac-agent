@@ -79,7 +79,7 @@ func (p *program) run() {
 	}
 
 	// Check for updates
-	go runUpdateChecker(c)
+	//go runUpdateChecker(c)
 
 	// Before starting update the handlers Routes var
 	handlers.Routes = r.Routes()

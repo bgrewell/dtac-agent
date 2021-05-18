@@ -10,6 +10,24 @@ updater:
   error_fallback: 1h
   restart_on_update: true
 
+# Plugins are located in /etc/system-api/plugins on Linux or in the plugins directory under the executable path on Windows
+plugins:
+  - host_stats:
+      binary: hoststatd.exe
+      target: 192.168.1.33
+      protocol: ssh
+      user: intel
+      pass: intel123
+      ensure_running: true
+
+  - hello:
+      binary: hello
+      target: localhost
+      #protocol: direct [default]
+      #user: "" [default]
+      #pass: "" [default]
+      #ensure_running: false [default]
+
 custom:
   - stats_user1:
       route: "/webrtc/stats_user1"
