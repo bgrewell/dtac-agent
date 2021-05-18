@@ -24,80 +24,74 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type STATUS int32
+type RequestType int32
 
 const (
-	STATUS_UNKNOWN     STATUS = 0
-	STATUS_OK          STATUS = 1
-	STATUS_RUNNING     STATUS = 2
-	STATUS_WAITING     STATUS = 3
-	STATUS_IN_PROGRESS STATUS = 4
-	STATUS_CANCELED    STATUS = 5
-	STATUS_CLOSING     STATUS = 6
-	STATUS_ERROR       STATUS = 7
+	RequestType_REQUEST_UNKNOWN   RequestType = 0
+	RequestType_REQUEST_HEARTBEAT RequestType = 1
+	RequestType_REQUEST_REGISTER  RequestType = 10
+	RequestType_REQUEST_EXEC      RequestType = 20
 )
 
-// Enum value maps for STATUS.
+// Enum value maps for RequestType.
 var (
-	STATUS_name = map[int32]string{
-		0: "UNKNOWN",
-		1: "OK",
-		2: "RUNNING",
-		3: "WAITING",
-		4: "IN_PROGRESS",
-		5: "CANCELED",
-		6: "CLOSING",
-		7: "ERROR",
+	RequestType_name = map[int32]string{
+		0:  "REQUEST_UNKNOWN",
+		1:  "REQUEST_HEARTBEAT",
+		10: "REQUEST_REGISTER",
+		20: "REQUEST_EXEC",
 	}
-	STATUS_value = map[string]int32{
-		"UNKNOWN":     0,
-		"OK":          1,
-		"RUNNING":     2,
-		"WAITING":     3,
-		"IN_PROGRESS": 4,
-		"CANCELED":    5,
-		"CLOSING":     6,
-		"ERROR":       7,
+	RequestType_value = map[string]int32{
+		"REQUEST_UNKNOWN":   0,
+		"REQUEST_HEARTBEAT": 1,
+		"REQUEST_REGISTER":  10,
+		"REQUEST_EXEC":      20,
 	}
 )
 
-func (x STATUS) Enum() *STATUS {
-	p := new(STATUS)
+func (x RequestType) Enum() *RequestType {
+	p := new(RequestType)
 	*p = x
 	return p
 }
 
-func (x STATUS) String() string {
+func (x RequestType) String() string {
 	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
 }
 
-func (STATUS) Descriptor() protoreflect.EnumDescriptor {
+func (RequestType) Descriptor() protoreflect.EnumDescriptor {
 	return file_plugin_api_proto_enumTypes[0].Descriptor()
 }
 
-func (STATUS) Type() protoreflect.EnumType {
+func (RequestType) Type() protoreflect.EnumType {
 	return &file_plugin_api_proto_enumTypes[0]
 }
 
-func (x STATUS) Number() protoreflect.EnumNumber {
+func (x RequestType) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// Deprecated: Use STATUS.Descriptor instead.
-func (STATUS) EnumDescriptor() ([]byte, []int) {
+// Deprecated: Use RequestType.Descriptor instead.
+func (RequestType) EnumDescriptor() ([]byte, []int) {
 	return file_plugin_api_proto_rawDescGZIP(), []int{0}
 }
 
-type HeartbeatRequest struct {
+type PluginMessage struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	BeatId uint64 `protobuf:"varint,1,opt,name=beat_id,json=beatId,proto3" json:"beat_id,omitempty"`
+	RequestId   uint64      `protobuf:"varint,1,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	Title       string      `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	RequestType RequestType `protobuf:"varint,10,opt,name=request_type,json=requestType,proto3,enum=systemapi_plugin.RequestType" json:"request_type,omitempty"`
+	// Types that are assignable to RequestPayload:
+	//	*PluginMessage_Heartbeat
+	//	*PluginMessage_Register
+	RequestPayload isPluginMessage_RequestPayload `protobuf_oneof:"request_payload"`
 }
 
-func (x *HeartbeatRequest) Reset() {
-	*x = HeartbeatRequest{}
+func (x *PluginMessage) Reset() {
+	*x = PluginMessage{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_plugin_api_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -105,13 +99,13 @@ func (x *HeartbeatRequest) Reset() {
 	}
 }
 
-func (x *HeartbeatRequest) String() string {
+func (x *PluginMessage) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*HeartbeatRequest) ProtoMessage() {}
+func (*PluginMessage) ProtoMessage() {}
 
-func (x *HeartbeatRequest) ProtoReflect() protoreflect.Message {
+func (x *PluginMessage) ProtoReflect() protoreflect.Message {
 	mi := &file_plugin_api_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -123,28 +117,79 @@ func (x *HeartbeatRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use HeartbeatRequest.ProtoReflect.Descriptor instead.
-func (*HeartbeatRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use PluginMessage.ProtoReflect.Descriptor instead.
+func (*PluginMessage) Descriptor() ([]byte, []int) {
 	return file_plugin_api_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *HeartbeatRequest) GetBeatId() uint64 {
+func (x *PluginMessage) GetRequestId() uint64 {
 	if x != nil {
-		return x.BeatId
+		return x.RequestId
 	}
 	return 0
 }
 
-type HeartbeatResponse struct {
+func (x *PluginMessage) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *PluginMessage) GetRequestType() RequestType {
+	if x != nil {
+		return x.RequestType
+	}
+	return RequestType_REQUEST_UNKNOWN
+}
+
+func (m *PluginMessage) GetRequestPayload() isPluginMessage_RequestPayload {
+	if m != nil {
+		return m.RequestPayload
+	}
+	return nil
+}
+
+func (x *PluginMessage) GetHeartbeat() *Heartbeat {
+	if x, ok := x.GetRequestPayload().(*PluginMessage_Heartbeat); ok {
+		return x.Heartbeat
+	}
+	return nil
+}
+
+func (x *PluginMessage) GetRegister() *Register {
+	if x, ok := x.GetRequestPayload().(*PluginMessage_Register); ok {
+		return x.Register
+	}
+	return nil
+}
+
+type isPluginMessage_RequestPayload interface {
+	isPluginMessage_RequestPayload()
+}
+
+type PluginMessage_Heartbeat struct {
+	Heartbeat *Heartbeat `protobuf:"bytes,20,opt,name=heartbeat,proto3,oneof"`
+}
+
+type PluginMessage_Register struct {
+	Register *Register `protobuf:"bytes,21,opt,name=register,proto3,oneof"`
+}
+
+func (*PluginMessage_Heartbeat) isPluginMessage_RequestPayload() {}
+
+func (*PluginMessage_Register) isPluginMessage_RequestPayload() {}
+
+type Heartbeat struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	BeatResponse uint64 `protobuf:"varint,1,opt,name=beat_response,json=beatResponse,proto3" json:"beat_response,omitempty"`
+	BeatId uint64 `protobuf:"varint,1,opt,name=beat_id,json=beatId,proto3" json:"beat_id,omitempty"`
 }
 
-func (x *HeartbeatResponse) Reset() {
-	*x = HeartbeatResponse{}
+func (x *Heartbeat) Reset() {
+	*x = Heartbeat{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_plugin_api_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -152,13 +197,13 @@ func (x *HeartbeatResponse) Reset() {
 	}
 }
 
-func (x *HeartbeatResponse) String() string {
+func (x *Heartbeat) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*HeartbeatResponse) ProtoMessage() {}
+func (*Heartbeat) ProtoMessage() {}
 
-func (x *HeartbeatResponse) ProtoReflect() protoreflect.Message {
+func (x *Heartbeat) ProtoReflect() protoreflect.Message {
 	mi := &file_plugin_api_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -170,19 +215,19 @@ func (x *HeartbeatResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use HeartbeatResponse.ProtoReflect.Descriptor instead.
-func (*HeartbeatResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use Heartbeat.ProtoReflect.Descriptor instead.
+func (*Heartbeat) Descriptor() ([]byte, []int) {
 	return file_plugin_api_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *HeartbeatResponse) GetBeatResponse() uint64 {
+func (x *Heartbeat) GetBeatId() uint64 {
 	if x != nil {
-		return x.BeatResponse
+		return x.BeatId
 	}
 	return 0
 }
 
-type RegisterRequest struct {
+type Register struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -192,8 +237,8 @@ type RegisterRequest struct {
 	Routes     []string `protobuf:"bytes,11,rep,name=routes,proto3" json:"routes,omitempty"`
 }
 
-func (x *RegisterRequest) Reset() {
-	*x = RegisterRequest{}
+func (x *Register) Reset() {
+	*x = Register{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_plugin_api_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -201,13 +246,13 @@ func (x *RegisterRequest) Reset() {
 	}
 }
 
-func (x *RegisterRequest) String() string {
+func (x *Register) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*RegisterRequest) ProtoMessage() {}
+func (*Register) ProtoMessage() {}
 
-func (x *RegisterRequest) ProtoReflect() protoreflect.Message {
+func (x *Register) ProtoReflect() protoreflect.Message {
 	mi := &file_plugin_api_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -219,171 +264,30 @@ func (x *RegisterRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use RegisterRequest.ProtoReflect.Descriptor instead.
-func (*RegisterRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use Register.ProtoReflect.Descriptor instead.
+func (*Register) Descriptor() ([]byte, []int) {
 	return file_plugin_api_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *RegisterRequest) GetPluginName() string {
+func (x *Register) GetPluginName() string {
 	if x != nil {
 		return x.PluginName
 	}
 	return ""
 }
 
-func (x *RegisterRequest) GetRouteBase() string {
+func (x *Register) GetRouteBase() string {
 	if x != nil {
 		return x.RouteBase
 	}
 	return ""
 }
 
-func (x *RegisterRequest) GetRoutes() []string {
+func (x *Register) GetRoutes() []string {
 	if x != nil {
 		return x.Routes
 	}
 	return nil
-}
-
-type RegisterResponse struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Status STATUS `protobuf:"varint,1,opt,name=status,proto3,enum=systemapi_plugin.STATUS" json:"status,omitempty"`
-}
-
-func (x *RegisterResponse) Reset() {
-	*x = RegisterResponse{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_plugin_api_proto_msgTypes[3]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *RegisterResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RegisterResponse) ProtoMessage() {}
-
-func (x *RegisterResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_api_proto_msgTypes[3]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RegisterResponse.ProtoReflect.Descriptor instead.
-func (*RegisterResponse) Descriptor() ([]byte, []int) {
-	return file_plugin_api_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *RegisterResponse) GetStatus() STATUS {
-	if x != nil {
-		return x.Status
-	}
-	return STATUS_UNKNOWN
-}
-
-type CommandRequest struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	CommandId uint64 `protobuf:"varint,1,opt,name=command_id,json=commandId,proto3" json:"command_id,omitempty"`
-}
-
-func (x *CommandRequest) Reset() {
-	*x = CommandRequest{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_plugin_api_proto_msgTypes[4]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *CommandRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CommandRequest) ProtoMessage() {}
-
-func (x *CommandRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_api_proto_msgTypes[4]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CommandRequest.ProtoReflect.Descriptor instead.
-func (*CommandRequest) Descriptor() ([]byte, []int) {
-	return file_plugin_api_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *CommandRequest) GetCommandId() uint64 {
-	if x != nil {
-		return x.CommandId
-	}
-	return 0
-}
-
-type CommandResponse struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	CommandId uint64 `protobuf:"varint,1,opt,name=command_id,json=commandId,proto3" json:"command_id,omitempty"`
-}
-
-func (x *CommandResponse) Reset() {
-	*x = CommandResponse{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_plugin_api_proto_msgTypes[5]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *CommandResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CommandResponse) ProtoMessage() {}
-
-func (x *CommandResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_api_proto_msgTypes[5]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CommandResponse.ProtoReflect.Descriptor instead.
-func (*CommandResponse) Descriptor() ([]byte, []int) {
-	return file_plugin_api_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *CommandResponse) GetCommandId() uint64 {
-	if x != nil {
-		return x.CommandId
-	}
-	return 0
 }
 
 var File_plugin_api_proto protoreflect.FileDescriptor
@@ -391,59 +295,48 @@ var File_plugin_api_proto protoreflect.FileDescriptor
 var file_plugin_api_proto_rawDesc = []byte{
 	0x0a, 0x10, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2d, 0x61, 0x70, 0x69, 0x2e, 0x70, 0x72, 0x6f,
 	0x74, 0x6f, 0x12, 0x10, 0x73, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x61, 0x70, 0x69, 0x5f, 0x70, 0x6c,
-	0x75, 0x67, 0x69, 0x6e, 0x22, 0x2b, 0x0a, 0x10, 0x48, 0x65, 0x61, 0x72, 0x74, 0x62, 0x65, 0x61,
-	0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x17, 0x0a, 0x07, 0x62, 0x65, 0x61, 0x74,
-	0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x06, 0x62, 0x65, 0x61, 0x74, 0x49,
-	0x64, 0x22, 0x38, 0x0a, 0x11, 0x48, 0x65, 0x61, 0x72, 0x74, 0x62, 0x65, 0x61, 0x74, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x23, 0x0a, 0x0d, 0x62, 0x65, 0x61, 0x74, 0x5f, 0x72,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0c, 0x62,
-	0x65, 0x61, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x69, 0x0a, 0x0f, 0x52,
-	0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1f,
-	0x0a, 0x0b, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x0a, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x4e, 0x61, 0x6d, 0x65, 0x12,
-	0x1d, 0x0a, 0x0a, 0x72, 0x6f, 0x75, 0x74, 0x65, 0x5f, 0x62, 0x61, 0x73, 0x65, 0x18, 0x0a, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x09, 0x72, 0x6f, 0x75, 0x74, 0x65, 0x42, 0x61, 0x73, 0x65, 0x12, 0x16,
-	0x0a, 0x06, 0x72, 0x6f, 0x75, 0x74, 0x65, 0x73, 0x18, 0x0b, 0x20, 0x03, 0x28, 0x09, 0x52, 0x06,
-	0x72, 0x6f, 0x75, 0x74, 0x65, 0x73, 0x22, 0x44, 0x0a, 0x10, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74,
-	0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x30, 0x0a, 0x06, 0x73, 0x74,
-	0x61, 0x74, 0x75, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x18, 0x2e, 0x73, 0x79, 0x73,
-	0x74, 0x65, 0x6d, 0x61, 0x70, 0x69, 0x5f, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2e, 0x53, 0x54,
-	0x41, 0x54, 0x55, 0x53, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x22, 0x2f, 0x0a, 0x0e,
-	0x43, 0x6f, 0x6d, 0x6d, 0x61, 0x6e, 0x64, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1d,
-	0x0a, 0x0a, 0x63, 0x6f, 0x6d, 0x6d, 0x61, 0x6e, 0x64, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x04, 0x52, 0x09, 0x63, 0x6f, 0x6d, 0x6d, 0x61, 0x6e, 0x64, 0x49, 0x64, 0x22, 0x30, 0x0a,
-	0x0f, 0x43, 0x6f, 0x6d, 0x6d, 0x61, 0x6e, 0x64, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x12, 0x1d, 0x0a, 0x0a, 0x63, 0x6f, 0x6d, 0x6d, 0x61, 0x6e, 0x64, 0x5f, 0x69, 0x64, 0x18, 0x01,
-	0x20, 0x01, 0x28, 0x04, 0x52, 0x09, 0x63, 0x6f, 0x6d, 0x6d, 0x61, 0x6e, 0x64, 0x49, 0x64, 0x2a,
-	0x6e, 0x0a, 0x06, 0x53, 0x54, 0x41, 0x54, 0x55, 0x53, 0x12, 0x0b, 0x0a, 0x07, 0x55, 0x4e, 0x4b,
-	0x4e, 0x4f, 0x57, 0x4e, 0x10, 0x00, 0x12, 0x06, 0x0a, 0x02, 0x4f, 0x4b, 0x10, 0x01, 0x12, 0x0b,
-	0x0a, 0x07, 0x52, 0x55, 0x4e, 0x4e, 0x49, 0x4e, 0x47, 0x10, 0x02, 0x12, 0x0b, 0x0a, 0x07, 0x57,
-	0x41, 0x49, 0x54, 0x49, 0x4e, 0x47, 0x10, 0x03, 0x12, 0x0f, 0x0a, 0x0b, 0x49, 0x4e, 0x5f, 0x50,
-	0x52, 0x4f, 0x47, 0x52, 0x45, 0x53, 0x53, 0x10, 0x04, 0x12, 0x0c, 0x0a, 0x08, 0x43, 0x41, 0x4e,
-	0x43, 0x45, 0x4c, 0x45, 0x44, 0x10, 0x05, 0x12, 0x0b, 0x0a, 0x07, 0x43, 0x4c, 0x4f, 0x53, 0x49,
-	0x4e, 0x47, 0x10, 0x06, 0x12, 0x09, 0x0a, 0x05, 0x45, 0x52, 0x52, 0x4f, 0x52, 0x10, 0x07, 0x32,
-	0x99, 0x02, 0x0a, 0x0d, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x43, 0x6f, 0x6e, 0x74, 0x72, 0x6f,
-	0x6c, 0x12, 0x53, 0x0a, 0x08, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x12, 0x21, 0x2e,
-	0x73, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x61, 0x70, 0x69, 0x5f, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e,
-	0x2e, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x1a, 0x22, 0x2e, 0x73, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x61, 0x70, 0x69, 0x5f, 0x70, 0x6c, 0x75,
-	0x67, 0x69, 0x6e, 0x2e, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x56, 0x0a, 0x09, 0x48, 0x65, 0x61, 0x72, 0x74, 0x62,
-	0x65, 0x61, 0x74, 0x12, 0x22, 0x2e, 0x73, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x61, 0x70, 0x69, 0x5f,
-	0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2e, 0x48, 0x65, 0x61, 0x72, 0x74, 0x62, 0x65, 0x61, 0x74,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x23, 0x2e, 0x73, 0x79, 0x73, 0x74, 0x65, 0x6d,
-	0x61, 0x70, 0x69, 0x5f, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2e, 0x48, 0x65, 0x61, 0x72, 0x74,
-	0x62, 0x65, 0x61, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x5b,
-	0x0a, 0x0e, 0x43, 0x6f, 0x6d, 0x6d, 0x61, 0x6e, 0x64, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c,
-	0x12, 0x20, 0x2e, 0x73, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x61, 0x70, 0x69, 0x5f, 0x70, 0x6c, 0x75,
-	0x67, 0x69, 0x6e, 0x2e, 0x43, 0x6f, 0x6d, 0x6d, 0x61, 0x6e, 0x64, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x1a, 0x21, 0x2e, 0x73, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x61, 0x70, 0x69, 0x5f, 0x70,
-	0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2e, 0x43, 0x6f, 0x6d, 0x6d, 0x61, 0x6e, 0x64, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x28, 0x01, 0x30, 0x01, 0x42, 0x2c, 0x5a, 0x2a, 0x67,
-	0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x42, 0x47, 0x72, 0x65, 0x77, 0x65,
-	0x6c, 0x6c, 0x2f, 0x73, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x2d, 0x61, 0x70, 0x69, 0x2f, 0x70, 0x6c,
-	0x75, 0x67, 0x69, 0x6e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x33,
+	0x75, 0x67, 0x69, 0x6e, 0x22, 0x90, 0x02, 0x0a, 0x0d, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x4d,
+	0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x1d, 0x0a, 0x0a, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x09, 0x72, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x49, 0x64, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x12, 0x40, 0x0a, 0x0c, 0x72,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x18, 0x0a, 0x20, 0x01, 0x28,
+	0x0e, 0x32, 0x1d, 0x2e, 0x73, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x61, 0x70, 0x69, 0x5f, 0x70, 0x6c,
+	0x75, 0x67, 0x69, 0x6e, 0x2e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x54, 0x79, 0x70, 0x65,
+	0x52, 0x0b, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x54, 0x79, 0x70, 0x65, 0x12, 0x3b, 0x0a,
+	0x09, 0x68, 0x65, 0x61, 0x72, 0x74, 0x62, 0x65, 0x61, 0x74, 0x18, 0x14, 0x20, 0x01, 0x28, 0x0b,
+	0x32, 0x1b, 0x2e, 0x73, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x61, 0x70, 0x69, 0x5f, 0x70, 0x6c, 0x75,
+	0x67, 0x69, 0x6e, 0x2e, 0x48, 0x65, 0x61, 0x72, 0x74, 0x62, 0x65, 0x61, 0x74, 0x48, 0x00, 0x52,
+	0x09, 0x68, 0x65, 0x61, 0x72, 0x74, 0x62, 0x65, 0x61, 0x74, 0x12, 0x38, 0x0a, 0x08, 0x72, 0x65,
+	0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x18, 0x15, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x73,
+	0x79, 0x73, 0x74, 0x65, 0x6d, 0x61, 0x70, 0x69, 0x5f, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2e,
+	0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x48, 0x00, 0x52, 0x08, 0x72, 0x65, 0x67, 0x69,
+	0x73, 0x74, 0x65, 0x72, 0x42, 0x11, 0x0a, 0x0f, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x5f,
+	0x70, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x22, 0x24, 0x0a, 0x09, 0x48, 0x65, 0x61, 0x72, 0x74,
+	0x62, 0x65, 0x61, 0x74, 0x12, 0x17, 0x0a, 0x07, 0x62, 0x65, 0x61, 0x74, 0x5f, 0x69, 0x64, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x06, 0x62, 0x65, 0x61, 0x74, 0x49, 0x64, 0x22, 0x62, 0x0a,
+	0x08, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x12, 0x1f, 0x0a, 0x0b, 0x70, 0x6c, 0x75,
+	0x67, 0x69, 0x6e, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a,
+	0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x1d, 0x0a, 0x0a, 0x72, 0x6f,
+	0x75, 0x74, 0x65, 0x5f, 0x62, 0x61, 0x73, 0x65, 0x18, 0x0a, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09,
+	0x72, 0x6f, 0x75, 0x74, 0x65, 0x42, 0x61, 0x73, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x72, 0x6f, 0x75,
+	0x74, 0x65, 0x73, 0x18, 0x0b, 0x20, 0x03, 0x28, 0x09, 0x52, 0x06, 0x72, 0x6f, 0x75, 0x74, 0x65,
+	0x73, 0x2a, 0x61, 0x0a, 0x0b, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x54, 0x79, 0x70, 0x65,
+	0x12, 0x13, 0x0a, 0x0f, 0x52, 0x45, 0x51, 0x55, 0x45, 0x53, 0x54, 0x5f, 0x55, 0x4e, 0x4b, 0x4e,
+	0x4f, 0x57, 0x4e, 0x10, 0x00, 0x12, 0x15, 0x0a, 0x11, 0x52, 0x45, 0x51, 0x55, 0x45, 0x53, 0x54,
+	0x5f, 0x48, 0x45, 0x41, 0x52, 0x54, 0x42, 0x45, 0x41, 0x54, 0x10, 0x01, 0x12, 0x14, 0x0a, 0x10,
+	0x52, 0x45, 0x51, 0x55, 0x45, 0x53, 0x54, 0x5f, 0x52, 0x45, 0x47, 0x49, 0x53, 0x54, 0x45, 0x52,
+	0x10, 0x0a, 0x12, 0x10, 0x0a, 0x0c, 0x52, 0x45, 0x51, 0x55, 0x45, 0x53, 0x54, 0x5f, 0x45, 0x58,
+	0x45, 0x43, 0x10, 0x14, 0x32, 0x62, 0x0a, 0x06, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x12, 0x58,
+	0x0a, 0x0e, 0x43, 0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c,
+	0x12, 0x1f, 0x2e, 0x73, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x61, 0x70, 0x69, 0x5f, 0x70, 0x6c, 0x75,
+	0x67, 0x69, 0x6e, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67,
+	0x65, 0x1a, 0x1f, 0x2e, 0x73, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x61, 0x70, 0x69, 0x5f, 0x70, 0x6c,
+	0x75, 0x67, 0x69, 0x6e, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x4d, 0x65, 0x73, 0x73, 0x61,
+	0x67, 0x65, 0x22, 0x00, 0x28, 0x01, 0x30, 0x01, 0x42, 0x2c, 0x5a, 0x2a, 0x67, 0x69, 0x74, 0x68,
+	0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x42, 0x47, 0x72, 0x65, 0x77, 0x65, 0x6c, 0x6c, 0x2f,
+	0x73, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x2d, 0x61, 0x70, 0x69, 0x2f, 0x70, 0x6c, 0x75, 0x67, 0x69,
+	0x6e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -459,29 +352,24 @@ func file_plugin_api_proto_rawDescGZIP() []byte {
 }
 
 var file_plugin_api_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_plugin_api_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_plugin_api_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_plugin_api_proto_goTypes = []interface{}{
-	(STATUS)(0),               // 0: systemapi_plugin.STATUS
-	(*HeartbeatRequest)(nil),  // 1: systemapi_plugin.HeartbeatRequest
-	(*HeartbeatResponse)(nil), // 2: systemapi_plugin.HeartbeatResponse
-	(*RegisterRequest)(nil),   // 3: systemapi_plugin.RegisterRequest
-	(*RegisterResponse)(nil),  // 4: systemapi_plugin.RegisterResponse
-	(*CommandRequest)(nil),    // 5: systemapi_plugin.CommandRequest
-	(*CommandResponse)(nil),   // 6: systemapi_plugin.CommandResponse
+	(RequestType)(0),      // 0: systemapi_plugin.RequestType
+	(*PluginMessage)(nil), // 1: systemapi_plugin.PluginMessage
+	(*Heartbeat)(nil),     // 2: systemapi_plugin.Heartbeat
+	(*Register)(nil),      // 3: systemapi_plugin.Register
 }
 var file_plugin_api_proto_depIdxs = []int32{
-	0, // 0: systemapi_plugin.RegisterResponse.status:type_name -> systemapi_plugin.STATUS
-	3, // 1: systemapi_plugin.PluginControl.Register:input_type -> systemapi_plugin.RegisterRequest
-	1, // 2: systemapi_plugin.PluginControl.Heartbeat:input_type -> systemapi_plugin.HeartbeatRequest
-	5, // 3: systemapi_plugin.PluginControl.CommandChannel:input_type -> systemapi_plugin.CommandRequest
-	4, // 4: systemapi_plugin.PluginControl.Register:output_type -> systemapi_plugin.RegisterResponse
-	2, // 5: systemapi_plugin.PluginControl.Heartbeat:output_type -> systemapi_plugin.HeartbeatResponse
-	6, // 6: systemapi_plugin.PluginControl.CommandChannel:output_type -> systemapi_plugin.CommandResponse
-	4, // [4:7] is the sub-list for method output_type
-	1, // [1:4] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	0, // 0: systemapi_plugin.PluginMessage.request_type:type_name -> systemapi_plugin.RequestType
+	2, // 1: systemapi_plugin.PluginMessage.heartbeat:type_name -> systemapi_plugin.Heartbeat
+	3, // 2: systemapi_plugin.PluginMessage.register:type_name -> systemapi_plugin.Register
+	1, // 3: systemapi_plugin.Plugin.ControlChannel:input_type -> systemapi_plugin.PluginMessage
+	1, // 4: systemapi_plugin.Plugin.ControlChannel:output_type -> systemapi_plugin.PluginMessage
+	4, // [4:5] is the sub-list for method output_type
+	3, // [3:4] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_plugin_api_proto_init() }
@@ -491,7 +379,7 @@ func file_plugin_api_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_plugin_api_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*HeartbeatRequest); i {
+			switch v := v.(*PluginMessage); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -503,7 +391,7 @@ func file_plugin_api_proto_init() {
 			}
 		}
 		file_plugin_api_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*HeartbeatResponse); i {
+			switch v := v.(*Heartbeat); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -515,43 +403,7 @@ func file_plugin_api_proto_init() {
 			}
 		}
 		file_plugin_api_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RegisterRequest); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_plugin_api_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RegisterResponse); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_plugin_api_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CommandRequest); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_plugin_api_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CommandResponse); i {
+			switch v := v.(*Register); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -563,13 +415,17 @@ func file_plugin_api_proto_init() {
 			}
 		}
 	}
+	file_plugin_api_proto_msgTypes[0].OneofWrappers = []interface{}{
+		(*PluginMessage_Heartbeat)(nil),
+		(*PluginMessage_Register)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_plugin_api_proto_rawDesc,
 			NumEnums:      1,
-			NumMessages:   6,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
@@ -592,176 +448,103 @@ var _ grpc.ClientConnInterface
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion6
 
-// PluginControlClient is the client API for PluginControl service.
+// PluginClient is the client API for Plugin service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type PluginControlClient interface {
-	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
-	Heartbeat(ctx context.Context, in *HeartbeatRequest, opts ...grpc.CallOption) (*HeartbeatResponse, error)
-	CommandChannel(ctx context.Context, opts ...grpc.CallOption) (PluginControl_CommandChannelClient, error)
+type PluginClient interface {
+	ControlChannel(ctx context.Context, opts ...grpc.CallOption) (Plugin_ControlChannelClient, error)
 }
 
-type pluginControlClient struct {
+type pluginClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewPluginControlClient(cc grpc.ClientConnInterface) PluginControlClient {
-	return &pluginControlClient{cc}
+func NewPluginClient(cc grpc.ClientConnInterface) PluginClient {
+	return &pluginClient{cc}
 }
 
-func (c *pluginControlClient) Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error) {
-	out := new(RegisterResponse)
-	err := c.cc.Invoke(ctx, "/systemapi_plugin.PluginControl/Register", in, out, opts...)
+func (c *pluginClient) ControlChannel(ctx context.Context, opts ...grpc.CallOption) (Plugin_ControlChannelClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_Plugin_serviceDesc.Streams[0], "/systemapi_plugin.Plugin/ControlChannel", opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
-}
-
-func (c *pluginControlClient) Heartbeat(ctx context.Context, in *HeartbeatRequest, opts ...grpc.CallOption) (*HeartbeatResponse, error) {
-	out := new(HeartbeatResponse)
-	err := c.cc.Invoke(ctx, "/systemapi_plugin.PluginControl/Heartbeat", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *pluginControlClient) CommandChannel(ctx context.Context, opts ...grpc.CallOption) (PluginControl_CommandChannelClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_PluginControl_serviceDesc.Streams[0], "/systemapi_plugin.PluginControl/CommandChannel", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &pluginControlCommandChannelClient{stream}
+	x := &pluginControlChannelClient{stream}
 	return x, nil
 }
 
-type PluginControl_CommandChannelClient interface {
-	Send(*CommandRequest) error
-	Recv() (*CommandResponse, error)
+type Plugin_ControlChannelClient interface {
+	Send(*PluginMessage) error
+	Recv() (*PluginMessage, error)
 	grpc.ClientStream
 }
 
-type pluginControlCommandChannelClient struct {
+type pluginControlChannelClient struct {
 	grpc.ClientStream
 }
 
-func (x *pluginControlCommandChannelClient) Send(m *CommandRequest) error {
+func (x *pluginControlChannelClient) Send(m *PluginMessage) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *pluginControlCommandChannelClient) Recv() (*CommandResponse, error) {
-	m := new(CommandResponse)
+func (x *pluginControlChannelClient) Recv() (*PluginMessage, error) {
+	m := new(PluginMessage)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-// PluginControlServer is the server API for PluginControl service.
-type PluginControlServer interface {
-	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
-	Heartbeat(context.Context, *HeartbeatRequest) (*HeartbeatResponse, error)
-	CommandChannel(PluginControl_CommandChannelServer) error
+// PluginServer is the server API for Plugin service.
+type PluginServer interface {
+	ControlChannel(Plugin_ControlChannelServer) error
 }
 
-// UnimplementedPluginControlServer can be embedded to have forward compatible implementations.
-type UnimplementedPluginControlServer struct {
+// UnimplementedPluginServer can be embedded to have forward compatible implementations.
+type UnimplementedPluginServer struct {
 }
 
-func (*UnimplementedPluginControlServer) Register(context.Context, *RegisterRequest) (*RegisterResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
-}
-func (*UnimplementedPluginControlServer) Heartbeat(context.Context, *HeartbeatRequest) (*HeartbeatResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Heartbeat not implemented")
-}
-func (*UnimplementedPluginControlServer) CommandChannel(PluginControl_CommandChannelServer) error {
-	return status.Errorf(codes.Unimplemented, "method CommandChannel not implemented")
+func (*UnimplementedPluginServer) ControlChannel(Plugin_ControlChannelServer) error {
+	return status.Errorf(codes.Unimplemented, "method ControlChannel not implemented")
 }
 
-func RegisterPluginControlServer(s *grpc.Server, srv PluginControlServer) {
-	s.RegisterService(&_PluginControl_serviceDesc, srv)
+func RegisterPluginServer(s *grpc.Server, srv PluginServer) {
+	s.RegisterService(&_Plugin_serviceDesc, srv)
 }
 
-func _PluginControl_Register_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RegisterRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PluginControlServer).Register(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/systemapi_plugin.PluginControl/Register",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PluginControlServer).Register(ctx, req.(*RegisterRequest))
-	}
-	return interceptor(ctx, in, info, handler)
+func _Plugin_ControlChannel_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(PluginServer).ControlChannel(&pluginControlChannelServer{stream})
 }
 
-func _PluginControl_Heartbeat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(HeartbeatRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PluginControlServer).Heartbeat(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/systemapi_plugin.PluginControl/Heartbeat",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PluginControlServer).Heartbeat(ctx, req.(*HeartbeatRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _PluginControl_CommandChannel_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(PluginControlServer).CommandChannel(&pluginControlCommandChannelServer{stream})
-}
-
-type PluginControl_CommandChannelServer interface {
-	Send(*CommandResponse) error
-	Recv() (*CommandRequest, error)
+type Plugin_ControlChannelServer interface {
+	Send(*PluginMessage) error
+	Recv() (*PluginMessage, error)
 	grpc.ServerStream
 }
 
-type pluginControlCommandChannelServer struct {
+type pluginControlChannelServer struct {
 	grpc.ServerStream
 }
 
-func (x *pluginControlCommandChannelServer) Send(m *CommandResponse) error {
+func (x *pluginControlChannelServer) Send(m *PluginMessage) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *pluginControlCommandChannelServer) Recv() (*CommandRequest, error) {
-	m := new(CommandRequest)
+func (x *pluginControlChannelServer) Recv() (*PluginMessage, error) {
+	m := new(PluginMessage)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-var _PluginControl_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "systemapi_plugin.PluginControl",
-	HandlerType: (*PluginControlServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "Register",
-			Handler:    _PluginControl_Register_Handler,
-		},
-		{
-			MethodName: "Heartbeat",
-			Handler:    _PluginControl_Heartbeat_Handler,
-		},
-	},
+var _Plugin_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "systemapi_plugin.Plugin",
+	HandlerType: (*PluginServer)(nil),
+	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "CommandChannel",
-			Handler:       _PluginControl_CommandChannel_Handler,
+			StreamName:    "ControlChannel",
+			Handler:       _Plugin_ControlChannel_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},
