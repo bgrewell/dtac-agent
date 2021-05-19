@@ -81,11 +81,21 @@ func (p *program) run() {
 
 	// Check for updates
 	//go runUpdateChecker(c)
-
-	plugins := plugin.NewServer(c.Plugins.ListenPort)
-	err = plugins.Serve(r)
+	// TODO: Need to build the mapping for plugin to client for calls from REST API - this is just to prevent errors during dev
+	cplugs := make(map[string]*plugin.Client)
 
 	// TODO: Deploy any plugins
+	for _, p := range c.Plugins.ActivePlugins {
+		for name, cfg := range p {
+			pluginClient, err := plugin.NewClient(name, cfg)
+			if err != nil {
+				log.Errorf("failed to load plugin: %v", err)
+				continue
+			}
+			cplugs[name] = pluginClient
+			log.Infof("loaded plugin: %v", name)
+		}
+	}
 
 	// Before starting update the handlers Routes var
 	handlers.Routes = r.Routes()
@@ -110,7 +120,6 @@ func (p *program) run() {
 	if err := srv.Shutdown(ctx); err != nil {
 		logger.Error("forcing server to shutdown: %v", err)
 	}
-	plugins.Stop()
 
 	logger.Info("server has exited")
 }

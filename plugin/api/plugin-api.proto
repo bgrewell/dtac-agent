@@ -3,33 +3,67 @@ package systemapi_plugin;
 
 option go_package = "github.com/BGrewell/system-api/plugin/api/";
 
-enum RequestType {
-    REQUEST_UNKNOWN = 0;
-    REQUEST_HEARTBEAT = 1;
-    REQUEST_REGISTER = 10;
-    REQUEST_EXEC = 20;
+enum RequestStatus {
+    STATUS_UNKNOWN = 0;
+    STATUS_OK = 1;
+    STATUS_ERROR = 2;
+    STATUS_PENDING = 3;
+    STATUS_BUSY = 4;
+}
+
+enum HttpVerb {
+    GET = 0;
+    HEAD = 1;
+    POST = 2;
+    PUT = 3;
+    DELETE = 4;
+    CONNECT = 5;
+    OPTIONS = 6;
+    TRACE = 7;
+    PATCH = 8;
 }
 
 service Plugin {
-    rpc ControlChannel (stream PluginMessage) returns (stream PluginMessage) {}
+    rpc Register (RegisterRequest) returns (RegisterResponse) {}
+    rpc Heartbeat (HeartbeatRequest) returns (HeartbeatResponse) {}
+    rpc Execute (ExecutionRequest) returns (ExecutionResponse) {}
 }
 
-message PluginMessage {
-    uint64 request_id = 1;
-    string title = 2;
-    RequestType request_type = 10;
-    oneof request_payload {
-        Heartbeat heartbeat = 20;
-        Register register = 21;
-    }
-}
-
-message Heartbeat {
-    uint64 beat_id = 1;
-}
-
-message Register {
-    string plugin_name = 1;
+message RegisterRequest {
+    string id = 1;
+    string name = 2;
     string route_base = 10;
-    repeated string routes = 11;
+    map<string, HttpVerb> routes = 11;
+}
+
+message RegisterResponse {
+    string id = 1;
+    RequestStatus status = 10;
+}
+
+message HeartbeatRequest {
+    uint64 id = 1;
+    uint64 sent_time = 10;
+}
+
+message HeartbeatResponse {
+    uint64 id = 1;
+    uint64 sent_time1 = 10;
+    uint64 recv_time1 = 11;
+    uint64 sent_time2 = 12;
+}
+
+message ExecutionRequest {
+    string id = 1;
+    string route = 10;
+    HttpVerb method = 11;
+    map<string, string> query_params = 12;
+    map<string, string> headers = 13;
+    string request_body = 20;
+}
+
+message ExecutionResponse {
+    string id = 1;
+    map<string, string> headers = 10;
+    string response_body = 20;
 }

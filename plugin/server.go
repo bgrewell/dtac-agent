@@ -1,7 +1,8 @@
 package plugin
 
+//TODO: THIS IS NO LONGER USED, SYSTEM-API IS THE CLIENT IN THE PLUGIN ARCHITECTURE THIS CAN BE REMOVED NOW
+
 import (
-	"context"
 	"fmt"
 	api "github.com/BGrewell/system-api/plugin/go"
 	"github.com/gin-gonic/gin"
@@ -23,11 +24,18 @@ type server struct {
 	running bool
 	engine *gin.Engine
 	plugins map[string]*Shim
+	routeHandlers map[string]string
+	lock *sync.Mutex
 }
 
 func NewServer(port int) *server {
 	once.Do(func() {
-		instance = &server{port: fmt.Sprintf(":%d", port)}
+		instance = &server{
+			port: fmt.Sprintf(":%d", port),
+			lock: &sync.Mutex{},
+			plugins: make(map[string]*Shim),
+			routeHandlers: make(map[string]string),
+		}
 	})
 
 	return instance
@@ -75,16 +83,4 @@ func (s *server) Serve(r *gin.Engine) error {
 func (s *server) Stop() {
 	s.running = false
 	time.Sleep(200 * time.Millisecond)
-}
-
-
-func (s *server) ControlChannel(channelServer api.Plugin_ControlChannelServer) error {
-	// TODO: Take all of the routes and the base and combine them and register them with the web server. Any
-	//		 calls to those routes will be passed back through the command channel to the plugin along with any
-	//		 body, headers and url so that the plugin can do what it likes and return the result
-
-	if _, ok := s.plugins[request.PluginName]; ok {
-		panic("plugin exists, we need to return a real error")
-	}
-	panic("implement me")
 }

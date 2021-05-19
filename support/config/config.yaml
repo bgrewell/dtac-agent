@@ -25,7 +25,7 @@ plugins:
 
     - hello:
         binary: hello
-        target: localhost
+        target: local
         #protocol: direct [default]
         #user: "" [default]
         #pass: "" [default]
