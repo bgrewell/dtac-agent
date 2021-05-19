@@ -37,12 +37,28 @@ type UpdaterEntry struct {
 	RestartOnUpdate bool   `json:"restart_on_update" yaml:"restart_on_update" xml:"restart_on_update"`
 }
 
+type PluginsEntry struct {
+	ListenPort    int                       `json:"listen_port" yaml:"listen_port" xml:"listen_port"`
+	PluginDir     string                    `json:"dir" yaml:"dir" xml:"dir"`
+	ActivePlugins []map[string]*PluginEntry `json:"active" yaml:"active" xml:"active"`
+}
+
+type PluginEntry struct {
+	Binary        string `json:"binary" yaml:"binary" xml:"binary"`
+	Target        string `json:"target" yaml:"target" xml:"target"`
+	Protocol      string `json:"protocol" yaml:"protocol" xml:"protocol"`
+	User          string `json:"user" yaml:"user" xml:"user"`
+	Pass          string `json:"pass" yaml:"pass" xml:"pass"`
+	EnsureRunning bool   `json:"ensure_running" yaml:"ensure_running" xml:"ensure_running"`
+}
+
 type Config struct {
 	ListenPort int                       `json:"listen_port" yaml:"listen_port" xml:"listen_port"`
 	HTTPS      bool                      `json:"https" yaml:"https" xml:"https"`
 	CertFile   string                    `json:"cert_file" yaml:"cert_file" xml:"cert_file"`
 	KeyFile    string                    `json:"key_file" yaml:"key_file" xml:"key_file"`
 	Updater    UpdaterEntry              `json:"updater" yaml:"updater" xml:"updater"`
+	Plugins    PluginsEntry              `json:"plugins" yaml:"plugins" xml:"plugins"`
 	Custom     []map[string]*CustomEntry `json:"custom" yaml:"custom" xml:"custom"`
 }
 

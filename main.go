@@ -10,6 +10,7 @@ import (
 	"github.com/BGrewell/system-api/configuration"
 	"github.com/BGrewell/system-api/handlers"
 	"github.com/BGrewell/system-api/httprouting"
+	"github.com/BGrewell/system-api/plugin"
 	"github.com/gin-gonic/gin"
 	"github.com/kardianos/service"
 	log "github.com/sirupsen/logrus"
@@ -81,6 +82,11 @@ func (p *program) run() {
 	// Check for updates
 	//go runUpdateChecker(c)
 
+	plugins := plugin.NewServer(c.Plugins.ListenPort)
+	err = plugins.Serve(r)
+
+	// TODO: Deploy any plugins
+
 	// Before starting update the handlers Routes var
 	handlers.Routes = r.Routes()
 
@@ -104,6 +110,7 @@ func (p *program) run() {
 	if err := srv.Shutdown(ctx); err != nil {
 		logger.Error("forcing server to shutdown: %v", err)
 	}
+	plugins.Stop()
 
 	logger.Info("server has exited")
 }

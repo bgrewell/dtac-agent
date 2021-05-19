@@ -27,16 +27,17 @@ require (
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/shirou/gopsutil v3.21.4+incompatible
 	github.com/sirupsen/logrus v1.8.1
-	github.com/tklauser/go-sysconf v0.3.5 // indirect
+	github.com/tklauser/go-sysconf v0.3.6 // indirect
 	github.com/twinj/uuid v1.0.0
-	github.com/ugorji/go v1.2.5 // indirect
+	github.com/ugorji/go v1.2.6 // indirect
 	github.com/vishvananda/netlink v1.1.0
 	github.com/vishvananda/netns v0.0.0-20210104183010-2eb08e3e575f // indirect
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
 	golang.org/x/net v0.0.0-20210510120150-4163338589ed // indirect
-	golang.org/x/oauth2 v0.0.0-20210427180440-81ed05c6b58c // indirect
-	golang.org/x/sys v0.0.0-20210511113859-b0526f3d8744
-	google.golang.org/genproto v0.0.0-20210510173355-fb37daa5cd7a // indirect
-	google.golang.org/grpc v1.37.1 // indirect
+	golang.org/x/oauth2 v0.0.0-20210514164344-f6687ab2804c // indirect
+	golang.org/x/sys v0.0.0-20210514084401-e8d321eab015
+	google.golang.org/genproto v0.0.0-20210518161634-ec7691c0a37d // indirect
+	google.golang.org/grpc v1.37.1
+	google.golang.org/protobuf v1.26.0
 	gopkg.in/yaml.v2 v2.4.0
 )

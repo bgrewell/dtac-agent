@@ -1,46 +1,35 @@
 syntax = "proto3";
+package systemapi_plugin;
 
 option go_package = "github.com/BGrewell/system-api/plugin/api/";
 
-enum STATUS {
-    UNKNOWN = 0;
-    OK = 1;
-    RUNNING = 2;
-    WAITING = 3;
-    IN_PROGRESS = 4;
-    CANCELED = 5;
-    CLOSING = 6;
-    ERROR = 7;
+enum RequestType {
+    REQUEST_UNKNOWN = 0;
+    REQUEST_HEARTBEAT = 1;
+    REQUEST_REGISTER = 10;
+    REQUEST_EXEC = 20;
 }
 
-service PluginControl {
-    rpc Register(RegisterRequest) returns (RegisterResponse) {}
-    rpc Heartbeat(stream HeartbeatRequest) returns (stream HeartbeatResponse) {}
-    rpc CommandChannel(stream CommandRequest) returns (stream CommandResponse) {}
+service Plugin {
+    rpc ControlChannel (stream PluginMessage) returns (stream PluginMessage) {}
 }
 
-message HeartbeatRequest {
+message PluginMessage {
+    uint64 request_id = 1;
+    string title = 2;
+    RequestType request_type = 10;
+    oneof request_payload {
+        Heartbeat heartbeat = 20;
+        Register register = 21;
+    }
+}
+
+message Heartbeat {
     uint64 beat_id = 1;
 }
 
-message HeartbeatResponse {
-    uint64 beat_response = 1;
-}
-
-message RegisterRequest {
+message Register {
     string plugin_name = 1;
     string route_base = 10;
     repeated string routes = 11;
-}
-
-message RegisterResponse {
-    STATUS status = 1;
-}
-
-message CommandRequest {
-    uint64 command_id = 1;
-}
-
-message CommandResponse {
-    uint64 command_id = 1;
 }

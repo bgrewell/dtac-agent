@@ -34,6 +34,7 @@ deps:
 		export GOPROXY=direct
 		export GOSUMDB=off
 		$(GOGET) -u ./...
+		go install google.golang.org/protobuf/cmd/protoc-gen-go
 
 deploy: build
 		scp bin/system-apid intel@$(HOST):/home/intel/.
@@ -70,3 +71,6 @@ package: build
 		cp support/service/system-apid.service update/.
 		tar -czvf package/system-api_$$(date +"%Y.%m.%d_%H%M%S").tar.gz update/
 		rm -rf update
+
+proto: deps
+		protoc -I=plugin/api --go_out=plugin/api --go_opt=paths=source_relative plugin/api/plugin-api.proto
