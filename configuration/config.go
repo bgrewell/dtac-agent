@@ -57,6 +57,7 @@ type Config struct {
 	HTTPS      bool                      `json:"https" yaml:"https" xml:"https"`
 	CertFile   string                    `json:"cert_file" yaml:"cert_file" xml:"cert_file"`
 	KeyFile    string                    `json:"key_file" yaml:"key_file" xml:"key_file"`
+	LockoutTime int					     `json:"lockout_timeout" yaml:"lockout_timeout" xml:"lockout_time"`
 	Updater    UpdaterEntry              `json:"updater" yaml:"updater" xml:"updater"`
 	Plugins    PluginsEntry              `json:"plugins" yaml:"plugins" xml:"plugins"`
 	Custom     []map[string]*CustomEntry `json:"custom" yaml:"custom" xml:"custom"`
@@ -77,6 +78,9 @@ func Load(filename string) (config *Config, err error) {
 		for key, value := range entry {
 			value.Name = key
 		}
+	}
+	if c.LockoutTime == 0 {
+		c.LockoutTime = 60
 	}
 	return c, nil
 }

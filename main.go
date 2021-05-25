@@ -10,6 +10,7 @@ import (
 	"github.com/BGrewell/system-api/configuration"
 	"github.com/BGrewell/system-api/handlers"
 	"github.com/BGrewell/system-api/httprouting"
+	"github.com/BGrewell/system-api/middleware"
 	"github.com/BGrewell/system-api/plugin"
 	"github.com/gin-gonic/gin"
 	"github.com/kardianos/service"
@@ -51,8 +52,12 @@ func (p *program) Stop(s service.Service) error {
 }
 
 func (p *program) run() {
+
 	// Default Router
 	r := gin.Default()
+
+	// Add Middleware (registration is further down after configuration is loaded)
+	r.Use(middleware.LockoutMiddleware())
 
 	// General Routes
 	httprouting.AddGeneralHandlers(r)
@@ -63,7 +68,7 @@ func (p *program) run() {
 	// Load Configuration and Custom Routes
 	cfgfile := "/etc/system-api/config.yaml"
 	if runtime.GOOS == "windows" {
-		cfgfile = "config.yaml"
+		cfgfile = "c:\\Program Files\\Intel\\System-Api\\config.yaml"
 	}
 
 	// Check for custom config file location
@@ -78,6 +83,8 @@ func (p *program) run() {
 	} else {
 		httprouting.AddCustomHandlers(c, r)
 	}
+
+	middleware.RegisterLockoutHandler(r, c.LockoutTime)
 
 	// Check for updates
 	//go runUpdateChecker(c)
@@ -226,14 +233,18 @@ func main() {
 	options := make(service.KeyValue)
 	options["Restart"] = "on-success"
 	options["SuccessExitStatus"] = "1 2 8 SKIGKILL"
+	var dependencies []string
+	if runtime.GOOS != "windows" {
+		dependencies = []string{
+			"Requires=network.target",
+			"After=network-online.target syslog.target",
+		}
+	}
 	svcConfig := &service.Config{
 		Name:        "system-api.service",
 		DisplayName: "System-API Service",
 		Description: "System-API provides access to many system details via REST endpoints",
-		Dependencies: []string{
-			"Requires=network.target",
-			"After=network-online.target syslog.target",
-		},
+		Dependencies: dependencies,
 		Option: options,
 	}
 

@@ -1,8 +1,16 @@
+---
+# Port the service will use to listen for requests
 listen_port: 8080
 
-https: true
+# Service uses https
+https: false
 # cert_file: /certs/tls.crt
 # key_file: /certs/tls.key
+
+# Lockout auto-expire time in seconds
+lockout_timeout: 60
+
+# Section for service auto-updater **CURRENTLY DISABLED IN CODE**
 updater:
   token: 7888124ef00163d6bddc618bcc627b1a4c0d0564
   mode: auto
