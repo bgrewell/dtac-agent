@@ -26,7 +26,7 @@ type LockoutStatus struct {
 	Status string `json:"status"`
 	Key string `json:"key,omitempty"`
 	Host string `json:"host,omitempty"`
-	Expiration time.Time  `json:"expiration,omitempty"`
+	Expiration *time.Time  `json:"expiration,omitempty"`
 }
 
 type LockoutError struct {
@@ -41,6 +41,7 @@ func RegisterLockoutHandler(r *gin.Engine, lockoutTimeout int) {
 	r.POST(LOCKOUT_PATH, GetLockoutHandler)
 	r.POST(LOCKOUT_PATH + "/:timeout", CreateLockoutHandler)
 	r.PUT(LOCKOUT_PATH, RefreshLockoutHandler)
+	r.PUT(LOCKOUT_PATH + "/:timeout", RefreshLockoutHandler)
 	r.DELETE(LOCKOUT_PATH, DeleteLockoutHandler)
 }
 
@@ -67,10 +68,11 @@ func CreateLockoutHandler(c *gin.Context) {
 		timeout = t
 	}
 
+	expire := time.Now().Add(time.Duration(timeout) * time.Second)
 	lockout = &LockoutStatus{
 		Status:     LOCKOUT_LOCKED,
 		Host: c.ClientIP(),
-		Expiration: time.Now().Add(time.Duration(timeout) * time.Second),
+		Expiration: &expire,
 		Key: uuid.New().String(),
 	}
 	WriteResponseJSON(c, time.Since(start), lockout)
@@ -78,8 +80,20 @@ func CreateLockoutHandler(c *gin.Context) {
 
 func RefreshLockoutHandler(c *gin.Context) {
 	start := time.Now()
-	if lockout.Status == LOCKOUT_LOCKED && !time.Now().After(lockout.Expiration) {
-		lockout.Expiration = time.Now().Add(time.Duration(locktimeout) * time.Second)
+
+	timeoutStr := c.Param("timeout")
+	timeout := locktimeout
+	if timeoutStr != "" {
+		t, err := strconv.Atoi(timeoutStr)
+		if err != nil {
+			WriteErrorResponseJSON(c, errors.New(fmt.Sprintf("failed to parse timeout value: %s", err)))
+			return
+		}
+		timeout = t
+	}
+
+	if lockout.Status == LOCKOUT_LOCKED && !(lockout.Expiration == nil || time.Now().After(*lockout.Expiration)) {
+		*lockout.Expiration = time.Now().Add(time.Duration(timeout) * time.Second)
 	} else {
 		WriteErrorResponseJSON(c, errors.New("unable to refresh lock as no active lock exists"))
 		return
@@ -89,28 +103,29 @@ func RefreshLockoutHandler(c *gin.Context) {
 
 func DeleteLockoutHandler(c *gin.Context) {
 	start := time.Now()
-	if lockout.Status == LOCKOUT_UNLOCKED || time.Now().After(lockout.Expiration) {
+	if lockout.Status == LOCKOUT_UNLOCKED || lockout.Expiration == nil || time.Now().After(*lockout.Expiration) {
 		WriteErrorResponseJSON(c, errors.New("unable to delete lock as no active lock exists"))
 	}
 	lockout = &LockoutStatus{
 		Status:     LOCKOUT_UNLOCKED,
-		Expiration: time.Now(),
+		Expiration: nil,
 	}
 	WriteResponseJSON(c, time.Since(start), lockout)
 }
 
 func LockoutMiddleware() gin.HandlerFunc {
+	t := time.Now()
 	lockout = &LockoutStatus{
 		Status:     LOCKOUT_UNLOCKED,
-		Expiration: time.Now(),
+		Expiration: &t,
 	}
 
 	return func(c *gin.Context) {
 
-		if time.Now().After(lockout.Expiration) {
+		if lockout.Expiration != nil && time.Now().After(*lockout.Expiration) {
 			lockout = &LockoutStatus{
 				Status:     LOCKOUT_UNLOCKED,
-				Expiration: time.Now(),
+				Expiration: nil,
 			}
 		}
 
