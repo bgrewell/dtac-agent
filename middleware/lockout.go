@@ -12,36 +12,36 @@ import (
 )
 
 var (
-	lockout *LockoutStatus
+	lockout     *LockoutStatus
 	locktimeout int
 )
 
 const (
 	LOCKOUT_UNLOCKED = "unlocked"
-	LOCKOUT_LOCKED = "locked"
-	LOCKOUT_PATH = "/lockout"
+	LOCKOUT_LOCKED   = "locked"
+	LOCKOUT_PATH     = "/lockout"
 )
 
 type LockoutStatus struct {
-	Status string `json:"status"`
-	Key string `json:"key,omitempty"`
-	Host string `json:"host,omitempty"`
-	Expiration *time.Time  `json:"expiration,omitempty"`
+	Status     string     `json:"status"`
+	Key        string     `json:"key,omitempty"`
+	Host       string     `json:"host,omitempty"`
+	Expiration *time.Time `json:"expiration,omitempty"`
 }
 
 type LockoutError struct {
-	Status string `json:"status"`
-	Message string `json:"message"`
-	Lock LockoutStatus `json:"lock"`
+	Status  string        `json:"status"`
+	Message string        `json:"message"`
+	Lock    LockoutStatus `json:"lock"`
 }
 
 func RegisterLockoutHandler(r *gin.Engine, lockoutTimeout int) {
 	locktimeout = lockoutTimeout
 	r.GET(LOCKOUT_PATH, GetLockoutHandler)
 	r.POST(LOCKOUT_PATH, GetLockoutHandler)
-	r.POST(LOCKOUT_PATH + "/:timeout", CreateLockoutHandler)
+	r.POST(LOCKOUT_PATH+"/:timeout", CreateLockoutHandler)
 	r.PUT(LOCKOUT_PATH, RefreshLockoutHandler)
-	r.PUT(LOCKOUT_PATH + "/:timeout", RefreshLockoutHandler)
+	r.PUT(LOCKOUT_PATH+"/:timeout", RefreshLockoutHandler)
 	r.DELETE(LOCKOUT_PATH, DeleteLockoutHandler)
 }
 
@@ -71,9 +71,9 @@ func CreateLockoutHandler(c *gin.Context) {
 	expire := time.Now().Add(time.Duration(timeout) * time.Second)
 	lockout = &LockoutStatus{
 		Status:     LOCKOUT_LOCKED,
-		Host: c.ClientIP(),
+		Host:       c.ClientIP(),
 		Expiration: &expire,
-		Key: uuid.New().String(),
+		Key:        uuid.New().String(),
 	}
 	WriteResponseJSON(c, time.Since(start), lockout)
 }
@@ -145,9 +145,9 @@ func LockoutMiddleware() gin.HandlerFunc {
 			return
 		} else {
 			le := LockoutError{
-				Status: "error",
+				Status:  "error",
 				Message: "system is currently locked out",
-				Lock:   *lockout,
+				Lock:    *lockout,
 			}
 			c.AbortWithStatusJSON(401, le)
 			return

@@ -1,9 +1,17 @@
 package configuration
 
 import (
+	"errors"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 )
+
+type WatchdogEntry struct {
+	Enabled bool `json:"enabled" yaml:"enabled" xml:"enabled"`
+	PollInterval int    `json:"poll_interval" yaml:"poll_interval" xml:"poll_interval"`
+	Profile      string `json:"profile" yaml:"profile" xml:"profile"`
+	BSSID        string `json:"bssid" yaml:"bssid" xml:"bssid"`
+}
 
 type SourceEntry struct {
 	Type  string `json:"type" yaml:"type" xml:"type"`
@@ -53,14 +61,27 @@ type PluginEntry struct {
 }
 
 type Config struct {
-	ListenPort int                       `json:"listen_port" yaml:"listen_port" xml:"listen_port"`
-	HTTPS      bool                      `json:"https" yaml:"https" xml:"https"`
-	CertFile   string                    `json:"cert_file" yaml:"cert_file" xml:"cert_file"`
-	KeyFile    string                    `json:"key_file" yaml:"key_file" xml:"key_file"`
-	LockoutTime int					     `json:"lockout_timeout" yaml:"lockout_timeout" xml:"lockout_time"`
-	Updater    UpdaterEntry              `json:"updater" yaml:"updater" xml:"updater"`
-	Plugins    PluginsEntry              `json:"plugins" yaml:"plugins" xml:"plugins"`
-	Custom     []map[string]*CustomEntry `json:"custom" yaml:"custom" xml:"custom"`
+	ListenPort  int                       `json:"listen_port" yaml:"listen_port" xml:"listen_port"`
+	HTTPS       bool                      `json:"https" yaml:"https" xml:"https"`
+	CertFile    string                    `json:"cert_file" yaml:"cert_file" xml:"cert_file"`
+	KeyFile     string                    `json:"key_file" yaml:"key_file" xml:"key_file"`
+	LockoutTime int                       `json:"lockout_timeout" yaml:"lockout_timeout" xml:"lockout_time"`
+	Updater     UpdaterEntry              `json:"updater" yaml:"updater" xml:"updater"`
+	Plugins     PluginsEntry              `json:"plugins" yaml:"plugins" xml:"plugins"`
+	Custom      []map[string]*CustomEntry `json:"custom" yaml:"custom" xml:"custom"`
+	Watchdog    WatchdogEntry             `json:"watchdog" yaml:"watchdog" xml:"watchdog"`
+}
+
+var (
+	instance *Config
+)
+
+func GetActiveConfig() (config *Config, err error) {
+	if instance == nil {
+		return nil, errors.New("no active configuration exists")
+	}
+
+	return instance, nil
 }
 
 func Load(filename string) (config *Config, err error) {
@@ -82,5 +103,6 @@ func Load(filename string) (config *Config, err error) {
 	if c.LockoutTime == 0 {
 		c.LockoutTime = 60
 	}
+	instance = c
 	return c, nil
 }

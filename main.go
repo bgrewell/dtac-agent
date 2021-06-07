@@ -241,11 +241,11 @@ func main() {
 		}
 	}
 	svcConfig := &service.Config{
-		Name:        "system-api.service",
-		DisplayName: "System-API Service",
-		Description: "System-API provides access to many system details via REST endpoints",
+		Name:         "system-api.service",
+		DisplayName:  "System-API Service",
+		Description:  "System-API provides access to many system details via REST endpoints",
 		Dependencies: dependencies,
-		Option: options,
+		Option:       options,
 	}
 
 	p := &program{}

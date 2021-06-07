@@ -14,26 +14,26 @@ import (
 )
 
 var (
-	once sync.Once
+	once     sync.Once
 	instance *server
 )
 
 type server struct {
 	api.UnimplementedPluginServer
-	port string
-	running bool
-	engine *gin.Engine
-	plugins map[string]*Shim
+	port          string
+	running       bool
+	engine        *gin.Engine
+	plugins       map[string]*Shim
 	routeHandlers map[string]string
-	lock *sync.Mutex
+	lock          *sync.Mutex
 }
 
 func NewServer(port int) *server {
 	once.Do(func() {
 		instance = &server{
-			port: fmt.Sprintf(":%d", port),
-			lock: &sync.Mutex{},
-			plugins: make(map[string]*Shim),
+			port:          fmt.Sprintf(":%d", port),
+			lock:          &sync.Mutex{},
+			plugins:       make(map[string]*Shim),
 			routeHandlers: make(map[string]string),
 		}
 	})
@@ -44,7 +44,7 @@ func NewServer(port int) *server {
 func (s *server) Serve(r *gin.Engine) error {
 	log.WithFields(log.Fields{
 		"proto": "tcp",
-		"port": s.port,
+		"port":  s.port,
 	}).Info("setting up plugin server")
 
 	s.engine = r

@@ -30,7 +30,7 @@ func IptablesAddDSCPRule(template *DSCPRule) (id string, err error) {
 		Protocol:        template.Protocol,
 		Source:          template.Source,
 		Destination:     template.Destination,
-		SourcePort: template.SourcePort,
+		SourcePort:      template.SourcePort,
 		DestinationPort: template.DestinationPort,
 		InputInterface:  template.InputInterface,
 		OutputInterface: template.OutputInterface,
@@ -71,4 +71,3 @@ func IptablesDelDSCPRule(id string) (rule *DSCPRule, err error) {
 		return nil, fmt.Errorf("failed to find rule matching the supplied id: %s", id)
 	}
 }
-

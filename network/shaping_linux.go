@@ -13,15 +13,15 @@ but you couldn't shape your input traffic. To get around this I need to look at 
 */
 
 type ShapingRequest struct {
-	UplinkInterface *string //UplinkInterface - the network interface to apply the shaping
+	UplinkInterface   *string //UplinkInterface - the network interface to apply the shaping
 	DownlinkInterface *string //DownlinkInterface - the network interface to apply the shaping
-	SourceAddr *string //SourceAddr - either a single address like 1.2.3.4 or a range like 1.2.3.0/24
-	DestinationAddr *string //DestinationAddr - either a single address like 1.2.3.4 or a range like 1.2.3.0/24
-	SourcePort *string //SourcePort - either a single port like '80' or a range like '80:90' or pairs like '22,80,443'
-	DestinationPort *string //DestinationPort - either a single port like '80' or a range like '80:90' or pairs like '22,80,443'
-	Protocol *string //Protocol - the network protocol like tcp, udp etc...
-	UplinkRate *string //UplinkRate - the rate to shape uplink traffic at (uplink is defined as from the source to the destination)
-	DownlinkRate *string //DownlinkRate - the rate to shape downlink traffic at (downlink is defined as from the destination to the source)
+	SourceAddr        *string //SourceAddr - either a single address like 1.2.3.4 or a range like 1.2.3.0/24
+	DestinationAddr   *string //DestinationAddr - either a single address like 1.2.3.4 or a range like 1.2.3.0/24
+	SourcePort        *string //SourcePort - either a single port like '80' or a range like '80:90' or pairs like '22,80,443'
+	DestinationPort   *string //DestinationPort - either a single port like '80' or a range like '80:90' or pairs like '22,80,443'
+	Protocol          *string //Protocol - the network protocol like tcp, udp etc...
+	UplinkRate        *string //UplinkRate - the rate to shape uplink traffic at (uplink is defined as from the source to the destination)
+	DownlinkRate      *string //DownlinkRate - the rate to shape downlink traffic at (downlink is defined as from the destination to the source)
 }
 
 // TODO: When called we need to check and see if the interfaces have been properly prepped

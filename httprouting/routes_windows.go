@@ -8,6 +8,9 @@ import (
 )
 
 func AddOSSpecificHandlers(r *gin.Engine) {
+	// Wifi Watchdog
+	r.GET("/watchdog/wifi", handlers.GetWifiWatchdogHandler)
+
 	// NetQosPolicy Routes
 	r.GET("/network/qos/policies", handlers.GetNetQosPoliciesHandler)         //Return all NetQosPolicy objects
 	r.GET("/network/qos/policy/:name", handlers.GetNetQosPolicyHandler)       //Return named NetQosPolicy object

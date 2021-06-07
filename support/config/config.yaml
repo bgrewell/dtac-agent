@@ -10,6 +10,12 @@ https: false
 # Lockout auto-expire time in seconds
 lockout_timeout: 60
 
+watchdog:
+  enabled: true
+  poll_interval: 10
+  profile: NetworkOfFuture
+  bssid: not_implemented_yet
+
 # Section for service auto-updater **CURRENTLY DISABLED IN CODE**
 updater:
   token: 7888124ef00163d6bddc618bcc627b1a4c0d0564

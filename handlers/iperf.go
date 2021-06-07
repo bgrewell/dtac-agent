@@ -240,7 +240,7 @@ func GetIperfStopTestHandler(c *gin.Context) {
 	logBuilder.WriteString("Attempting to cancel the iperf session\n")
 	cancelStart := time.Now()
 	go cli.Stop()
-	for cli.Running && time.Since(cancelStart) < 30 * time.Second {
+	for cli.Running && time.Since(cancelStart) < 30*time.Second {
 	}
 	finished := cli.Running
 	logBuilder.WriteString(fmt.Sprintf("Iperf3 session canceled? %v\n", !finished))
