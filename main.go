@@ -15,6 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/kardianos/service"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/natefinch/lumberjack.v2"
 	"net/http"
 	"os"
 	"runtime"
@@ -222,10 +223,27 @@ func checkForUpdates(token *string) (applied bool, err error) {
 
 func main() {
 
-	log.Printf("Date: %s\n", date)
-	log.Printf("Rev: %s\n", rev)
-	log.Printf("Branch: %s\n", branch)
-	log.Printf("Version: %s\n", version)
+	filename := "/var/log/system-apid/system-apid.log"
+	if runtime.GOOS == "windows" {
+		filename = "C:\\Logs\\system-apid.log"
+	}
+
+	log.SetOutput(&lumberjack.Logger{
+		Filename: filename,
+		MaxSize: 500,
+		MaxBackups: 3,
+		MaxAge: 30,
+		Compress: true,
+	})
+	log.SetFormatter(&log.JSONFormatter{
+		TimestampFormat: time.RFC3339Nano,
+	})
+	log.SetReportCaller(true)
+	log.ParseLevel("debug")
+	log.Printf("Date: %s", date)
+	log.Printf("Rev: %s", rev)
+	log.Printf("Branch: %s", branch)
+	log.Printf("Version: %s", version)
 
 	svcFlag := flag.String("service", "", "control the service")
 	flag.Parse()

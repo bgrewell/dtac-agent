@@ -21,10 +21,11 @@ func init() {
 			if err == nil {
 				Watchdog = watchdog.WifiWatchdog{}
 				if cfg.Watchdog.Enabled {
+					Watchdog.Initialize()
 					Watchdog.Start(cfg.Watchdog.Profile, cfg.Watchdog.PollInterval)
 					log.Printf("wifi watchdog started. watching for profile: %s every %d seconds\n", cfg.Watchdog.Profile, cfg.Watchdog.PollInterval)
 				}
-				break
+				return
 			}
 			time.Sleep(30 * time.Second)
 		}

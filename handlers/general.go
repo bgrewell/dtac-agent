@@ -1,11 +1,16 @@
 package handlers
 
 import (
+	"errors"
 	. "github.com/BGrewell/system-api/common"
 	"github.com/BGrewell/system-api/mods"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
+)
+
+const (
+	reflectorPort = 9000
 )
 
 var (
@@ -20,12 +25,12 @@ func init() {
 
 	Reflectors = make([]mods.Reflector, 0)
 	udp := mods.UdpReflector{}
-	udp.SetPort(9000)
+	udp.SetPort(reflectorPort)
 	udp.Start()
 	Reflectors = append(Reflectors, &udp)
 
 	tcp := mods.TcpReflector{}
-	tcp.SetPort(9000)
+	tcp.SetPort(reflectorPort)
 	tcp.Start()
 	Reflectors = append(Reflectors, &tcp)
 }
@@ -56,4 +61,23 @@ func GetReflectors(c *gin.Context) {
 		reflectors[reflector.Proto()] = reflector.Port()
 	}
 	WriteResponseJSON(c, time.Since(start), reflectors)
+}
+
+func SendTimedUdpPingHandler(c *gin.Context) {
+	start := time.Now()
+	target := c.Param("target")
+	if target == "" {
+		WriteErrorResponseJSON(c, errors.New("missing target"))
+		return
+	}
+	rtt, err := mods.UdpSendTimedPacket(target, reflectorPort)
+	if err != nil {
+		WriteErrorResponseJSON(c, err)
+		return
+	}
+	WriteResponseJSON(c, time.Since(start), rtt)
+}
+
+func SendTimedTcpPingHandler(c *gin.Context) {
+	WriteErrorResponseJSON(c, errors.New("this method has not been implemented"))
 }
