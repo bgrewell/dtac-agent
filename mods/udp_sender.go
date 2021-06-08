@@ -18,7 +18,7 @@ type PingOverview struct {
 type UdpPingWorkerOptions struct {
 	Target string `json:"target"`
 	Port int `json:"port"`
-	Interval int `json:"interval"`
+	Interval int `json:"interval_ms"`
 	Timeout int `json:"timeout"`
 }
 
@@ -51,7 +51,7 @@ func (w *UdpPingWorker) Stop() error {
 
 func (w *UdpPingWorker) run() {
 	for w.running {
-		next := time.Now().Add(time.Duration(w.interval) * time.Second)
+		next := time.Now().Add(time.Duration(w.interval) * time.Millisecond)
 		result, _ := UdpSendTimedPacket(w.target, w.port, w.timeout)
 		w.Results.Add(result)
 		for time.Now().Before(next) {

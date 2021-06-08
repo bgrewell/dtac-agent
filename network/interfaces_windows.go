@@ -5,9 +5,9 @@ package network
 import (
 	"fmt"
 	"github.com/BGrewell/go-conversions"
+	"github.com/BGrewell/go-execute"
 	"strconv"
 	"strings"
-	"github.com/BGrewell/go-execute"
 	"time"
 )
 
@@ -19,6 +19,7 @@ func GetInterfaceStats(name string) (stats *InterfaceStats, err error) {
 	// Execute the powershell command to get the stats
 	cmd := fmt.Sprintf("Get-NetAdapter -Name %s | Get-NetAdapterStatistics | Format-List -Property \"*\"", name)
 	output, stderr, err := execute.ExecutePowershell(cmd)
+	recordTime := time.Now().UnixNano()
 	if err != nil {
 		fmt.Println(stderr)
 		return nil, err
@@ -73,7 +74,7 @@ func GetInterfaceStats(name string) (stats *InterfaceStats, err error) {
 		TxCollsns:  0,
 	}
 	// Fill calculated fields
-	stats.recordTime = time.Now().UnixNano()
+	stats.recordTime = recordTime
 	stats.Period = float32(stats.recordTime-lastRecord) / float32(time.Second)
 	stats.RxMbps = conversions.ConvertToRateMbps(lastRx, stats.RxBytes, lastRecord, stats.recordTime)
 	stats.TxMbps = conversions.ConvertToRateMbps(lastTx, stats.TxBytes, lastRecord, stats.recordTime)

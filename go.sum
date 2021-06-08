@@ -37,6 +37,8 @@ github.com/BGrewell/go-conversions v0.0.0-20210512190113-ef0a66d37f0f/go.mod h1:
 github.com/BGrewell/go-execute v0.0.0-20201203155726-b7c037ebde49/go.mod h1:vQZr3vuuuKuknvi74K22ne7NzOlwKTPKXOFMVr9Qa6A=
 github.com/BGrewell/go-execute v0.0.0-20210325210258-e4484647d522 h1:GsC5sium5qW4F1enaF7qqqNjoJn53i/Yg0IY0Gct1CQ=
 github.com/BGrewell/go-execute v0.0.0-20210325210258-e4484647d522/go.mod h1:vQZr3vuuuKuknvi74K22ne7NzOlwKTPKXOFMVr9Qa6A=
+github.com/BGrewell/go-execute v0.0.0-20210608200808-59d5bd9b5ed3 h1:eIGm5GJEnTi0U7N6sHBaK++xqGomyx77ITi663gMD4Q=
+github.com/BGrewell/go-execute v0.0.0-20210608200808-59d5bd9b5ed3/go.mod h1:vQZr3vuuuKuknvi74K22ne7NzOlwKTPKXOFMVr9Qa6A=
 github.com/BGrewell/go-iperf v0.0.0-20210513164344-f27c73f37ea5 h1:V9qXYVg2H6vMeAf9a2Q3tEJaZLYIPes3NCoxyb6/iyI=
 github.com/BGrewell/go-iperf v0.0.0-20210513164344-f27c73f37ea5/go.mod h1:sWGSo1gJ21Z52zaN0HrMTPVKtorsAX8JjkH1k3+IPHg=
 github.com/BGrewell/go-netqospolicy v0.0.0-20201207170710-eb97b3455d4f h1:KY+V1Q5fzS2OvQDpJ4uUb+txvgrRKiXZBUrubN1sGsY=
@@ -551,6 +553,8 @@ google.golang.org/genproto v0.0.0-20200804131852-c06518451d9c/go.mod h1:FWY/as6D
 google.golang.org/genproto v0.0.0-20200825200019-8632dd797987/go.mod h1:FWY/as6DDZQgahTzZj3fqbO1CbirC29ZNUFHwi0/+no=
 google.golang.org/genproto v0.0.0-20210607140030-00d4fb20b1ae h1:2dB4bZ/B7RJdKuvHk3mKTzL2xwrikb+Y/QQy7WdyBPk=
 google.golang.org/genproto v0.0.0-20210607140030-00d4fb20b1ae/go.mod h1:UODoCrxHCcBojKKwX1terBiRUaqAsFqJiF615XL43r0=
+google.golang.org/genproto v0.0.0-20210608175058-d8f7434f6428 h1:ITsjBuiO/w/WrKEnQQNVf771ttSDxvlH3cfVloxqKXA=
+google.golang.org/genproto v0.0.0-20210608175058-d8f7434f6428/go.mod h1:UODoCrxHCcBojKKwX1terBiRUaqAsFqJiF615XL43r0=
 google.golang.org/grpc v1.19.0/go.mod h1:mqu4LbDTu4XGKhr4mRzUsmM4RtVoemTSY81AxZiDr8c=
 google.golang.org/grpc v1.20.1/go.mod h1:10oTOabMzJvdu6/UiuZezV6QK5dSlG84ov/aaiqXj38=
 google.golang.org/grpc v1.21.1/go.mod h1:oYelfM1adQP15Ek0mdvEgi9Df8B9CZIaU1084ijfRaM=
