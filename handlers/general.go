@@ -87,7 +87,18 @@ func SendTimedUdpPingHandler(c *gin.Context) {
 }
 
 func SendTimedTcpPingHandler(c *gin.Context) {
-	WriteErrorResponseJSON(c, errors.New("this method has not been implemented"))
+	start := time.Now()
+	target := c.Param("target")
+	if target == "" {
+		WriteErrorResponseJSON(c, errors.New("missing target"))
+		return
+	}
+	rtt, err := mods.TcpSendTimedPacket(target, reflectorPort, 2)
+	if err != nil {
+		WriteErrorResponseJSON(c, err)
+		return
+	}
+	WriteResponseJSON(c, time.Since(start), rtt)
 }
 
 func GetUdpPingWorkerHandler(c *gin.Context) {
