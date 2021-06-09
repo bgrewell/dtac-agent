@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/BGrewell/go-execute"
 	"github.com/BGrewell/go-netqospolicy"
 	. "github.com/BGrewell/system-api/common"
 	"github.com/BGrewell/system-api/network"
@@ -98,4 +99,14 @@ func DeleteNetQosPolicyHandler(c *gin.Context) {
 		WriteErrorResponseJSON(c, fmt.Errorf("error retrieving name"))
 		return
 	}
+}
+
+func CreateRebootHandler(c *gin.Context) {
+	start := time.Now()
+	out, err := execute.ExecuteCmd("shutdown /r")
+	if err != nil {
+		WriteErrorResponseJSON(c, fmt.Errorf("failed to reboot computer: %v"))
+		return
+	}
+	WriteResponseJSON(c, time.Since(start), out)
 }

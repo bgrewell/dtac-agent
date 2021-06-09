@@ -187,3 +187,13 @@ func GetSNATRulesHandler(c *gin.Context) {
 func GetSNATRuleHandler(c *gin.Context) {
 	WriteErrorResponseJSON(c, errors.New("this method has not been implemented for this operating system yet"))
 }
+
+func CreateRebootHandler(c *gin.Context) {
+	start := time.Now()
+	out, err := execute.ExecuteCmd("shutdown -r")
+	if err != nil {
+		WriteErrorResponseJSON(c, fmt.Errorf("failed to reboot computer: %v"))
+		return
+	}
+	WriteResponseJSON(c, time.Since(start), out)
+}

@@ -39,6 +39,7 @@ func AddGeneralHandlers(r *gin.Engine) {
 
 	// POST Routes - Create information
 	r.POST("/login", handlers.LoginHandler)
+	r.POST("/reboot", handlers.CreateRebootHandler)
 	r.POST("/ping/udp/:target", handlers.CreateUdpPingWorkerHandler)
 	r.POST("/ping/tcp/:target", handlers.CreateTcpPingWorkerHandler)
 	r.POST("/network/route", handlers.CreateRouteHandler)
