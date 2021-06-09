@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"io"
 	"log"
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -157,7 +156,21 @@ func CreateIperfServerTestHandler(c *gin.Context) {
 }
 
 func   DeleteIperfClientTestHandler(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "this function has not been implemented", "time": time.Now().Format(time.RFC3339Nano)})
+	start := time.Now()
+	id := c.Param("id")
+	if id == "" {
+		WriteErrorResponseJSON(c, errors.New("id is a required parameter"))
+		return
+	}
+	if val, ok := iperfClients[id]; ok {
+		val.Stop()
+		report := val.Report()
+		delete(iperfClients, id)
+		WriteResponseJSON(c, time.Since(start), report)
+		return
+	}
+
+	WriteErrorResponseJSON(c, errors.New(fmt.Sprintf("the specified id %s was not found on the system", id)))
 }
 
 func DeleteIperfServerTestHandler(c *gin.Context) {

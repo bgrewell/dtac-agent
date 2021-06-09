@@ -192,6 +192,7 @@ func CreateUdpPingWorkerHandler(c *gin.Context) {
 	if err := c.ShouldBindJSON(&options); err != nil {
 		options = &mods.UdpPingWorkerOptions{}
 	}
+	fmt.Printf("options: %v\n", options)
 	options.Target = target
 	if options.Port == 0 {
 		options.Port = reflectorPort

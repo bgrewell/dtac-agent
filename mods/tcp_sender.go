@@ -12,7 +12,7 @@ import (
 type TcpPingWorkerOptions struct {
 	Target string `json:"target"`
 	Port int `json:"port"`
-	Interval int `json:"interval"`
+	Interval int `json:"interval_ms"`
 	Timeout int `json:"timeout"`
 }
 
