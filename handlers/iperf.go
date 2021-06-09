@@ -156,7 +156,7 @@ func CreateIperfServerTestHandler(c *gin.Context) {
 	WriteResponseJSON(c, time.Since(start), s)
 }
 
-func DeleteIperfClientTestHandler(c *gin.Context) {
+func   DeleteIperfClientTestHandler(c *gin.Context) {
 	c.JSON(http.StatusNotImplemented, gin.H{"error": "this function has not been implemented", "time": time.Now().Format(time.RFC3339Nano)})
 }
 

@@ -246,3 +246,22 @@ func CreateTcpPingWorkerHandler(c *gin.Context) {
 	tcpPingWorkers[id] = &w
 	WriteResponseJSON(c, time.Since(start), id)
 }
+
+func DeleteResetAllPingWorkersHandler(c *gin.Context) {
+	start := time.Now()
+	tcpWorkers := 0
+	for key, value := range tcpPingWorkers {
+		value.Stop()
+		delete(tcpPingWorkers, key)
+		tcpWorkers++
+	}
+
+	udpWorkers := 0
+	for key, value := range udpPingWorkers {
+		value.Stop()
+		delete(udpPingWorkers, key)
+		udpWorkers++
+	}
+
+	WriteResponseJSON(c, time.Since(start), fmt.Sprintf("stopped %d udp workers and %d tcp workers.", udpWorkers, tcpWorkers))
+}
