@@ -2,6 +2,7 @@ package common
 
 import (
 	"math"
+	"sync"
 	"time"
 )
 
@@ -22,22 +23,29 @@ type TimestampedFloatArray struct {
 	Count int `json:"count"`
 	Timeouts int `json:"timeouts"`
 	Entries []TimestampedFloatArrayEntry `json:"entries"`
+	mutex sync.Mutex
 }
 
 func (t *TimestampedFloatArray) Add(entry float64) {
 	if t.Entries == nil {
+		t.mutex.Lock()
 		t.Entries = make([]TimestampedFloatArrayEntry, 0)
+		t.mutex.Unlock()
 	}
 	if entry >= 0 {
 		e := TimestampedFloatArrayEntry{
 			Timestamp: time.Now().UnixNano(),
 			Value:     entry,
 		}
+		t.mutex.Lock()
 		t.Count += 1
 		t.Entries = append(t.Entries, e)
+		t.mutex.Unlock()
 	} else {
 		// todo: need to figure out a good way to handle timeouts, don't want to skew the results but don't want to ignore. set to timeout value?
+		t.mutex.Lock()
 		t.Timeouts += 1
+		t.mutex.Unlock()
 	}
 }
 
