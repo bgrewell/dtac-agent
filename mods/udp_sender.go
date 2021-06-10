@@ -52,8 +52,7 @@ func (w *UdpPingWorker) Stop() error {
 func (w *UdpPingWorker) run() {
 	for w.running {
 		next := time.Now().Add(time.Duration(w.interval) * time.Millisecond)
-		result, _ := UdpSendTimedPacket(w.target, w.port, w.timeout)
-		w.Results.Add(result)
+		go w.UdpSendTimedPacketChanneled()
 		for time.Now().Before(next) {
 			time.Sleep(10 *time.Nanosecond)
 		}
@@ -74,6 +73,11 @@ func (w *UdpPingWorker) StdDev() float64 {
 
 func (w *UdpPingWorker) StdDevPeriod(seconds int) float64 {
 	return w.Results.StdDevPeriod(seconds)
+}
+
+func (w *UdpPingWorker) UdpSendTimedPacketChanneled() {
+	result, _ := UdpSendTimedPacket(w.target, w.port, w.timeout)
+	w.Results.Add(result)
 }
 
 func UdpSendTimedPacket(target string, port int, timeout int) (rtt float64, err error) {
