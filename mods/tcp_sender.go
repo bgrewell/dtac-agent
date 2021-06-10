@@ -5,6 +5,7 @@ import (
 	"fmt"
 	. "github.com/BGrewell/system-api/common"
 	log "github.com/sirupsen/logrus"
+	"math/rand"
 	"net"
 	"time"
 )
@@ -14,6 +15,7 @@ type TcpPingWorkerOptions struct {
 	Port int `json:"port"`
 	Interval int `json:"interval_ms"`
 	Timeout int `json:"timeout"`
+	PayloadSize int `json:"payload_size"`
 }
 
 type TcpPingWorker struct {
@@ -22,7 +24,9 @@ type TcpPingWorker struct {
 	port int
 	interval int
 	timeout int
+	size int
 	running bool
+	randbytes []byte
 }
 
 func (w *TcpPingWorker) SetOptions(options *TcpPingWorkerOptions) {
@@ -30,9 +34,12 @@ func (w *TcpPingWorker) SetOptions(options *TcpPingWorkerOptions) {
 	w.port = options.Port
 	w.interval = options.Interval
 	w.timeout = options.Timeout
+	w.size = options.PayloadSize
 }
 
 func (w *TcpPingWorker) Start() error {
+	w.randbytes = make([]byte, 1000000)
+	rand.Read(w.randbytes)
 	w.running = true
 	go w.run()
 	return nil
@@ -70,11 +77,11 @@ func (w *TcpPingWorker) StdDevPeriod(seconds int) float64 {
 }
 
 func (w *TcpPingWorker) TcpSendTimedPacket() {
-	result, _ := TcpSendTimedPacket(w.target, w.port, w.timeout)
+	result, _ := TcpSendTimedPacket(w.target, w.port, w.timeout, w.size, &w.randbytes)
 	w.Results.Add(result)
 }
 
-func TcpSendTimedPacket(target string, port int, timeout int) (rtt float64, err error) {
+func TcpSendTimedPacket(target string, port int, timeout int, size int, r *[]byte) (rtt float64, err error) {
 	buff := make([]byte, 1024)
 	log.Tracef("creating tcp connection to %s:%d", target, port)
 	addr := fmt.Sprintf("%s:%d", target, port)
@@ -89,11 +96,12 @@ func TcpSendTimedPacket(target string, port int, timeout int) (rtt float64, err 
 	}
 	defer conn.Close()
 
+	idx := rand.Intn(len(*r) - size - 1)
 	sendtime := time.Now().UnixNano()
-	log.Tracef("sending %d to remote tcp socket", sendtime)
-	fmt.Fprintf(conn, "%d", sendtime)
+	log.Tracef("sending %d to remote udp socket", size)
+	conn.Write((*r)[idx:idx+size])
 
-	log.Tracef("reading from udp socket")
+	log.Tracef("reading from tcp socket")
 	conn.SetReadDeadline(time.Now().Add(time.Duration(timeout) * time.Second))
 	read, err := bufio.NewReader(conn).Read(buff)
 	recvtime := time.Now().UnixNano()
