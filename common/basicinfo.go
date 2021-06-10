@@ -13,17 +13,17 @@ type BasicInfo struct {
 	CPU     []cpu.InfoStat         `json:"cpu"`
 	Memory  *mem.VirtualMemoryStat `json:"memory"`
 	Network []net.InterfaceStat    `json:"network"`
-	Routes  RoutesInfoParser       `json:"route_info"`
+	Routes  EndpointsInfoParser    `json:"http_endpoint_info"`
 }
 
-type RouteInfoParser struct {
+type EndpointInfo struct {
 	Method  string `json:"method"`
 	Path    string `json:"path"`
 	Handler string `json:"-"`
 }
 
-type RoutesInfoParser struct {
-	Routes []*RouteInfoParser `json:"routes"`
+type EndpointsInfoParser struct {
+	Routes []*EndpointInfo `json:"endpoints"`
 }
 
 func (bi *BasicInfo) Update() {
@@ -51,9 +51,9 @@ func (bi *BasicInfo) Update() {
 }
 
 func (bi *BasicInfo) UpdateRoutes(routes gin.RoutesInfo) {
-	bi.Routes = RoutesInfoParser{Routes: make([]*RouteInfoParser, len(routes))}
+	bi.Routes = EndpointsInfoParser{Routes: make([]*EndpointInfo, len(routes))}
 	for idx, route := range routes {
-		bi.Routes.Routes[idx] = &RouteInfoParser{
+		bi.Routes.Routes[idx] = &EndpointInfo{
 			Method:  route.Method,
 			Path:    route.Path,
 			Handler: route.Handler,
