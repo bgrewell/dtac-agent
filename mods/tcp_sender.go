@@ -46,8 +46,7 @@ func (w *TcpPingWorker) Stop() error {
 func (w *TcpPingWorker) run() {
 	for w.running {
 		next := time.Now().Add(time.Duration(w.interval) * time.Second)
-		result, _ := TcpSendTimedPacket(w.target, w.port, w.timeout)
-		w.Results.Add(result)
+		go w.TcpSendTimedPacket()
 		for time.Now().Before(next) {
 			time.Sleep(10 *time.Nanosecond)
 		}
@@ -68,6 +67,11 @@ func (w *TcpPingWorker) StdDev() float64 {
 
 func (w *TcpPingWorker) StdDevPeriod(seconds int) float64 {
 	return w.Results.StdDevPeriod(seconds)
+}
+
+func (w *TcpPingWorker) TcpSendTimedPacket() {
+	result, _ := TcpSendTimedPacket(w.target, w.port, w.timeout)
+	w.Results.Add(result)
 }
 
 func TcpSendTimedPacket(target string, port int, timeout int) (rtt float64, err error) {
