@@ -11,6 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -127,6 +128,8 @@ func CustomCmdHandler(c *gin.Context) {
 		value = entry.Value
 	}
 	stdout, stderr, err := execute.ExecuteCmdEx(value)
+	stdout = strings.Trim(stdout, "\r\n")
+	stderr = strings.Trim(stderr, "\r\n")
 	WriteResponseJSON(c, time.Since(start), gin.H{"stdout": stdout, "stderr": stderr, "err": err})
 }
 
