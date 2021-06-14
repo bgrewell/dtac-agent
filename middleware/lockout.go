@@ -92,10 +92,11 @@ func RefreshLockoutHandler(c *gin.Context) {
 		timeout = t
 	}
 
-	if lockout.Status == LOCKOUT_LOCKED && !(lockout.Expiration == nil || time.Now().After(*lockout.Expiration)) {
+	if lockout.Status == LOCKOUT_LOCKED && !(lockout.Expiration == nil || time.Now().After(*lockout.Expiration) &&
+		c.GetHeader("LOCKOUT_KEY") != "" && c.GetHeader("LOCKOUT_KEY") == lockout.Key) {
 		*lockout.Expiration = time.Now().Add(time.Duration(timeout) * time.Second)
 	} else {
-		WriteErrorResponseJSON(c, errors.New("unable to refresh lock as no active lock exists"))
+		WriteErrorResponseJSON(c, errors.New("unable to refresh lock"))
 		return
 	}
 	WriteResponseJSON(c, time.Since(start), lockout)
