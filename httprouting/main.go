@@ -31,7 +31,7 @@ func AddGeneralHandlers(r *gin.Engine) {
 	r.DELETE("/network/route", handlers.DeleteRouteHandler)
 	r.DELETE("/ping/udp/:id", handlers.DeleteUdpPingWorkerHandler)
 	r.DELETE("/ping/tcp/:id", handlers.DeleteTcpPingWorkerHandler)
-	r.DELETE("/ping/reset/", handlers.DeleteResetAllPingWorkersHandler)
+	r.DELETE("/ping/reset", handlers.DeleteResetAllPingWorkersHandler)
 	r.DELETE("/iperf/client/stop/:id", handlers.DeleteIperfClientTestHandler)
 	r.DELETE("/iperf/server/stop/:id", handlers.DeleteIperfServerTestHandler)
 	r.DELETE("/iperf/reset", handlers.DeleteIperfResetHandler)

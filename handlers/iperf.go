@@ -7,8 +7,8 @@ import (
 	. "github.com/BGrewell/system-api/common"
 	"github.com/gin-contrib/sse"
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 	"io"
-	"log"
 	"strconv"
 	"time"
 )
@@ -111,10 +111,22 @@ func CreateIperfClientTestHandler(c *gin.Context) {
 	fmt.Printf("host: %s\n", host)
 	var options *iperf.ClientOptions
 	if err := c.ShouldBindJSON(&options); err != nil {
+		log.WithFields(log.Fields{
+			"host": host,
+			"options": options,
+			"err": err,
+		}).Error("error binding iperf client options")
+		fmt.Printf("error binding iperf client options: %v\n", err)
 		options = nil
 	}
 	cli, err := iperfController.NewClient(host)
 	if err != nil {
+		log.WithFields(log.Fields{
+			"host": host,
+			"options": options,
+			"err": err,
+		}).Error("error getting new iperf client")
+		fmt.Printf("error getting new iperf client: %v\n", err)
 		WriteErrorResponseJSON(c, err)
 		return
 	}
@@ -130,6 +142,12 @@ func CreateIperfClientTestHandler(c *gin.Context) {
 	}
 	err = cli.Start()
 	if err != nil {
+		log.WithFields(log.Fields{
+			"host": host,
+			"options": options,
+			"err": err,
+		}).Error("error starting iperf client")
+		fmt.Printf("error starting iperf client: %v\n", err)
 		log.Fatalf("error starting: %v", err)
 	}
 
