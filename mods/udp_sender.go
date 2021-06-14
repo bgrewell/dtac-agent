@@ -2,6 +2,7 @@ package mods
 
 import (
 	"bufio"
+	"encoding/binary"
 	"fmt"
 	. "github.com/BGrewell/system-api/common"
 	log "github.com/sirupsen/logrus"
@@ -104,13 +105,18 @@ func UdpSendTimedPacket(target string, port int, timeout int, size int, r *[]byt
 
 	idx := rand.Intn(len(*r) - size - 1)
 	sendtime := time.Now().UnixNano()
+	tsb := make([]byte, 8)
+	binary.LittleEndian.PutUint64(tsb, uint64(sendtime))
+	data := (*r)[idx:idx+size]
+	copy(data, tsb)
 	log.Tracef("sending %d to remote udp socket", size)
-	conn.Write((*r)[idx:idx+size])
+	conn.Write(data)
 
 	log.Tracef("reading from udp socket")
 	conn.SetReadDeadline(time.Now().Add(time.Duration(timeout) * time.Second))
 	read, err := bufio.NewReader(conn).Read(buff)
 	recvtime := time.Now().UnixNano()
+	ts := int64(binary.LittleEndian.Uint64(buff[:8]))
 	if err != nil {
 		log.WithFields(log.Fields{
 			"target": target,
@@ -121,7 +127,7 @@ func UdpSendTimedPacket(target string, port int, timeout int, size int, r *[]byt
 	}
 	log.Tracef("read %d bytes from udp socket", read)
 
-	rtt = float64(recvtime - sendtime) / float64(time.Millisecond)
+	rtt = float64(recvtime - ts) / float64(time.Millisecond)
 	log.Tracef("rtt was %f ms", rtt)
 	return rtt, nil
 }
