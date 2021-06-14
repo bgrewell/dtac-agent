@@ -22,7 +22,7 @@ require (
 	github.com/google/uuid v1.2.0
 	github.com/json-iterator/go v1.1.11 // indirect
 	github.com/kardianos/service v1.2.0
-	github.com/klauspost/compress v1.13.0 // indirect
+	github.com/klauspost/compress v1.13.1 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/mattn/go-isatty v0.0.13 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
@@ -38,8 +38,8 @@ require (
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
 	golang.org/x/net v0.0.0-20210610132358-84b48f89b13b // indirect
 	golang.org/x/oauth2 v0.0.0-20210514164344-f6687ab2804c // indirect
-	golang.org/x/sys v0.0.0-20210608053332-aa57babbf139
-	google.golang.org/genproto v0.0.0-20210610141715-e7a9b787a5a4 // indirect
+	golang.org/x/sys v0.0.0-20210611083646-a4fc73990273
+	google.golang.org/genproto v0.0.0-20210614143202-012ab6975634 // indirect
 	google.golang.org/grpc v1.38.0
 	google.golang.org/protobuf v1.26.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
