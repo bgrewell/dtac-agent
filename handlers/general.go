@@ -2,41 +2,19 @@ package handlers
 
 import (
 	. "github.com/BGrewell/system-api/common"
-	"github.com/BGrewell/system-api/mods"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
 )
 
-const (
-	reflectorPort = 9000
-)
-
 var (
 	Routes     gin.RoutesInfo
 	Info       BasicInfo
-	Reflectors []mods.Reflector
-	udpPingWorkers map[string]*mods.UdpPingWorker
-	tcpPingWorkers map[string]*mods.TcpPingWorker
 )
 
 func init() {
 	Info = BasicInfo{}
 	Info.Update()
-
-	Reflectors = make([]mods.Reflector, 0)
-	udp := mods.UdpReflector{}
-	udp.SetPort(reflectorPort)
-	udp.Start()
-	Reflectors = append(Reflectors, &udp)
-
-	tcp := mods.TcpReflector{}
-	tcp.SetPort(reflectorPort)
-	tcp.Start()
-	Reflectors = append(Reflectors, &tcp)
-
-	udpPingWorkers = make(map[string]*mods.UdpPingWorker)
-	tcpPingWorkers = make(map[string]*mods.TcpPingWorker)
 }
 
 func SecretTestHandler(c *gin.Context) {

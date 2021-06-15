@@ -10,18 +10,23 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io"
 	"strconv"
+	"sync"
 	"time"
 )
 
 var (
 	iperfClients     map[string]*iperf.Client
 	iperfServers     map[string]*iperf.Server
+	iperfServerLock sync.Mutex
+	iperfClientLock sync.Mutex
 	iperfLiveResults map[string]<-chan *iperf.StreamIntervalReport
 	iperfController  *iperf.Controller
 )
 
 func init() {
 	var err error
+	iperfServerLock = sync.Mutex{}
+	iperfClientLock = sync.Mutex{}
 	iperfClients = make(map[string]*iperf.Client)
 	iperfServers = make(map[string]*iperf.Server)
 	iperfLiveResults = make(map[string]<-chan *iperf.StreamIntervalReport)
@@ -151,7 +156,9 @@ func CreateIperfClientTestHandler(c *gin.Context) {
 		log.Fatalf("error starting: %v", err)
 	}
 
+	iperfClientLock.Lock()
 	iperfClients[cli.Id] = cli
+	iperfClientLock.Unlock()
 	WriteResponseJSON(c, time.Since(start), cli)
 }
 
@@ -159,19 +166,29 @@ func CreateIperfServerTestHandler(c *gin.Context) {
 	start := time.Now()
 	s, err := iperfController.NewServer()
 	if err != nil {
+		log.WithFields(log.Fields{
+			"err": err,
+		}).Error("error getting new iperf server")
 		WriteErrorResponseJSON(c, err)
 		return
 	}
 	err = s.Start()
 	if err != nil {
+		log.WithFields(log.Fields{
+			"server": s,
+			"err": err,
+		}).Error("error starting iperf server")
 		WriteErrorResponseJSON(c, err)
 		return
 	}
+
+	iperfServerLock.Lock()
 	iperfServers[s.Id] = s
+	iperfServerLock.Unlock()
 	WriteResponseJSON(c, time.Since(start), s)
 }
 
-func   DeleteIperfClientTestHandler(c *gin.Context) {
+func DeleteIperfClientTestHandler(c *gin.Context) {
 	start := time.Now()
 	id := c.Param("id")
 	if id == "" {
@@ -181,7 +198,9 @@ func   DeleteIperfClientTestHandler(c *gin.Context) {
 	if val, ok := iperfClients[id]; ok {
 		val.Stop()
 		report := val.Report()
+		iperfClientLock.Lock()
 		delete(iperfClients, id)
+		iperfClientLock.Unlock()
 		WriteResponseJSON(c, time.Since(start), report)
 		return
 	}
@@ -198,7 +217,9 @@ func DeleteIperfServerTestHandler(c *gin.Context) {
 	}
 	if val, ok := iperfServers[id]; ok {
 		val.Stop()
+		iperfServerLock.Lock()
 		delete(iperfServers, id)
+		iperfServerLock.Unlock()
 		iperfController.StopServer(id)
 		WriteResponseJSON(c, time.Since(start), val)
 		return
@@ -212,14 +233,18 @@ func DeleteIperfResetHandler(c *gin.Context) {
 	servers := 0
 	for key, value := range iperfServers {
 		value.Stop()
+		iperfServerLock.Lock()
 		delete(iperfServers, key)
+		iperfServerLock.Unlock()
 		servers++
 	}
 
 	clients := 0
 	for key, value := range iperfClients {
 		value.Stop()
+		iperfClientLock.Lock()
 		delete(iperfClients, key)
+		iperfClientLock.Unlock()
 		clients++
 	}
 

@@ -115,8 +115,6 @@ func UdpSendTimedPacket(target string, port int, timeout int, size int, r *[]byt
 	log.Tracef("reading from udp socket")
 	conn.SetReadDeadline(time.Now().Add(time.Duration(timeout) * time.Second))
 	read, err := bufio.NewReader(conn).Read(buff)
-	recvtime := time.Now().UnixNano()
-	ts := int64(binary.LittleEndian.Uint64(buff[:8]))
 	if err != nil {
 		log.WithFields(log.Fields{
 			"target": target,
@@ -125,6 +123,8 @@ func UdpSendTimedPacket(target string, port int, timeout int, size int, r *[]byt
 		}).Error("failed to read from udp connection")
 		return -1, err
 	}
+	recvtime := time.Now().UnixNano()
+	ts := int64(binary.LittleEndian.Uint64(buff[:8]))
 	log.Tracef("read %d bytes from udp socket", read)
 
 	rtt = float64(recvtime - ts) / float64(time.Millisecond)

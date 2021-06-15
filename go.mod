@@ -5,7 +5,7 @@ go 1.15
 require (
 	github.com/BGrewell/go-conversions v0.0.0-20210512190113-ef0a66d37f0f
 	github.com/BGrewell/go-execute v0.0.0-20210608200808-59d5bd9b5ed3
-	github.com/BGrewell/go-iperf v0.0.0-20210614210032-3c08964b38fa
+	github.com/BGrewell/go-iperf v0.0.0-20210614224103-d1dbcb7be3b3
 	github.com/BGrewell/go-netqospolicy v0.0.0-20201207170710-eb97b3455d4f
 	github.com/BGrewell/go-update v0.0.0-20210317195128-dfe40a6eb7e9
 	github.com/BGrewell/iptables v0.0.0-20210422145322-b5102dfa3680

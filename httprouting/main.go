@@ -9,6 +9,7 @@ func AddGeneralHandlers(r *gin.Engine) {
 	// GET Routes - Retrieve information
 	r.GET("/", handlers.HomeHandler)
 	r.GET("/logs", handlers.GetLogsHandler)
+	r.GET("/logs/stream", handlers.GetLogsStreamHandler)
 	r.GET("/ping", handlers.GetPingHandler)
 	r.GET("/ping/udp/:target", handlers.SendTimedUdpPingHandler)
 	r.GET("/ping/udp/results/:id", handlers.GetUdpPingWorkerHandler)

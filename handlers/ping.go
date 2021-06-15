@@ -12,6 +12,32 @@ import (
 	"time"
 )
 
+const (
+	reflectorPort = 9000
+)
+
+var (
+	Reflectors []mods.Reflector
+	udpPingWorkers map[string]*mods.UdpPingWorker
+	tcpPingWorkers map[string]*mods.TcpPingWorker
+)
+
+func init() {
+	Reflectors = make([]mods.Reflector, 0)
+	udp := mods.UdpReflector{}
+	udp.SetPort(reflectorPort)
+	udp.Start()
+	Reflectors = append(Reflectors, &udp)
+
+	tcp := mods.TcpReflector{}
+	tcp.SetPort(reflectorPort)
+	tcp.Start()
+	Reflectors = append(Reflectors, &tcp)
+
+	udpPingWorkers = make(map[string]*mods.UdpPingWorker)
+	tcpPingWorkers = make(map[string]*mods.TcpPingWorker)
+}
+
 func GetPingHandler(c *gin.Context) {
 	c.Data(http.StatusOK, gin.MIMEPlain, []byte("pong"))
 }

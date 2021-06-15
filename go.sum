@@ -43,6 +43,8 @@ github.com/BGrewell/go-iperf v0.0.0-20210513164344-f27c73f37ea5 h1:V9qXYVg2H6vMe
 github.com/BGrewell/go-iperf v0.0.0-20210513164344-f27c73f37ea5/go.mod h1:sWGSo1gJ21Z52zaN0HrMTPVKtorsAX8JjkH1k3+IPHg=
 github.com/BGrewell/go-iperf v0.0.0-20210614210032-3c08964b38fa h1:lyhcKFco6lx+zBDE6fWScdG45UZ8xi9n1SqmM7/cBmA=
 github.com/BGrewell/go-iperf v0.0.0-20210614210032-3c08964b38fa/go.mod h1:sWGSo1gJ21Z52zaN0HrMTPVKtorsAX8JjkH1k3+IPHg=
+github.com/BGrewell/go-iperf v0.0.0-20210614224103-d1dbcb7be3b3 h1:MUcb8GmocoiYEa4YWdMD6UnhPPIaSqTwTJZB2UIFGvU=
+github.com/BGrewell/go-iperf v0.0.0-20210614224103-d1dbcb7be3b3/go.mod h1:sWGSo1gJ21Z52zaN0HrMTPVKtorsAX8JjkH1k3+IPHg=
 github.com/BGrewell/go-netqospolicy v0.0.0-20201207170710-eb97b3455d4f h1:KY+V1Q5fzS2OvQDpJ4uUb+txvgrRKiXZBUrubN1sGsY=
 github.com/BGrewell/go-netqospolicy v0.0.0-20201207170710-eb97b3455d4f/go.mod h1:jixbFXJjB6r+LvYrNTxFKuBE+jwRjE7rm6NTDNGm110=
 github.com/BGrewell/go-update v0.0.0-20210317195128-dfe40a6eb7e9 h1:d/kGPZ/oFCv66FaZcnObj9Kf4KpQbgDa+I7xwfo/RJk=

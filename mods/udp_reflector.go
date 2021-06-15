@@ -41,6 +41,7 @@ func (r *UdpReflector) echo() {
 			"addr": addr,
 			"err":  err,
 		}).Error("failed to start udp echo server")
+		return
 	}
 
 	b := make([]byte, 2048)
@@ -52,7 +53,7 @@ func (r *UdpReflector) echo() {
 			log.WithFields(log.Fields{
 				"remote": remote,
 				"err":    rderr,
-			}).Error("failed to read from udp socket")
+			}).Error("reflector failed to read from udp socket")
 		}
 
 		_, wrerr := conn.WriteTo(b[0:read], remote)
@@ -61,7 +62,7 @@ func (r *UdpReflector) echo() {
 				"remote": remote,
 				"data":   b[:read],
 				"err":    wrerr,
-			}).Error("failed to write to udp socket")
+			}).Error("reflector failed to write to udp socket")
 		}
 	}
 }
