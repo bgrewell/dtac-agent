@@ -8,7 +8,7 @@ require (
 	github.com/BGrewell/go-iperf v0.0.0-20210614224103-d1dbcb7be3b3
 	github.com/BGrewell/go-netqospolicy v0.0.0-20201207170710-eb97b3455d4f
 	github.com/BGrewell/go-update v0.0.0-20210317195128-dfe40a6eb7e9
-	github.com/BGrewell/iptables v0.0.0-20210422145322-b5102dfa3680
+	github.com/BGrewell/iptables v0.0.0-20210706145145-9800e49010e8
 	github.com/BGrewell/wifi-watchdog v0.0.0-20210607222400-16134c0da293
 	github.com/StackExchange/wmi v0.0.0-20210224194228-fe8f1750fd46 // indirect
 	github.com/boltdb/bolt v1.3.1
@@ -28,20 +28,20 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/myesui/uuid v1.0.0 // indirect
-	github.com/shirou/gopsutil v3.21.5+incompatible
+	github.com/shirou/gopsutil v3.21.6+incompatible
 	github.com/sirupsen/logrus v1.8.1
 	github.com/tklauser/go-sysconf v0.3.6 // indirect
 	github.com/twinj/uuid v1.0.0
 	github.com/ugorji/go v1.2.6 // indirect
 	github.com/vishvananda/netlink v1.1.0
 	github.com/vishvananda/netns v0.0.0-20210104183010-2eb08e3e575f // indirect
-	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
+	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e // indirect
 	golang.org/x/net v0.0.0-20210614182718-04defd469f4e // indirect
-	golang.org/x/oauth2 v0.0.0-20210514164344-f6687ab2804c // indirect
-	golang.org/x/sys v0.0.0-20210611083646-a4fc73990273
-	google.golang.org/genproto v0.0.0-20210614182748-5b3b54cad159 // indirect
-	google.golang.org/grpc v1.38.0
-	google.golang.org/protobuf v1.26.0
+	golang.org/x/oauth2 v0.0.0-20210628180205-a41e5a781914 // indirect
+	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c
+	google.golang.org/genproto v0.0.0-20210701191553-46259e63a0a9 // indirect
+	google.golang.org/grpc v1.39.0
+	google.golang.org/protobuf v1.27.1
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/stretchr/testify.v1 v1.2.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0

@@ -49,7 +49,8 @@ func IptablesAddDNatRule(template *DNATRule) (id string, err error) {
 		InputInterface:  template.InputInterface,
 		OutputInterface: template.OutputInterface,
 	}
-	rule.Id = fmt.Sprintf("system-api:%s", id)
+	rule.Id = id
+	rule.App = app
 	rule.Target = iptables.TargetDNat{
 		DestinationIp:        template.Target.DestinationIp,
 		DestinationIpRange:   template.Target.DestinationIpRange,
@@ -106,6 +107,10 @@ func IptablesUpdateDNatRule(id string, template *DNATRule) (rule *DNATRule, err 
 	}
 }
 
+func IptablesDelDNatRules() (err error) {
+	return fmt.Errorf("this function is not implemented yet")
+}
+
 func IptablesDelDNatRule(id string) (rule *DNATRule, err error) {
 	if rule, ok := managedRules[id]; ok {
 		err = rule.Delete()
@@ -136,7 +141,8 @@ func IptablesAddSNatRule(template *SNATRule) (id string, err error) {
 		InputInterface:  template.InputInterface,
 		OutputInterface: template.OutputInterface,
 	}
-	rule.Id = fmt.Sprintf("system-api:%s", id)
+	rule.Id = id
+	rule.App = app
 	rule.Target = iptables.TargetSNat{
 		SourceIp:        template.Target.SourceIp,
 		SourceIpRange:   template.Target.SourceIpRange,
@@ -192,6 +198,10 @@ func IptablesUpdateSNatRule(id string, template *SNATRule) (rule *SNATRule, err 
 	}
 }
 
+func IptablesDelSNatRules() (err error) {
+	return fmt.Errorf("this function is not implemented yet")
+}
+
 func IptablesDelSNatRule(id string) (rule *SNATRule, err error) {
 	if rule, ok := managedRules[id]; ok {
 		err = rule.Delete()
@@ -211,4 +221,8 @@ func IptablesDelSNatRule(id string) (rule *SNATRule, err error) {
 	} else {
 		return nil, fmt.Errorf("failed to find rule matching the supplied id: %s", id)
 	}
+}
+
+func IptablesDelRules() (err error) {
+	return iptables.DeleteByComment(app)
 }

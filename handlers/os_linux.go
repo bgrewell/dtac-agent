@@ -61,6 +61,16 @@ func GetIptablesRulesHandler(c *gin.Context) {
 	WriteErrorResponseJSON(c, errors.New("this method has not been implemented for this operating system yet"))
 }
 
+func DeleteIptablesRulesHandler(c *gin.Context) {
+	start := time.Now()
+	err := network.IptablesDelRules()
+	if err != nil {
+		WriteErrorResponseJSON(c, err)
+		return
+	}
+	WriteResponseJSON(c, time.Since(start), "{\"result\": \"all application specific rules were deleted\"}")
+}
+
 func GetIptablesRulesByChainHandler(c *gin.Context) {
 	WriteErrorResponseJSON(c, errors.New("this method has not been implemented for this operating system yet"))
 }
@@ -103,6 +113,16 @@ func UpdateDNATRuleHandler(c *gin.Context) {
 		WriteErrorResponseJSON(c, fmt.Errorf("error retrieving name"))
 		return
 	}
+}
+
+func DeleteDNATRulesHandler(c *gin.Context) {
+	start := time.Now()
+	err := network.IptablesDelDNatRules()
+	if err != nil {
+		WriteErrorResponseJSON(c, err)
+		return
+	}
+	WriteResponseJSON(c, time.Since(start), "{status: ok}")
 }
 
 func DeleteDNATRuleHandler(c *gin.Context) {
@@ -163,6 +183,16 @@ func UpdateSNATRuleHandler(c *gin.Context) {
 		WriteErrorResponseJSON(c, fmt.Errorf("error retrieving name"))
 		return
 	}
+}
+
+func DeleteSNATRulesHandler(c *gin.Context) {
+	start := time.Now()
+	err := network.IptablesDelSNatRules()
+	if err != nil {
+		WriteErrorResponseJSON(c, err)
+		return
+	}
+	WriteResponseJSON(c, time.Since(start), "{status: ok}")
 }
 
 func DeleteSNATRuleHandler(c *gin.Context) {

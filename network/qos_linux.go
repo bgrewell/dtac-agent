@@ -36,7 +36,8 @@ func IptablesAddDSCPRule(template *DSCPRule) (id string, err error) {
 		OutputInterface: template.OutputInterface,
 	}
 	rule.Chain = strings.ToUpper(rule.Chain)
-	rule.Id = fmt.Sprintf("system-api:%s", id)
+	rule.Id = id
+	rule.App = app
 	rule.Target = iptables.TargetDSCP{
 		Value: template.Target.Value,
 	}
