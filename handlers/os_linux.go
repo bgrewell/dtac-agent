@@ -7,6 +7,7 @@ import (
 	. "github.com/BGrewell/system-api/common"
 	"github.com/BGrewell/system-api/network"
 	"github.com/gin-gonic/gin"
+	"strconv"
 	"time"
 )
 
@@ -219,7 +220,7 @@ func GetSNATRuleHandler(c *gin.Context) {
 	WriteErrorResponseJSON(c, errors.New("this method has not been implemented for this operating system yet"))
 }
 
-func CreateRebootHandler(c *gin.Context) {
+func SystemRebootHandler(c *gin.Context) {
 	start := time.Now()
 	out, err := execute.ExecuteCmd("shutdown -r")
 	if err != nil {
@@ -227,4 +228,26 @@ func CreateRebootHandler(c *gin.Context) {
 		return
 	}
 	WriteResponseJSON(c, time.Since(start), out)
+}
+
+func SystemShutdownHandler(c *gin.Context) {
+	WriteNotImplementedResponseJSON(c)
+}
+
+func SystemApiRestartHandler(c *gin.Context) {
+	ts := c.Param("time")
+	t := 10
+	if ts != "" {
+		var err error
+		t, err = strconv.Atoi(ts)
+		if err != nil {
+			t = 10
+		}
+	}
+	start := time.Now()
+	go func() {
+		time.Sleep(time.Duration(t) * time.Second)
+		execute.ExecuteCmd("/bin/systemctl restart system-apid")
+	}()
+	WriteResponseJSON(c, time.Since(start), fmt.Sprintf("service will restart in %d seconds", t))
 }

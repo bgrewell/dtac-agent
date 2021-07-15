@@ -101,7 +101,7 @@ func DeleteNetQosPolicyHandler(c *gin.Context) {
 	}
 }
 
-func CreateRebootHandler(c *gin.Context) {
+func SystemRebootHandler(c *gin.Context) {
 	start := time.Now()
 	out, err := execute.ExecuteCmd("shutdown /r")
 	if err != nil {
@@ -109,4 +109,12 @@ func CreateRebootHandler(c *gin.Context) {
 		return
 	}
 	WriteResponseJSON(c, time.Since(start), out)
+}
+
+func SystemShutdownHandler(c *gin.Context) {
+	WriteNotImplementedResponseJSON(c)
+}
+
+func SystemApiRestartHandler(c *gin.Context) {
+	WriteNotImplementedResponseJSON(c)
 }

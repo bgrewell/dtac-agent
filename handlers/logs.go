@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"errors"
 	. "github.com/BGrewell/system-api/common"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
@@ -72,5 +71,5 @@ func GetLogsHandler(c *gin.Context) {
 }
 
 func GetLogsStreamHandler(c *gin.Context) {
-	WriteErrorResponseJSON(c, errors.New("this method is not implemented"))
+	WriteNotImplementedResponseJSON(c)
 }

@@ -72,3 +72,29 @@ func IptablesDelDSCPRule(id string) (rule *DSCPRule, err error) {
 		return nil, fmt.Errorf("failed to find rule matching the supplied id: %s", id)
 	}
 }
+
+func GetUniversalQosRule(id string) (r *UniversalDSCPRule, err error) {
+	return nil, errors.New("this method has not been implemented for linux yet")
+}
+
+func GetUniversalQosRules() (r []*UniversalDSCPRule, err error) {
+	return nil, errors.New("this method has not been implemented for linux yet")
+}
+
+func CreateUniversalQosRule(rule *UniversalDSCPRule) (r *UniversalDSCPRule, err error) {
+	iptr := rule.ToLinuxQos()
+	iptr.Debug = true
+	err = iptr.Append()
+	if err != nil {
+		return nil, err
+	}
+	return rule, nil
+}
+
+func UpdateUniversalQosRule(rule *UniversalDSCPRule) (r *UniversalDSCPRule, err error) {
+	return nil, errors.New("this method has not been implemented for linux yet")
+}
+
+func DeleteUniversalQosRule(id string) (err error) {
+	return errors.New("this method has not been implemented for linux yet")
+}

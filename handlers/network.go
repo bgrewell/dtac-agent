@@ -89,6 +89,7 @@ func CreateRouteHandler(c *gin.Context) {
 	output, err := network.GetRouteTable()
 	if err != nil {
 		WriteErrorResponseJSON(c, fmt.Errorf("route may not have been created. failed to retreive route table: %v", err))
+		return
 	}
 	WriteResponseJSON(c, time.Since(start), output)
 }
@@ -107,6 +108,7 @@ func UpdateRouteHandler(c *gin.Context) {
 	output, err := network.GetRouteTable()
 	if err != nil {
 		WriteErrorResponseJSON(c, fmt.Errorf("route may not have been updated. failed to retreive route table: %v", err))
+		return
 	}
 	WriteResponseJSON(c, time.Since(start), output)
 }
@@ -127,4 +129,122 @@ func DeleteRouteHandler(c *gin.Context) {
 		WriteErrorResponseJSON(c, fmt.Errorf("route may not have been deleted. failed to retreive route table: %v", err))
 	}
 	WriteResponseJSON(c, time.Since(start), output)
+}
+
+func CreateFirewallRuleUniversalHandler(c *gin.Context) {
+	WriteNotImplementedResponseJSON(c)
+}
+
+func UpdateFirewallRuleUniversalHandler(c *gin.Context) {
+	WriteNotImplementedResponseJSON(c)
+}
+
+func DeleteFirewallRuleUniversalHandler(c *gin.Context) {
+	WriteNotImplementedResponseJSON(c)
+}
+
+func GetFirewallRuleUniversalHandler(c *gin.Context) {
+	WriteNotImplementedResponseJSON(c)
+}
+
+func GetFirewallRulesUniversalHandler(c *gin.Context) {
+	WriteNotImplementedResponseJSON(c)
+}
+
+func CreateQosRuleUniversalHandler(c *gin.Context) {
+	start := time.Now()
+	var input *network.UniversalDSCPRule
+	if err := c.ShouldBindJSON(&input); err != nil {
+		WriteErrorResponseJSON(c, err)
+		return
+	}
+	output, err := network.CreateUniversalQosRule(input)
+	if err != nil {
+		WriteErrorResponseJSON(c, fmt.Errorf("failed to create universal dscp rule: %v", err))
+		return
+	}
+	WriteResponseJSON(c, time.Since(start), output)
+}
+
+func GetQosRuleUniversalHandler(c *gin.Context) {
+	start := time.Now()
+	id := c.Param("id")
+	if id != "" {
+		output, err := network.GetUniversalQosRule(id)
+		if err != nil {
+			WriteErrorResponseJSON(c, fmt.Errorf("failed to get universal dscp rule: %v", err))
+			return
+		}
+		WriteResponseJSON(c, time.Since(start), output)
+	} else {
+		WriteErrorResponseJSON(c, fmt.Errorf("required field 'id' not found"))
+	}
+}
+
+func GetQosRulesUniversalHandler(c *gin.Context) {
+	start := time.Now()
+	output, err := network.GetUniversalQosRules()
+	if err != nil {
+		WriteErrorResponseJSON(c, fmt.Errorf("failed to get universal dscp rules: %v", err))
+		return
+	}
+	WriteResponseJSON(c, time.Since(start), output)
+}
+
+func UpdateQosRuleUniversalHandler(c *gin.Context) {
+	start := time.Now()
+	var input *network.UniversalDSCPRule
+	if err := c.ShouldBindJSON(&input); err != nil {
+		WriteErrorResponseJSON(c, err)
+		return
+	}
+	output, err := network.UpdateUniversalQosRule(input)
+	if err != nil {
+		WriteErrorResponseJSON(c, fmt.Errorf("failed to update universal dscp rule: %v", err))
+		return
+	}
+	WriteResponseJSON(c, time.Since(start), output)
+}
+
+func DeleteQosRuleUniversalHandler(c *gin.Context) {
+	start := time.Now()
+	id := c.Param("id")
+	if id != "" {
+		err := network.DeleteUniversalQosRule(id)
+		if err != nil {
+			WriteErrorResponseJSON(c, fmt.Errorf("failed to delete universal dscp rule: %v", err))
+			return
+		}
+		WriteResponseJSON(c, time.Since(start), "{\"result\": \"deleted\"}")
+	} else {
+		WriteErrorResponseJSON(c, fmt.Errorf("required field 'id' not found"))
+	}
+}
+
+func CreateRouteRuleUniversalHandler(c *gin.Context) {
+	WriteNotImplementedResponseJSON(c)
+}
+
+func GetRouteRuleUniversalHandler(c *gin.Context) {
+	WriteNotImplementedResponseJSON(c)
+}
+
+func GetRouteRulesUniversalHandler(c *gin.Context) {
+	WriteNotImplementedResponseJSON(c)
+}
+
+func UpdateRouteRuleUniversalHandler(c *gin.Context) {
+	WriteNotImplementedResponseJSON(c)
+}
+
+func DeleteRouteRuleUniversalHandler(c *gin.Context) {
+	WriteNotImplementedResponseJSON(c)
+}
+
+func GetInterfaceUniversalHandler(c *gin.Context) {
+	WriteNotImplementedResponseJSON(c)
+}
+
+func GetInterfacesUniversalHandler(c *gin.Context) {
+	WriteNotImplementedResponseJSON(c)
 }

@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
-	"net/http"
 	"time"
 )
 
@@ -39,7 +38,14 @@ func init() {
 }
 
 func GetPingHandler(c *gin.Context) {
-	c.Data(http.StatusOK, gin.MIMEPlain, []byte("pong"))
+	start := time.Now()
+	type rs struct {
+		Response string `json:"response"`
+	}
+	r := rs{
+		Response: "pong",
+	}
+	WriteResponseJSON(c, time.Since(start), r)
 }
 
 func GetReflectors(c *gin.Context) {
@@ -58,7 +64,7 @@ func SendTimedUdpPingHandler(c *gin.Context) {
 		WriteErrorResponseJSON(c, errors.New("missing target"))
 		return
 	}
-	payload := []byte("abcdefghijklmnopqrstuvwxyz012345")
+	payload := []byte("abcdefghijklmnopqrstuvwxyz0123456789")
 	rtt, err := mods.UdpSendTimedPacket(target, reflectorPort, 2, 32, &payload)
 	if err != nil {
 		WriteErrorResponseJSON(c, err)
@@ -74,7 +80,7 @@ func SendTimedTcpPingHandler(c *gin.Context) {
 		WriteErrorResponseJSON(c, errors.New("missing target"))
 		return
 	}
-	payload := []byte("abcdefghijklmnopqrstuvwxyz012345")
+	payload := []byte("abcdefghijklmnopqrstuvwxyz0123456789")
 	rtt, err := mods.TcpSendTimedPacket(target, reflectorPort, 2, 32, &payload)
 	if err != nil {
 		WriteErrorResponseJSON(c, err)

@@ -27,3 +27,23 @@ func DeleteNetQosPolicy(name string) (err error) {
 func DeleteNetQosPolicies() (err error) {
 	return netqospolicy.RemoveAll()
 }
+
+func GetUniversalQosRule(id string) (r *UniversalDSCPRule, err error) {
+	return nil, errors.New("this method has not been implemented for windows yet")
+}
+
+func GetUniversalQosRules() (r []*UniversalDSCPRule, err error) {
+	return nil, errors.New("this method has not been implemented for windows yet")
+}
+
+func CreateUniversalQosRule(rule *UniversalDSCPRule) (r *UniversalDSCPRule, err error) {
+	return nil, errors.New("this method has not been implemented for windows yet")
+}
+
+func UpdateUniversalQosRule(rule *UniversalDSCPRule) (r *UniversalDSCPRule, err error) {
+	return nil, errors.New("this method has not been implemented for windows yet")
+}
+
+func DeleteUniversalQosRule(id string) (err error) {
+	return errors.New("this method has not been implemented for windows yet")
+}

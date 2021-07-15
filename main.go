@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"flag"
+	"fmt"
 	"github.com/BGrewell/go-conversions"
 	"github.com/BGrewell/go-update"
 	"github.com/BGrewell/go-update/stores/github"
+	. "github.com/BGrewell/system-api/common"
 	"github.com/BGrewell/system-api/configuration"
 	"github.com/BGrewell/system-api/handlers"
 	"github.com/BGrewell/system-api/httprouting"
@@ -105,12 +107,17 @@ func (p *program) run() {
 		}
 	}
 
+	// Setup custom 404 handler
+	r.NoRoute(func(c *gin.Context) {
+		WriteNotFoundResponseJSON(c)
+	})
+
 	// Before starting update the handlers Routes var
 	handlers.Routes = r.Routes()
 
 	log.Println("system-api server is running http://localhost:8080")
 	srv := &http.Server{
-		Addr:    ":8080",
+		Addr:    fmt.Sprintf(":%d", c.ListenPort),
 		Handler: r,
 	}
 	// Run in a goroutine so that it won't block the graceful shutdown handling
