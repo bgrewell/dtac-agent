@@ -3,71 +3,118 @@ package network
 import (
 	"errors"
 	"fmt"
-	"github.com/BGrewell/iptables"
+	"github.com/BGrewell/go-iptables"
 	"github.com/google/uuid"
-	"strings"
 )
 
-type DSCPRule struct {
-	Chain           string                    `json:"chain" yaml:"chain" xml:"chain"`
-	Protocol        iptables.InvertableString `json:"protocol,omitempty" yaml:"protocol" xml:"protocol"`
-	Source          iptables.InvertableString `json:"source,omitempty" yaml:"source" xml:"source"`
-	Destination     iptables.InvertableString `json:"destination,omitempty" yaml:"destination" xml:"destination"`
-	SourcePort      iptables.InvertableString `json:"source_port,omitempty" yaml:"source_port" xml:"source_port"`
-	DestinationPort iptables.InvertableString `json:"destination_port,omitempty" yaml:"destination_port" xml:"destination_port"`
-	InputInterface  iptables.InvertableString `json:"input_interface,omitempty" yaml:"input_interface" xml:"input_interface"`
-	OutputInterface iptables.InvertableString `json:"output_interface,omitempty" yaml:"output_interface" xml:"output_interface"`
-	Target          iptables.TargetDSCP       `json:"target" yaml:"target" xml:"target"`
+type DSCPTemplate struct {
+	Name                   string              `json:"name,omitempty" yaml:"name" xml:"name"`
+	Chain                  string              `json:"chain,omitempty" yaml:"chain" xml:"chain"`
+	Protocol               string              `json:"protocol,omitempty" yaml:"protocol" xml:"protocol"`
+	ProtocolNegated        bool                `json:"protocol_negated,omitempty" yaml:"protocol_negated" xml:"protocol_negated"`
+	Source                 string              `json:"source,omitempty" yaml:"source" xml:"source"`
+	SourceNegated          bool                `json:"source_negated,omitempty" yaml:"source_negated" xml:"source_negated"`
+	Destination            string              `json:"destination,omitempty" yaml:"destination" xml:"destination"`
+	DestinationNegated     bool                `json:"destination_negated,omitempty" yaml:"destination_negated" xml:"destination_negated"`
+	SourcePort             string              `json:"source_port,omitempty" yaml:"source_port" xml:"source_port"`
+	SourcePortNegated      bool                `json:"source_port_negated,omitempty" yaml:"source_port_negated" xml:"source_port_negated"`
+	DestinationPort        string              `json:"destination_port,omitempty" yaml:"destination_port" xml:"destination_port"`
+	DestinationPortNegated bool                `json:"destination_port_negated,omitempty" yaml:"destination_port_negated" xml:"destination_port_negated"`
+	InputInterface         string              `json:"input_interface,omitempty" yaml:"input_interface" xml:"input_interface"`
+	InputInterfaceNegated  bool                `json:"input_interface_negated,omitempty" yaml:"input_interface_negated" xml:"input_interface_negated"`
+	OutputInterface        string              `json:"output_interface,omitempty" yaml:"output_interface" xml:"output_interface"`
+	OutputInterfaceNegated bool                `json:"output_interface_negated,omitempty" yaml:"output_interface_negated" xml:"output_interface_negated"`
+	Target                 iptables.TargetDSCP `json:"target,omitempty" yaml:"target" xml:"target"`
 }
 
-func IptablesAddDSCPRule(template *DSCPRule) (id string, err error) {
-	id = uuid.New().String()
+func IptablesGetDSCPRules() (outRules []*iptables.Rule, err error) {
+	t := iptables.TargetDSCP{}
+	return iptables.GetRulesByTarget(&t)
+}
+
+func IptablesGetDSCPRule(id string) (outRule *iptables.Rule, err error) {
+	return iptables.GetRuleById(id)
+}
+
+func IptablesAddDSCPRule(template *DSCPTemplate) (outRule *iptables.Rule, err error) {
+	id := uuid.New().String()
 	if template.Chain == "" {
-		return "", errors.New("required parameter 'chain' is missing")
+		return nil, errors.New("required parameter 'chain' is missing")
 	}
 	rule := &iptables.Rule{
-		Chain:           template.Chain,
-		Protocol:        template.Protocol,
-		Source:          template.Source,
-		Destination:     template.Destination,
-		SourcePort:      template.SourcePort,
-		DestinationPort: template.DestinationPort,
-		InputInterface:  template.InputInterface,
-		OutputInterface: template.OutputInterface,
+		Name:                   template.Name,
+		Chain:                  iptables.Chain(template.Chain),
+		Protocol:               iptables.Protocol(template.Protocol),
+		ProtocolNegated:        template.ProtocolNegated,
+		Source:                 template.Source,
+		SourceNegated:          template.SourceNegated,
+		Destination:            template.Destination,
+		DestinationNegated:     template.DestinationNegated,
+		SourcePort:             template.SourcePort,
+		SourcePortNegated:      template.SourcePortNegated,
+		DestinationPort:        template.DestinationPort,
+		DestinationPortNegated: template.DestinationPortNegated,
+		Input:                  template.InputInterface,
+		InputNegated:           template.InputInterfaceNegated,
+		Output:                 template.OutputInterface,
+		OutputNegated:          template.OutputInterfaceNegated,
+		Target:                 &template.Target,
 	}
-	rule.Chain = strings.ToUpper(rule.Chain)
 	rule.Id = id
-	rule.App = app
-	rule.Target = iptables.TargetDSCP{
-		Value: template.Target.Value,
-	}
-	rule.Table = iptables.TableMangle
+	rule.IpVersion = iptables.IPv4
 	rule.Debug = true
+	rule.SetApp(app)
+	m := iptables.MarkerGeneric{}
+	m.SetName("type")
+	m.SetValue("dscp")
+	rule.AddMarker(&m)
+	rule.Table = iptables.TableMangle
 	err = rule.Append()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	managedRules[id] = rule
-	return id, nil
+	return rule, nil
 }
 
-func IptablesDelDSCPRule(id string) (rule *DSCPRule, err error) {
-	if rule, ok := managedRules[id]; ok {
-		err = rule.Delete()
+func IptablesUpdateDSCPRule(id string, template *DSCPTemplate) (outRule *iptables.Rule, err error) {
+	rule := &iptables.Rule{
+		Source:                 template.Source,
+		SourceNegated:          template.SourceNegated,
+		Destination:            template.Destination,
+		DestinationNegated:     template.DestinationNegated,
+		SourcePort:             template.SourcePort,
+		SourcePortNegated:      template.SourcePortNegated,
+		DestinationPort:        template.DestinationPort,
+		DestinationPortNegated: template.DestinationPortNegated,
+		Input:                  template.InputInterface,
+		InputNegated:           template.InputInterfaceNegated,
+		Output:                 template.OutputInterface,
+		OutputNegated:          template.OutputInterfaceNegated,
+	}
+	if _, err = iptables.FindRuleById(id); err == nil {
+		r, err := iptables.GetRuleById(id)
 		if err != nil {
 			return nil, err
 		}
-		delete(managedRules, id)
-		ret := &DSCPRule{
-			Chain:           rule.Chain,
-			Protocol:        rule.Protocol,
-			Source:          rule.Source,
-			Destination:     rule.Destination,
-			InputInterface:  rule.InputInterface,
-			OutputInterface: rule.OutputInterface,
-			Target:          rule.Target.(iptables.TargetDSCP),
+		r.Update(rule)
+		err = r.Replace()
+		return r, nil
+	} else {
+		return nil, fmt.Errorf("failed to find rule matching the supplied id: %s", id)
+	}
+}
+
+func IptablesDelDSCPRule(id string) (rule *iptables.Rule, err error) {
+	if _, err = iptables.FindRuleById(id); err == nil {
+		r, err := iptables.GetRuleById(id)
+		if err != nil {
+			return nil, err
 		}
-		return ret, nil
+		err = r.Delete()
+		if err != nil {
+			return nil, err
+		}
+		return r, err
 	} else {
 		return nil, fmt.Errorf("failed to find rule matching the supplied id: %s", id)
 	}
@@ -82,9 +129,8 @@ func GetUniversalQosRules() (r []*UniversalDSCPRule, err error) {
 }
 
 func CreateUniversalQosRule(rule *UniversalDSCPRule) (r *UniversalDSCPRule, err error) {
-	iptr := rule.ToLinuxQos()
-	iptr.Debug = true
-	err = iptr.Append()
+	iptablesRule := rule.ToLinuxQos()
+	err = iptablesRule.Append()
 	if err != nil {
 		return nil, err
 	}

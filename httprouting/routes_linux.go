@@ -32,9 +32,13 @@ func AddOSSpecificHandlers(r *gin.Engine) {
 	r.GET("/network/snat/:id", handlers.GetSNATRuleHandler)       // Get SNAT Rule specified by id
 
 	// IPTables General
+	r.POST("/network/firewall/rule", handlers.CreateIptablesRuleHandler)
+	r.PUT("/network/firewall/rule/:id", handlers.UpdateIptablesRuleHandler)
+	r.DELETE("/network/firewall/rules", handlers.DeleteIptablesRulesHandler)
+	r.DELETE("/network/firewall/rule/:id", handlers.DeleteIptablesRuleHandler)			  // Delete IPTables Rules created by system-api
 	r.GET("/network/firewall", handlers.GetIptablesStatusHandler)                       // Get IPTables Status
 	r.GET("/network/firewall/rules", handlers.GetIptablesRulesHandler)                  // Get IPTables Rules
-	r.DELETE("/network/firewall/rules", handlers.DeleteIptablesRulesHandler)			  // Delete IPTables Rules created by system-api
-	r.GET("/network/firewall/rules/:chain", handlers.GetIptablesRulesByChainHandler)    // Get IPTables Rules by Chain
-	r.GET("/network/firewall/rules/:chain/:id", handlers.GetIptablesRuleByChainHandler) // Get IPTables Rule by Id
+	r.GET("/network/firewall/rule/:id", handlers.GetIptablesRuleHandler)
+	r.GET("/network/firewall/rules/table/:table", handlers.GetIptablesRulesByTableHandler)
+	r.GET("/network/firewall/rules/table/:table/:chain", handlers.GetIptablesRulesByChainHandler)
 }

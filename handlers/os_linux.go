@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"errors"
 	"fmt"
 	"github.com/BGrewell/go-execute"
+	"github.com/BGrewell/go-iptables"
 	. "github.com/BGrewell/system-api/common"
 	"github.com/BGrewell/system-api/network"
 	"github.com/gin-gonic/gin"
@@ -13,7 +13,7 @@ import (
 
 func CreateIptablesDSCPRuleHandler(c *gin.Context) {
 	start := time.Now()
-	var input *network.DSCPRule
+	var input *network.DSCPTemplate
 	if err := c.ShouldBindJSON(&input); err != nil {
 		WriteErrorResponseJSON(c, err)
 		return
@@ -27,7 +27,24 @@ func CreateIptablesDSCPRuleHandler(c *gin.Context) {
 }
 
 func UpdateIptablesDSCPRuleHandler(c *gin.Context) {
-	WriteErrorResponseJSON(c, errors.New("this method has not been implemented for this operating system yet"))
+	start := time.Now()
+	id := c.Param("id")
+	var input *network.DSCPTemplate
+	if err := c.ShouldBindJSON(&input); err != nil {
+		WriteErrorResponseJSON(c, err)
+		return
+	}
+	if id != "" {
+		rule, err := network.IptablesUpdateDSCPRule(id, input)
+		if err != nil {
+			WriteErrorResponseJSON(c, err)
+			return
+		}
+		WriteResponseJSON(c, time.Since(start), rule)
+	} else {
+		WriteErrorResponseJSON(c, fmt.Errorf("error retrieving name"))
+		return
+	}
 }
 
 func DeleteIptablesDSCPRuleHandler(c *gin.Context) {
@@ -47,19 +64,98 @@ func DeleteIptablesDSCPRuleHandler(c *gin.Context) {
 }
 
 func GetIptablesDSCPRulesHandler(c *gin.Context) {
-	WriteErrorResponseJSON(c, errors.New("this method has not been implemented for this operating system yet"))
+	start := time.Now()
+	rules, err := network.IptablesGetDSCPRules()
+	if err != nil {
+		WriteErrorResponseJSON(c, err)
+		return
+	}
+	WriteResponseJSON(c, time.Since(start), rules)
 }
 
 func GetIptablesDSCPRuleHandler(c *gin.Context) {
-	WriteErrorResponseJSON(c, errors.New("this method has not been implemented for this operating system yet"))
+	start := time.Now()
+	id := c.Param("id")
+	if id != "" {
+		rule, err := network.IptablesGetDSCPRule(id)
+		if err != nil {
+			WriteErrorResponseJSON(c, err)
+			return
+		}
+		WriteResponseJSON(c, time.Since(start), rule)
+	} else {
+		WriteErrorResponseJSON(c, fmt.Errorf("error retrieving name"))
+		return
+	}
 }
 
 func GetIptablesStatusHandler(c *gin.Context) {
-	WriteErrorResponseJSON(c, errors.New("this method has not been implemented for this operating system yet"))
+	start := time.Now()
+	status, err := network.IptablesGetStatus()
+	if err != nil {
+		WriteErrorResponseJSON(c, err)
+		return
+	}
+	WriteResponseJSON(c, time.Since(start), status)
 }
 
 func GetIptablesRulesHandler(c *gin.Context) {
-	WriteErrorResponseJSON(c, errors.New("this method has not been implemented for this operating system yet"))
+	start := time.Now()
+	rules, err := network.IptablesGetRules()
+	if err != nil {
+		WriteErrorResponseJSON(c, err)
+		return
+	}
+	WriteResponseJSON(c, time.Since(start), rules)
+}
+
+func GetIptablesRuleHandler(c *gin.Context) {
+	start := time.Now()
+	id := c.Param("id")
+	if id != "" {
+		rule, err := network.IptablesGetRule(id)
+		if err != nil {
+			WriteErrorResponseJSON(c, err)
+			return
+		}
+		WriteResponseJSON(c, time.Since(start), rule)
+	} else {
+		WriteErrorResponseJSON(c, fmt.Errorf("error retrieving name"))
+		return
+	}
+}
+
+func GetIptablesRulesByTableHandler(c *gin.Context) {
+	start := time.Now()
+	table := c.Param("table")
+	if table != "" {
+		rule, err := network.IptablesGetByTable(table)
+		if err != nil {
+			WriteErrorResponseJSON(c, err)
+			return
+		}
+		WriteResponseJSON(c, time.Since(start), rule)
+	} else {
+		WriteErrorResponseJSON(c, fmt.Errorf("error retrieving name"))
+		return
+	}
+}
+
+func GetIptablesRulesByChainHandler(c *gin.Context) {
+	start := time.Now()
+	table := c.Param("table")
+	chain := c.Param("chain")
+	if table != "" && chain != "" {
+		rule, err := network.IptablesGetByChain(table, chain)
+		if err != nil {
+			WriteErrorResponseJSON(c, err)
+			return
+		}
+		WriteResponseJSON(c, time.Since(start), rule)
+	} else {
+		WriteErrorResponseJSON(c, fmt.Errorf("error table and chain are required parameters"))
+		return
+	}
 }
 
 func DeleteIptablesRulesHandler(c *gin.Context) {
@@ -72,17 +168,63 @@ func DeleteIptablesRulesHandler(c *gin.Context) {
 	WriteResponseJSON(c, time.Since(start), "{\"result\": \"all application specific rules were deleted\"}")
 }
 
-func GetIptablesRulesByChainHandler(c *gin.Context) {
-	WriteErrorResponseJSON(c, errors.New("this method has not been implemented for this operating system yet"))
+func DeleteIptablesRuleHandler(c *gin.Context) {
+	start := time.Now()
+	id := c.Param("id")
+	if id != "" {
+		rule, err := network.IptablesDelRule(id)
+		if err != nil {
+			WriteErrorResponseJSON(c, err)
+			return
+		}
+		WriteResponseJSON(c, time.Since(start), rule)
+	} else {
+		WriteErrorResponseJSON(c, fmt.Errorf("error id is a required parameter"))
+		return
+	}
 }
 
-func GetIptablesRuleByChainHandler(c *gin.Context) {
-	WriteErrorResponseJSON(c, errors.New("this method has not been implemented for this operating system yet"))
+func CreateIptablesRuleHandler(c *gin.Context) {
+	start := time.Now()
+	var input *iptables.Rule
+	if err := c.ShouldBindJSON(&input); err != nil {
+		WriteErrorResponseJSON(c, err)
+		return
+	}
+
+	rule, err := network.IptablesCreateRule(input)
+	if err != nil {
+		WriteErrorResponseJSON(c, err)
+		return
+	}
+	WriteResponseJSON(c, time.Since(start), rule)
+
+}
+
+func UpdateIptablesRuleHandler(c *gin.Context) {
+	start := time.Now()
+	id := c.Param("id")
+	var input *iptables.Rule
+	if err := c.ShouldBindJSON(&input); err != nil {
+		WriteErrorResponseJSON(c, err)
+		return
+	}
+	if id != "" {
+		rule, err := network.IptablesUpdateRule(id, input)
+		if err != nil {
+			WriteErrorResponseJSON(c, err)
+			return
+		}
+		WriteResponseJSON(c, time.Since(start), rule)
+	} else {
+		WriteErrorResponseJSON(c, fmt.Errorf("error retrieving id"))
+		return
+	}
 }
 
 func CreateDNATRuleHandler(c *gin.Context) {
 	start := time.Now()
-	var input *network.DNATRule
+	var input *iptables.Rule
 	if err := c.ShouldBindJSON(&input); err != nil {
 		WriteErrorResponseJSON(c, err)
 		return
@@ -99,12 +241,12 @@ func UpdateDNATRuleHandler(c *gin.Context) {
 	start := time.Now()
 	id := c.Param("id")
 	if id != "" {
-		var input *network.DNATRule
+		var input *iptables.Rule
 		if err := c.ShouldBindJSON(&input); err != nil {
 			WriteErrorResponseJSON(c, err)
 			return
 		}
-		rule, err := network.IptablesUpdateDNatRule(id, input)
+		rule, err := network.IptablesUpdateDNatRule(input)
 		if err != nil {
 			WriteErrorResponseJSON(c, err)
 			return
@@ -118,7 +260,7 @@ func UpdateDNATRuleHandler(c *gin.Context) {
 
 func DeleteDNATRulesHandler(c *gin.Context) {
 	start := time.Now()
-	err := network.IptablesDelDNatRules()
+	_, err := network.IptablesDelDNatRules()
 	if err != nil {
 		WriteErrorResponseJSON(c, err)
 		return
@@ -143,16 +285,34 @@ func DeleteDNATRuleHandler(c *gin.Context) {
 }
 
 func GetDNATRulesHandler(c *gin.Context) {
-	WriteErrorResponseJSON(c, errors.New("this method has not been implemented for this operating system yet"))
+	start := time.Now()
+	rules, err := network.IptablesGetDNatRules()
+	if err != nil {
+		WriteErrorResponseJSON(c, err)
+		return
+	}
+	WriteResponseJSON(c, time.Since(start), rules)
 }
 
 func GetDNATRuleHandler(c *gin.Context) {
-	WriteErrorResponseJSON(c, errors.New("this method has not been implemented for this operating system yet"))
+	start := time.Now()
+	id := c.Param("id")
+	if id != "" {
+		rule, err := network.IptablesGetDNatRule(id)
+		if err != nil {
+			WriteErrorResponseJSON(c, err)
+			return
+		}
+		WriteResponseJSON(c, time.Since(start), rule)
+	} else {
+		WriteErrorResponseJSON(c, fmt.Errorf("error retrieving name"))
+		return
+	}
 }
 
 func CreateSNATRuleHandler(c *gin.Context) {
 	start := time.Now()
-	var input *network.SNATRule
+	var input *iptables.Rule
 	if err := c.ShouldBindJSON(&input); err != nil {
 		WriteErrorResponseJSON(c, err)
 		return
@@ -169,12 +329,12 @@ func UpdateSNATRuleHandler(c *gin.Context) {
 	start := time.Now()
 	id := c.Param("id")
 	if id != "" {
-		var input *network.SNATRule
+		var input *iptables.Rule
 		if err := c.ShouldBindJSON(&input); err != nil {
 			WriteErrorResponseJSON(c, err)
 			return
 		}
-		rule, err := network.IptablesUpdateSNatRule(id, input)
+		rule, err := network.IptablesUpdateSNatRule(input)
 		if err != nil {
 			WriteErrorResponseJSON(c, err)
 			return
@@ -188,7 +348,7 @@ func UpdateSNATRuleHandler(c *gin.Context) {
 
 func DeleteSNATRulesHandler(c *gin.Context) {
 	start := time.Now()
-	err := network.IptablesDelSNatRules()
+	_, err := network.IptablesDelSNatRules()
 	if err != nil {
 		WriteErrorResponseJSON(c, err)
 		return
@@ -213,11 +373,29 @@ func DeleteSNATRuleHandler(c *gin.Context) {
 }
 
 func GetSNATRulesHandler(c *gin.Context) {
-	WriteErrorResponseJSON(c, errors.New("this method has not been implemented for this operating system yet"))
+	start := time.Now()
+	rules, err := network.IptablesGetSNatRules()
+	if err != nil {
+		WriteErrorResponseJSON(c, err)
+		return
+	}
+	WriteResponseJSON(c, time.Since(start), rules)
 }
 
 func GetSNATRuleHandler(c *gin.Context) {
-	WriteErrorResponseJSON(c, errors.New("this method has not been implemented for this operating system yet"))
+	start := time.Now()
+	id := c.Param("id")
+	if id != "" {
+		rule, err := network.IptablesGetSNatRule(id)
+		if err != nil {
+			WriteErrorResponseJSON(c, err)
+			return
+		}
+		WriteResponseJSON(c, time.Since(start), rule)
+	} else {
+		WriteErrorResponseJSON(c, fmt.Errorf("error retrieving id"))
+		return
+	}
 }
 
 func SystemRebootHandler(c *gin.Context) {
