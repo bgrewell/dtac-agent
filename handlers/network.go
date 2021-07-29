@@ -193,17 +193,22 @@ func GetQosRulesUniversalHandler(c *gin.Context) {
 
 func UpdateQosRuleUniversalHandler(c *gin.Context) {
 	start := time.Now()
-	var input *network.UniversalDSCPRule
-	if err := c.ShouldBindJSON(&input); err != nil {
-		WriteErrorResponseJSON(c, err)
-		return
+	id := c.Param("id")
+	if id != "" {
+		var input *network.UniversalDSCPRule
+		if err := c.ShouldBindJSON(&input); err != nil {
+			WriteErrorResponseJSON(c, err)
+			return
+		}
+		output, err := network.UpdateUniversalQosRule(id, input)
+		if err != nil {
+			WriteErrorResponseJSON(c, fmt.Errorf("failed to update universal dscp rule: %v", err))
+			return
+		}
+		WriteResponseJSON(c, time.Since(start), output)
+	} else {
+		WriteErrorResponseJSON(c, fmt.Errorf("required field 'id' not found"))
 	}
-	output, err := network.UpdateUniversalQosRule(input)
-	if err != nil {
-		WriteErrorResponseJSON(c, fmt.Errorf("failed to update universal dscp rule: %v", err))
-		return
-	}
-	WriteResponseJSON(c, time.Since(start), output)
 }
 
 func DeleteQosRuleUniversalHandler(c *gin.Context) {

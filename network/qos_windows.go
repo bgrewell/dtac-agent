@@ -2,7 +2,9 @@
 
 package network
 
-import "github.com/BGrewell/go-netqospolicy"
+import (
+	"github.com/BGrewell/go-netqospolicy"
+)
 
 func GetNetQosPolicies() (policies []*netqospolicy.NetQoSPolicy, err error) {
 	return netqospolicy.GetAll()
@@ -29,21 +31,48 @@ func DeleteNetQosPolicies() (err error) {
 }
 
 func GetUniversalQosRule(id string) (r *UniversalDSCPRule, err error) {
-	return nil, errors.New("this method has not been implemented for windows yet")
+	policy, err := netqospolicy.Get(id)
+	if policy != nil {
+		return nil, err
+	}
+	return ConvertWindowsQosToUniversalDSCPRule(policy), nil
 }
 
 func GetUniversalQosRules() (r []*UniversalDSCPRule, err error) {
-	return nil, errors.New("this method has not been implemented for windows yet")
+	policies, err := netqospolicy.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	rules := make([]*UniversalDSCPRule,0)
+	for _, policy := range policies {
+		ur := ConvertWindowsQosToUniversalDSCPRule(policy)
+		rules = append(rules, ur)
+	}
+	return rules, nil
 }
 
 func CreateUniversalQosRule(rule *UniversalDSCPRule) (r *UniversalDSCPRule, err error) {
-	return nil, errors.New("this method has not been implemented for windows yet")
+	policy := rule.ToWindowsQos()
+	err = policy.Create()
+	if err != nil {
+		return nil, err
+	}
+	return rule, nil
 }
 
-func UpdateUniversalQosRule(rule *UniversalDSCPRule) (r *UniversalDSCPRule, err error) {
-	return nil, errors.New("this method has not been implemented for windows yet")
+func UpdateUniversalQosRule(id string, rule *UniversalDSCPRule) (r *UniversalDSCPRule, err error) {
+	policy := rule.ToWindowsQos()
+	err = policy.Update()
+	if err != nil {
+		return nil, err
+	}
+	return rule, nil
 }
 
 func DeleteUniversalQosRule(id string) (err error) {
-	return errors.New("this method has not been implemented for windows yet")
+	policy, err := netqospolicy.Get(id)
+	if err != nil {
+		return err
+	}
+	return policy.Remove()
 }

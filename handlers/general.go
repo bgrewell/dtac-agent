@@ -4,6 +4,7 @@ import (
 	"errors"
 	. "github.com/BGrewell/system-api/common"
 	"github.com/gin-gonic/gin"
+	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/process"
 	"net/http"
 	"runtime"
@@ -45,6 +46,29 @@ func GetCPUHandler(c *gin.Context) {
 	start := time.Now()
 	Info.Update()
 	WriteResponseJSON(c, time.Since(start), Info.CPU)
+}
+
+func GetCPUUsageHandler(c *gin.Context) {
+	type CpuUsage struct {
+		Combined float64 `json:"combined"`
+		PerCore []float64 `json:"per_core"`
+	}
+
+	start := time.Now()
+	percpu, err := cpu.Percent(0, true)
+	if err != nil {
+		WriteErrorResponseJSON(c, err)
+	}
+	time.Sleep(10 * time.Millisecond)
+	total, err := cpu.Percent(0, false)
+	if err != nil {
+		WriteErrorResponseJSON(c, err)
+	}
+	usage := CpuUsage{
+		Combined: total[0],
+		PerCore:  percpu,
+	}
+	WriteResponseJSON(c, time.Since(start), usage)
 }
 
 func GetMemoryHandler(c *gin.Context) {

@@ -6,10 +6,9 @@ require (
 	github.com/BGrewell/go-conversions v0.0.0-20210512190113-ef0a66d37f0f
 	github.com/BGrewell/go-execute v0.0.0-20210721193233-180d8f149d59
 	github.com/BGrewell/go-iperf v0.0.0-20210614224103-d1dbcb7be3b3
-	github.com/BGrewell/go-iptables v0.0.0-20210722170900-ab181dedab21 // indirect
+	github.com/BGrewell/go-iptables v0.0.0-20210728215750-5e8645f7adca
 	github.com/BGrewell/go-netqospolicy v0.0.0-20201207170710-eb97b3455d4f
 	github.com/BGrewell/go-update v0.0.0-20210317195128-dfe40a6eb7e9
-	github.com/BGrewell/iptables v0.0.0-20210715190239-cec2a580ada5
 	github.com/BGrewell/wifi-watchdog v0.0.0-20210607222400-16134c0da293
 	github.com/StackExchange/wmi v1.2.0 // indirect
 	github.com/boltdb/bolt v1.3.1
@@ -18,7 +17,7 @@ require (
 	github.com/gin-contrib/sse v0.1.0
 	github.com/gin-gonic/gin v1.7.2
 	github.com/go-ole/go-ole v1.2.5 // indirect
-	github.com/go-playground/validator/v10 v10.7.0 // indirect
+	github.com/go-playground/validator/v10 v10.8.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/uuid v1.3.0
 	github.com/json-iterator/go v1.1.11 // indirect
@@ -37,10 +36,10 @@ require (
 	github.com/vishvananda/netlink v1.1.0
 	github.com/vishvananda/netns v0.0.0-20210104183010-2eb08e3e575f // indirect
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
-	golang.org/x/net v0.0.0-20210614182718-04defd469f4e // indirect
+	golang.org/x/net v0.0.0-20210726213435-c6fcb2dbf985 // indirect
 	golang.org/x/oauth2 v0.0.0-20210628180205-a41e5a781914 // indirect
 	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c
-	google.golang.org/genproto v0.0.0-20210715145939-324b959e9c22 // indirect
+	google.golang.org/genproto v0.0.0-20210728212813-7823e685a01f // indirect
 	google.golang.org/grpc v1.39.0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0

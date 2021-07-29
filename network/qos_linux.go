@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/BGrewell/go-iptables"
+	. "github.com/BGrewell/system-api/common"
 	"github.com/google/uuid"
 )
 
@@ -121,11 +122,29 @@ func IptablesDelDSCPRule(id string) (rule *iptables.Rule, err error) {
 }
 
 func GetUniversalQosRule(id string) (r *UniversalDSCPRule, err error) {
-	return nil, errors.New("this method has not been implemented for linux yet")
+	var iptablesRule *iptables.Rule
+	if !IsValidUUID(id) {
+		iptablesRule, err = iptables.GetRuleByName(id)
+	} else {
+		iptablesRule, err = iptables.GetRuleById(id)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return ConvertLinuxQosToUniversalDSCPRule(iptablesRule), nil
 }
 
 func GetUniversalQosRules() (r []*UniversalDSCPRule, err error) {
-	return nil, errors.New("this method has not been implemented for linux yet")
+	iptablesRules, err := iptables.GetRulesByTarget(&iptables.TargetDSCP{})
+	if err != nil {
+		return nil, err
+	}
+	rules := make([]*UniversalDSCPRule,0)
+	for _, rule := range iptablesRules {
+		ur := ConvertLinuxQosToUniversalDSCPRule(rule)
+		rules = append(rules, ur)
+	}
+	return rules, nil
 }
 
 func CreateUniversalQosRule(rule *UniversalDSCPRule) (r *UniversalDSCPRule, err error) {
@@ -137,10 +156,37 @@ func CreateUniversalQosRule(rule *UniversalDSCPRule) (r *UniversalDSCPRule, err 
 	return rule, nil
 }
 
-func UpdateUniversalQosRule(rule *UniversalDSCPRule) (r *UniversalDSCPRule, err error) {
-	return nil, errors.New("this method has not been implemented for linux yet")
+func UpdateUniversalQosRule(id string, rule *UniversalDSCPRule) (r *UniversalDSCPRule, err error) {
+	iptablesRule := rule.ToLinuxQos()
+	var originalRule *iptables.Rule
+	if !IsValidUUID(id) {
+		originalRule, err = iptables.GetRuleByName(id)
+	} else {
+		originalRule, err = iptables.GetRuleById(id)
+	}
+	if err != nil {
+		return nil, err
+	}
+	originalRule.Update(iptablesRule)
+	t := &iptables.TargetDSCP{Value: rule.DSCP}
+	originalRule.Target = t
+	err = originalRule.Replace()
+	if err != nil {
+		return nil, err
+	}
+	return ConvertLinuxQosToUniversalDSCPRule(originalRule), nil
 }
 
 func DeleteUniversalQosRule(id string) (err error) {
-	return errors.New("this method has not been implemented for linux yet")
+	var iptablesRule *iptables.Rule
+	if !IsValidUUID(id) {
+		iptablesRule, err = iptables.GetRuleByName(id)
+	} else {
+		iptablesRule, err = iptables.GetRuleById(id)
+	}
+
+	if err != nil {
+		return err
+	}
+	return iptablesRule.Delete()
 }
