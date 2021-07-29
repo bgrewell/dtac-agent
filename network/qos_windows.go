@@ -32,7 +32,7 @@ func DeleteNetQosPolicies() (err error) {
 
 func GetUniversalQosRule(id string) (r *UniversalDSCPRule, err error) {
 	policy, err := netqospolicy.Get(id)
-	if policy != nil {
+	if err != nil {
 		return nil, err
 	}
 	return ConvertWindowsQosToUniversalDSCPRule(policy), nil

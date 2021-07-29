@@ -1,8 +1,6 @@
 package network
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/BGrewell/go-iptables"
 	"github.com/BGrewell/go-netqospolicy"
@@ -220,10 +218,10 @@ func (u *UniversalDSCPRule) ToWindowsQos() *netqospolicy.NetQoSPolicy {
 
 func ConvertWindowsQosToUniversalDSCPRule(rule *netqospolicy.NetQoSPolicy) *UniversalDSCPRule {
 
-	b, _ := json.Marshal(rule)
-	var d bytes.Buffer
-	json.Indent(&d, b, "", "  ")
-	log.Print(string(d.Bytes()))
+	if rule == nil {
+		log.Warn("attempt to convert a nil rule. this shouldn't happen! returning nil")
+		return nil
+	}
 
 	var precedence *int
 	if rule.Precedence != nil {
@@ -239,7 +237,7 @@ func ConvertWindowsQosToUniversalDSCPRule(rule *netqospolicy.NetQoSPolicy) *Univ
 	}
 
 	if rule.IPDstPortMatchCondition != nil {
-		p := int(*rule.IPDstPortStartMatchCondition)
+		p := int(*rule.IPDstPortMatchCondition)
 		m.DstPort = &p
 	}
 
