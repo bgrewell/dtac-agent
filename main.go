@@ -13,7 +13,7 @@ import (
 	"github.com/BGrewell/system-api/handlers"
 	"github.com/BGrewell/system-api/httprouting"
 	"github.com/BGrewell/system-api/middleware"
-	"github.com/BGrewell/system-api/plugin"
+	"github.com/BGrewell/system-api/plugin/core"
 	"github.com/gin-gonic/gin"
 	"github.com/kardianos/service"
 	log "github.com/sirupsen/logrus"
@@ -92,12 +92,12 @@ func (p *program) run() {
 	// Check for updates
 	//go runUpdateChecker(c)
 	// TODO: Need to build the mapping for plugin to client for calls from REST API - this is just to prevent errors during dev
-	cplugs := make(map[string]*plugin.Client)
+	cplugs := make(map[string]*core.Client)
 
 	// TODO: Deploy any plugins
 	for _, p := range c.Plugins.ActivePlugins {
 		for name, cfg := range p {
-			pluginClient, err := plugin.NewClient(name, cfg)
+			pluginClient, err := core.NewClient(name, cfg)
 			if err != nil {
 				log.Errorf("failed to load plugin: %v", err)
 				continue
@@ -236,11 +236,11 @@ func main() {
 	}
 
 	log.SetOutput(&lumberjack.Logger{
-		Filename: filename,
-		MaxSize: 500,
+		Filename:   filename,
+		MaxSize:    500,
 		MaxBackups: 3,
-		MaxAge: 30,
-		Compress: true,
+		MaxAge:     30,
+		Compress:   true,
 	})
 	log.SetFormatter(&log.JSONFormatter{
 		TimestampFormat: time.RFC3339Nano,
