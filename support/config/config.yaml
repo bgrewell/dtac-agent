@@ -28,6 +28,13 @@ updater:
 plugins:
   - hello:
       message: "hello world plugin"
+
+  - remote:
+      host: 127.0.0.1
+      port: "5555"
+      token: abcdefghijklmnopqrstuvwxyz0123456789
+      bob: uncle
+
   - non_existent:
       item1: 123
       item2: abc
