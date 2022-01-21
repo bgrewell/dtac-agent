@@ -26,25 +26,17 @@ updater:
 
 # Plugins are located in /etc/system-api/plugins on Linux or in the plugins directory under the executable path on Windows
 plugins:
-  listen_port: 8081
-  dir: /etc/system-api/plugins
-  active:
-    - host_stats:
-        binary: hoststatd.exe
-        target: 192.168.1.33
-        protocol: ssh
-        user: intel
-        pass: intel123
-        ensure_running: true
-
-    - hello:
-        binary: hello
-        target: local
-        #protocol: direct [default]
-        #user: "" [default]
-        #pass: "" [default]
-        #ensure_running: false [default]
-
+  - hello:
+      message: "hello world plugin"
+  - non_existent:
+      item1: 123
+      item2: abc
+      item3:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
 custom:
   - stats_user1:
       route: "/webrtc/stats_user1"
