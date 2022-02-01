@@ -13,7 +13,7 @@ import (
 	"github.com/BGrewell/system-api/handlers"
 	"github.com/BGrewell/system-api/httprouting"
 	"github.com/BGrewell/system-api/middleware"
-	"github.com/BGrewell/system-api/plugin/core"
+	"github.com/BGrewell/system-api/plugin"
 	"github.com/gin-gonic/gin"
 	"github.com/kardianos/service"
 	log "github.com/sirupsen/logrus"
@@ -91,21 +91,9 @@ func (p *program) run() {
 
 	// Check for updates
 	//go runUpdateChecker(c)
-	// TODO: Need to build the mapping for plugin to client for calls from REST API - this is just to prevent errors during dev
-	cplugs := make(map[string]*core.Client)
 
-	// TODO: Deploy any plugins
-	for _, p := range c.Plugins.ActivePlugins {
-		for name, cfg := range p {
-			pluginClient, err := core.NewClient(name, cfg)
-			if err != nil {
-				log.Errorf("failed to load plugin: %v", err)
-				continue
-			}
-			cplugs[name] = pluginClient
-			log.Infof("loaded plugin: %v", name)
-		}
-	}
+	// Initialize internal plugins
+	plugin.Initialize(c.Plugins, r)
 
 	// Setup custom 404 handler
 	r.NoRoute(func(c *gin.Context) {
