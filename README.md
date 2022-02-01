@@ -4,6 +4,7 @@
 
  - Auto-Restart on update
  - Deploy to all systems
+ - Package as Kubernetes Sidecar
 
 ## Basic Info
 

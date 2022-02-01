@@ -5,13 +5,13 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type RemotePlugin struct {
+type RemoteModule struct {
 	Host  string `json:"host,omitempty" yaml:"host"`
 	Port  int    `json:"port,omitempty" yaml:"port"`
 	Token string `json:"token,omitempty" yaml:"token"`
 }
 
-func (p *RemotePlugin) Register(config map[string]interface{}, r *gin.RouterGroup) error {
+func (p *RemoteModule) Register(config map[string]interface{}, r *gin.RouterGroup) error {
 
 	// process config
 	b, err := yaml.Marshal(config)
@@ -26,6 +26,6 @@ func (p *RemotePlugin) Register(config map[string]interface{}, r *gin.RouterGrou
 	return nil
 }
 
-func (p *RemotePlugin) Name() string {
+func (p *RemoteModule) Name() string {
 	return "remote"
 }
