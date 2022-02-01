@@ -13,6 +13,7 @@ import (
 	"github.com/BGrewell/system-api/handlers"
 	"github.com/BGrewell/system-api/httprouting"
 	"github.com/BGrewell/system-api/middleware"
+	"github.com/BGrewell/system-api/module"
 	"github.com/BGrewell/system-api/plugin"
 	"github.com/gin-gonic/gin"
 	"github.com/kardianos/service"
@@ -92,9 +93,12 @@ func (p *program) run() {
 	// Check for updates
 	//go runUpdateChecker(c)
 
-	// Initialize internal plugins
-	plugin.Initialize(c.Plugins, r)
+	// Initialize internal modules
+	module.Initialize(c.Modules, r)
 
+	// Initialize plugins
+	plugin.Initialize(c.PluginDir, c.Plugins, r)
+	
 	// Setup custom 404 handler
 	r.NoRoute(func(c *gin.Context) {
 		WriteNotFoundResponseJSON(c)

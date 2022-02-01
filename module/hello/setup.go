@@ -2,11 +2,11 @@ package hello
 
 import "github.com/gin-gonic/gin"
 
-type HelloPlugin struct {
+type HelloModule struct {
 	Message string
 }
 
-func (p *HelloPlugin) Register(config map[string]interface{}, r *gin.RouterGroup) error {
+func (p *HelloModule) Register(config map[string]interface{}, r *gin.RouterGroup) error {
 	p.Message = "hello default"
 	if msg, ok := config["message"]; ok {
 		p.Message = msg.(string)
@@ -15,6 +15,6 @@ func (p *HelloPlugin) Register(config map[string]interface{}, r *gin.RouterGroup
 	return nil
 }
 
-func (p *HelloPlugin) Name() string {
+func (p *HelloModule) Name() string {
 	return "hello"
 }

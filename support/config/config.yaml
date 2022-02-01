@@ -24,10 +24,19 @@ updater:
   error_fallback: 1h
   restart_on_update: true
 
-# Plugins are located in /etc/system-api/plugins on Linux or in the plugins directory under the executable path on Windows
+# Plugins
+plugin_dir: /etc/system-api/plugins
 plugins:
   - hello:
       message: "hello world plugin"
+
+  - non-existent:
+      message: "non-existent plugin"
+
+# Modules are compiled sections of code that can be selectively enabled
+modules:
+  - hello:
+      message: "hello world module"
 
   - remote:
       host: 127.0.0.1
@@ -44,6 +53,8 @@ plugins:
         - 3
         - 4
         - 5
+
+# Custom is customer handlers. TODO: Look at replacing these with plugins?
 custom:
   - stats_user1:
       route: "/webrtc/stats_user1"

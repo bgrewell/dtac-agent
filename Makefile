@@ -9,11 +9,11 @@ LD_FLAGS=-X 'main.version=$$(git describe --tags)' -X 'main.date=$$(date +"%Y.%m
 TAGS=json,yaml,xml
 all: build
 
-build:	deps
+build:	deps plugins
 		export GO111MODULE=on
 		[ -d bin ] || mkdir bin
-		GOOS=linux $(GOBUILD) -ldflags "$(LD_FLAGS)" -o bin/$(BINARY_NAME) -v .
-		GOOS=windows $(GOBUILD) -ldflags "$(LD_FLAGS)" -o bin/$(BINARY_NAME).exe -v .
+		GOOS=linux $(GOBUILD) -ldflags "$(LD_FLAGS)" -o bin/$(BINARY_NAME) -v main.go
+		GOOS=windows $(GOBUILD) -ldflags "$(LD_FLAGS)" -o bin/$(BINARY_NAME).exe -v main.go
 
 test:
 		$(GOTEST) -v ./...
@@ -33,19 +33,22 @@ deps:
 		export GO111MODULE=on
 		export GOPROXY=direct
 		export GOSUMDB=off
-		$(GOGET) -u ./...
-		go install google.golang.org/protobuf/cmd/protoc-gen-go
+		$(GOCMD) mod tidy
+		$(GOCMD) install google.golang.org/protobuf/cmd/protoc-gen-go
 
 deploy: build
 		scp bin/system-apid intel@$(HOST):/home/intel/.
+		scp bin/plugins/hello.so intel@$(HOST):/home/intel/.
 		scp support/service/system-apid.service intel@$(HOST):/home/intel/.
 		scp support/config/config.yaml intel@$(HOST):/home/intel/.
 		ssh intel@$(HOST) -C 'sudo systemctl stop system-apid || true'
 		ssh intel@$(HOST) -C 'sudo mkdir -p /opt/system-api/bin || true'
 		ssh intel@$(HOST) -C 'sudo mkdir -p /etc/system-api || true'
+		ssh intel@$(HOST) -C 'sudo mkdir -p /etc/system-api/plugins || true'
 		ssh intel@$(HOST) -C 'sudo mv ~/system-apid /opt/system-api/bin/.'
 		ssh intel@$(HOST) -C 'sudo mv ~/system-apid.service /lib/systemd/system/.'
 		ssh intel@$(HOST) -C 'sudo mv ~/config.yaml /etc/system-api/.'
+		ssh intel@$(HOST) -C 'sudo mv ~/hello.so /etc/system-api/plugins/.'
 		ssh intel@$(HOST) -C 'sudo systemctl daemon-reload'
 		ssh intel@$(HOST) -C 'sudo systemctl start system-apid'
 
@@ -74,3 +77,8 @@ package: build
 
 proto: deps
 		protoc -I=plugin/api --go_out=plugin/api --go_opt=paths=source_relative plugin/api/plugin-api.proto
+
+plugins:
+		[ -d bin/plugins ] || mkdir bin/plugins
+		$(GOCMD) build -buildmode=plugin -o bin/plugins/hello.so plugin/hello/hello.go
+
