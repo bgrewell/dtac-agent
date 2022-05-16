@@ -3,7 +3,7 @@ module github.com/BGrewell/system-api
 go 1.15
 
 require (
-	github.com/BGrewell/gin-plugins v0.0.0-20220512204045-79ae8a042512
+	github.com/BGrewell/gin-plugins v0.0.0-20220516180701-00809bc255a9
 	github.com/BGrewell/go-conversions v0.0.0-20211209224842-146e47cfb964
 	github.com/BGrewell/go-execute v0.0.0-20210804192641-003c5abeafd6
 	github.com/BGrewell/go-iperf v0.0.0-20210830145459-8e5fc7da0df5

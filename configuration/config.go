@@ -61,17 +61,18 @@ type UpdaterEntry struct {
 //}
 
 type Config struct {
-	ListenPort  int                                 `json:"listen_port" yaml:"listen_port" xml:"listen_port"`
-	HTTPS       bool                                `json:"https" yaml:"https" xml:"https"`
-	CertFile    string                              `json:"cert_file" yaml:"cert_file" xml:"cert_file"`
-	KeyFile     string                              `json:"key_file" yaml:"key_file" xml:"key_file"`
-	LockoutTime int                                 `json:"lockout_timeout" yaml:"lockout_timeout" xml:"lockout_time"`
-	Updater     UpdaterEntry                        `json:"updater" yaml:"updater" xml:"updater"`
-	PluginDir   string                              `json:"plugin_dir" yaml:"plugin_dir" xml:"plugin_dir"`
-	Plugins     []map[string]map[string]interface{} `json:"plugins" yaml:"plugins" xml:"plugins"`
-	Modules     []map[string]map[string]interface{} `json:"modules" yaml:"modules" xml:"modules"`
-	Custom      []map[string]*CustomEntry           `json:"custom" yaml:"custom" xml:"custom"`
-	Watchdog    WatchdogEntry                       `json:"watchdog" yaml:"watchdog" xml:"watchdog"`
+	ListenPort   int                                 `json:"listen_port" yaml:"listen_port" xml:"listen_port"`
+	HTTPS        bool                                `json:"https" yaml:"https" xml:"https"`
+	CertFile     string                              `json:"cert_file" yaml:"cert_file" xml:"cert_file"`
+	KeyFile      string                              `json:"key_file" yaml:"key_file" xml:"key_file"`
+	LockoutTime  int                                 `json:"lockout_timeout" yaml:"lockout_timeout" xml:"lockout_time"`
+	Updater      UpdaterEntry                        `json:"updater" yaml:"updater" xml:"updater"`
+	PluginDir    string                              `json:"plugin_dir" yaml:"plugin_dir" xml:"plugin_dir"`
+	PluginCookie string                              `json:"plugin_cookie" yaml:"plugin_cookie" xml:"plugin_cookie"`
+	Plugins      []map[string]map[string]interface{} `json:"plugins" yaml:"plugins" xml:"plugins"`
+	Modules      []map[string]map[string]interface{} `json:"modules" yaml:"modules" xml:"modules"`
+	Custom       []map[string]*CustomEntry           `json:"custom" yaml:"custom" xml:"custom"`
+	Watchdog     WatchdogEntry                       `json:"watchdog" yaml:"watchdog" xml:"watchdog"`
 }
 
 var (

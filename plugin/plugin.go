@@ -6,10 +6,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func Initialize(dir string, config []map[string]map[string]interface{}, r *gin.Engine) (err error) {
+func Initialize(dir string, cookie string, config []map[string]map[string]interface{}, r *gin.Engine) (err error) {
 	group := r.Group("plugins")
 
-	l := loader.NewPluginLoader(dir, group)
+	l := loader.NewPluginLoader(dir, cookie, group)
 	active, err := l.Initialize()
 	if err != nil {
 		return err

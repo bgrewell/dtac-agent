@@ -31,8 +31,8 @@ cloud.google.com/go/storage v1.6.0/go.mod h1:N7U0C8pVQ/+NIKOBQyamJIeKQKkZ+mxpohl
 cloud.google.com/go/storage v1.8.0/go.mod h1:Wv1Oy7z6Yz3DshWRJFhqM/UCfaWIRTdp0RXyy7KQOVs=
 cloud.google.com/go/storage v1.10.0/go.mod h1:FLPqc6j+Ki4BU591ie1oL6qBQGu2Bl/tZ9ullr3+Kg0=
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
-github.com/BGrewell/gin-plugins v0.0.0-20220512204045-79ae8a042512 h1:KDMqlDY2Bw1km6HzZFLEEtsRLmxz+2twDBk4eT0t8r8=
-github.com/BGrewell/gin-plugins v0.0.0-20220512204045-79ae8a042512/go.mod h1:qr3kxCcWQ9XkOUGaipX3wCEVAGLJN/HA1xl6hqURCRg=
+github.com/BGrewell/gin-plugins v0.0.0-20220516180701-00809bc255a9 h1:REbgEnT41LPvmEiQX3OP7pLOzUHck1RlIulnJQIGBdY=
+github.com/BGrewell/gin-plugins v0.0.0-20220516180701-00809bc255a9/go.mod h1:qr3kxCcWQ9XkOUGaipX3wCEVAGLJN/HA1xl6hqURCRg=
 github.com/BGrewell/go-conversions v0.0.0-20201203155646-5e189e4ca087/go.mod h1:XtXcz/MP04vhr6c6R/5gZPJZVQpbXlFsKTHr5yy/5sU=
 github.com/BGrewell/go-conversions v0.0.0-20210512190113-ef0a66d37f0f/go.mod h1:XtXcz/MP04vhr6c6R/5gZPJZVQpbXlFsKTHr5yy/5sU=
 github.com/BGrewell/go-conversions v0.0.0-20211209224842-146e47cfb964 h1:oTRrG2R01peLK4R2lA+pMr0hr8sluLNo1S+k2K2JIY0=

@@ -57,7 +57,7 @@ deploy-local: build
 		sudo mkdir -p /opt/system-api/bin || true
 		sudo cp bin/system-apid /opt/system-api/bin/.
 		sudo cp support/service/system-apid.service /lib/systemd/system/.
-		sudo cp bin/plugins/*.plugin /etc/system-api/plugins/.
+		sudo cp -f bin/plugins/*.plugin /etc/system-api/plugins/.
 		sudo systemctl daemon-reload
 		sudo systemctl start system-apid
 

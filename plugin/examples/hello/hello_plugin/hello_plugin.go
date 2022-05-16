@@ -1,4 +1,4 @@
-package plugin
+package hello_plugin
 
 import (
 	plugins "github.com/BGrewell/gin-plugins"
