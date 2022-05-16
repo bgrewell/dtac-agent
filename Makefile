@@ -57,6 +57,7 @@ deploy-local: build
 		sudo mkdir -p /opt/system-api/bin || true
 		sudo cp bin/system-apid /opt/system-api/bin/.
 		sudo cp support/service/system-apid.service /lib/systemd/system/.
+		sudo cp bin/plugins/*.plugin /etc/system-api/plugins/.
 		sudo systemctl daemon-reload
 		sudo systemctl start system-apid
 
@@ -80,5 +81,5 @@ proto: deps
 
 plugins:
 		[ -d bin/plugins ] || mkdir bin/plugins
-		$(GOCMD) build -buildmode=plugin -o bin/plugins/hello.so plugin/hello/hello.go
+		$(GOCMD) build -o bin/plugins/hello.plugin plugin/examples/hello/main.go
 
