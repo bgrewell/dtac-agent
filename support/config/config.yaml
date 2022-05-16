@@ -27,6 +27,7 @@ updater:
 # Plugins
 plugin_dir: /etc/system-api/plugins
 plugins:
+  # TODO: New plugin system doesn't support passing a configuration to the plugin yet. Fix that
   - hello:
       message: "hello world plugin"
 
