@@ -34,7 +34,7 @@ func (h *HelloPlugin) Register(args plugins.RegisterArgs, reply *plugins.Registe
 
 	// Register our one hello world route
 	h.message = HelloMessage{
-		Message: "hello world!",
+		Message: "this is an example of how to create a plugin. See the source at https://github.com/BGrewell/system-api/tree/main/plugin/examples/hello",
 	}
 
 	r := &plugins.Route{
