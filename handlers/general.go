@@ -13,13 +13,13 @@ import (
 )
 
 var (
-	Routes     gin.RoutesInfo
-	Info       BasicInfo
+	Routes gin.RoutesInfo
+	Info   BasicInfo
 )
 
 func init() {
 	Info = BasicInfo{}
-	Info.Update()
+	Info.Update(Routes)
 }
 
 func SecretTestHandler(c *gin.Context) {
@@ -44,14 +44,14 @@ func UnimplementedHandler(c *gin.Context) {
 
 func GetCPUHandler(c *gin.Context) {
 	start := time.Now()
-	Info.Update()
+	Info.Update(Routes)
 	WriteResponseJSON(c, time.Since(start), Info.CPU)
 }
 
 func GetCPUUsageHandler(c *gin.Context) {
 	type CpuUsage struct {
-		Combined float64 `json:"combined"`
-		PerCore []float64 `json:"per_core"`
+		Combined float64   `json:"combined"`
+		PerCore  []float64 `json:"per_core"`
 	}
 
 	start := time.Now()
@@ -73,43 +73,43 @@ func GetCPUUsageHandler(c *gin.Context) {
 
 func GetMemoryHandler(c *gin.Context) {
 	start := time.Now()
-	Info.Update()
+	Info.Update(Routes)
 	WriteResponseJSON(c, time.Since(start), Info.Memory)
 }
 
 func GetHostHandler(c *gin.Context) {
 	start := time.Now()
-	Info.Update()
+	Info.Update(Routes)
 	WriteResponseJSON(c, time.Since(start), Info.Host)
 }
 
 func GetNetworkHandler(c *gin.Context) {
 	start := time.Now()
-	Info.Update()
+	Info.Update(Routes)
 	WriteResponseJSON(c, time.Since(start), Info.Network)
 }
 
 func GetEndpointsHandler(c *gin.Context) {
 	start := time.Now()
-	Info.Update()
+	Info.Update(Routes)
 	WriteResponseJSON(c, time.Since(start), Info.Routes)
 }
 
 func GetDiskHandler(c *gin.Context) {
 	start := time.Now()
-	Info.Update()
+	Info.Update(Routes)
 	WriteResponseJSON(c, time.Since(start), Info.Disk)
 }
 
 func GetDockerHandler(c *gin.Context) {
 	start := time.Now()
-	Info.Update()
+	Info.Update(Routes)
 	WriteResponseJSON(c, time.Since(start), Info.Docker)
 }
 
 func GetProcessesHandler(c *gin.Context) {
 	start := time.Now()
-	Info.Update()
+	Info.Update(Routes)
 	WriteResponseJSON(c, time.Since(start), Info.Processes)
 }
 
@@ -136,6 +136,6 @@ func GetOSHandler(c *gin.Context) {
 		OperatingSystem string `json:"operating_system"`
 	}
 	start := time.Now()
-	ost := OSType{ OperatingSystem: runtime.GOOS }
+	ost := OSType{OperatingSystem: runtime.GOOS}
 	WriteResponseJSON(c, time.Since(start), ost)
 }

@@ -18,7 +18,7 @@ type BasicInfo struct {
 	Disk      *disk.UsageStat           `json:"disk"`
 	Network   []net.InterfaceStat       `json:"network"`
 	Docker    []docker.CgroupDockerStat `json:"docker"`
-	Processes []*ProcessInfo        `json:"processes"`
+	Processes []*ProcessInfo            `json:"processes"`
 	Routes    EndpointsInfoParser       `json:"http_endpoint_info"`
 }
 
@@ -33,17 +33,17 @@ type EndpointsInfoParser struct {
 }
 
 type ProcessInfo struct {
-	Pid int32 `json:"pid"`
-	Ppid int32 `json:"ppid"`
-	Name string `json:"name"`
-	Cmdline string `json:"cmdline"`
-	CreateTime int64 `json:"created_time"`
-	Exe string `json:"exe"`
+	Pid        int32                   `json:"pid"`
+	Ppid       int32                   `json:"ppid"`
+	Name       string                  `json:"name"`
+	Cmdline    string                  `json:"cmdline"`
+	CreateTime int64                   `json:"created_time"`
+	Exe        string                  `json:"exe"`
 	IoCounters *process.IOCountersStat `json:"io_counters"`
-	Nice int32 `json:"nice"`
-	NumThreads int32 `json:"num_threads"`
+	Nice       int32                   `json:"nice"`
+	NumThreads int32                   `json:"num_threads"`
 	MemoryInfo *process.MemoryInfoStat `json:"memory_info"`
-	Username string `json:"username"`
+	Username   string                  `json:"username"`
 }
 
 func (pi *ProcessInfo) Update(p *process.Process) (err error) {
@@ -61,7 +61,7 @@ func (pi *ProcessInfo) Update(p *process.Process) (err error) {
 	return nil
 }
 
-func (bi *BasicInfo) Update() {
+func (bi *BasicInfo) Update(routes gin.RoutesInfo) {
 	// Update Host
 	var err error
 	bi.Host, err = host.Info()
@@ -111,6 +111,9 @@ func (bi *BasicInfo) Update() {
 			bi.Processes = append(bi.Processes, &pi)
 		}
 	}
+
+	// UpdateRoutes
+	bi.UpdateRoutes(routes)
 
 }
 

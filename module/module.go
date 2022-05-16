@@ -1,6 +1,7 @@
 package module
 
 import (
+	"fmt"
 	"github.com/BGrewell/system-api/module/hello"
 	"github.com/BGrewell/system-api/module/remote"
 	"github.com/gin-gonic/gin"
@@ -12,6 +13,8 @@ var (
 )
 
 func init() {
+	// RegisteredModules is a map of the modules we want to compile and build into this
+	// version of the compiled code.
 	RegisteredModules = map[string]Module{
 		"hello":  &hello.HelloModule{},
 		"remote": &remote.RemoteModule{},
@@ -27,7 +30,7 @@ func Initialize(config []map[string]map[string]interface{}, r *gin.Engine) {
 	for _, moduleEntry := range config {
 		for moduleName, moduleConfig := range moduleEntry {
 			if module, ok := RegisteredModules[moduleName]; ok {
-				plugRouter := r.Group(module.Name())
+				plugRouter := r.Group(fmt.Sprintf("ext/%s", module.Name()))
 				err := module.Register(moduleConfig, plugRouter)
 				if err != nil {
 					log.Errorf("failed to register module %s: %v\n", module.Name(), err)
