@@ -1,10 +1,10 @@
 FROM debian:buster
 
-WORKDIR /system-api
+WORKDIR /system-agent
 
-COPY . /system-api
+COPY . /system-agent
 
-RUN mkdir -p /etc/system-api
-RUN cp /system-api/support/config/config.yaml /etc/system-api/config.yaml
+RUN mkdir -p /etc/system-agent
+RUN cp /system-agent/support/config/config.yaml /etc/system-agent/config.yaml
 
-CMD ["/system-api/bin/system-apid"]
+CMD ["/system-agent/bin/system-agentd"]

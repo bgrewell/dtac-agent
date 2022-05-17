@@ -2,8 +2,8 @@ package module
 
 import (
 	"fmt"
-	"github.com/BGrewell/system-api/module/hello"
-	"github.com/BGrewell/system-api/module/remote"
+	"github.com/BGrewell/system-agent/module/hello"
+	"github.com/BGrewell/system-agent/module/remote"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 )

@@ -2,8 +2,8 @@ package httprouting
 
 import (
 	"fmt"
-	"github.com/BGrewell/system-api/configuration"
-	"github.com/BGrewell/system-api/handlers"
+	"github.com/BGrewell/system-agent/configuration"
+	"github.com/BGrewell/system-agent/handlers"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 )
@@ -38,4 +38,3 @@ func AddCustomHandlers(c *configuration.Config, r *gin.Engine) {
 		}
 	}
 }
-

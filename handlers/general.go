@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	. "github.com/BGrewell/system-api/common"
 	"github.com/gin-gonic/gin"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/process"

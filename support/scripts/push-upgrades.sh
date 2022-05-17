@@ -13,12 +13,12 @@ SERVERS=( 10.108.1.21 10.108.2.61 10.108.1.11 )
 for server in "${SERVERS[@]}"
 do
   echo "deploying to $server"
-  scp bin/system-apid intel@$server:/home/intel/.
-  scp support/service/system-apid.service intel@$server:/home/intel/.
+  scp bin/system-agentd intel@$server:/home/intel/.
+  scp support/service/system-agentd.service intel@$server:/home/intel/.
   scp support/config/config.yaml intel@$server:/home/intel/.
-  ssh intel@$server -C 'sudo systemctl stop system-apid || true'
-  ssh intel@$server -C 'sudo mkdir -p /opt/system-api/bin || true'
-  ssh intel@$server -C 'sudo mkdir -p /etc/system-api || true'
+  ssh intel@$server -C 'sudo systemctl stop system-agentd || true'
+  ssh intel@$server -C 'sudo mkdir -p /opt/system-agent/bin || true'
+  ssh intel@$server -C 'sudo mkdir -p /etc/system-agent || true'
   ssh intel@$server -C 'sudo mv ~/system-apid /opt/system-api/bin/.'
   ssh intel@$server -C 'sudo mv ~/system-apid.service /lib/systemd/system/.'
   ssh intel@$server -C 'sudo mv ~/config.yaml /etc/system-api/config.yaml'

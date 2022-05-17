@@ -3,8 +3,6 @@ package network
 import (
 	"errors"
 	"fmt"
-	"github.com/BGrewell/go-iptables"
-	. "github.com/BGrewell/system-api/common"
 	"github.com/google/uuid"
 )
 
@@ -139,7 +137,7 @@ func GetUniversalQosRules() (r []*UniversalDSCPRule, err error) {
 	if err != nil {
 		return nil, err
 	}
-	rules := make([]*UniversalDSCPRule,0)
+	rules := make([]*UniversalDSCPRule, 0)
 	for _, rule := range iptablesRules {
 		ur := ConvertLinuxQosToUniversalDSCPRule(rule)
 		rules = append(rules, ur)

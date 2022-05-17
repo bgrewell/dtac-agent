@@ -1,6 +1,6 @@
 [Unit]
 Description=Systemapi Service Daemon
-ConditionPathExists=/opt/system-api/bin/system-apid
+ConditionPathExists=/opt/system-agent/bin/system-agentd
 After=network.target
 
 [Service]
@@ -10,11 +10,11 @@ Group=root
 Restart=on-failure
 RestartSec=10
 StartLimitInterval=60
-WorkingDirectory=/opt/system-api/bin
-ExecStart=/opt/system-api/bin/system-apid
+WorkingDirectory=/opt/system-agent/bin
+ExecStart=/opt/system-agent/bin/system-agentd
 StandardOutput=syslog
 StandardError=syslog
-SyslogIdentifier=system-apid
+SyslogIdentifier=system-agentd
 
 [Install]
 WantedBy=multi-user.target

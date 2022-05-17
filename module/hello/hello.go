@@ -1,7 +1,6 @@
 package hello
 
 import (
-	. "github.com/BGrewell/system-api/common"
 	"github.com/gin-gonic/gin"
 	"time"
 )

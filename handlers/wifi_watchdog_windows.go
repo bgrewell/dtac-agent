@@ -1,9 +1,7 @@
 package handlers
 
 import (
-	. "github.com/BGrewell/system-api/common"
-	"github.com/BGrewell/system-api/configuration"
-	"github.com/BGrewell/wifi-watchdog"
+	"github.com/BGrewell/system-agent/configuration"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"time"
@@ -12,6 +10,8 @@ import (
 var (
 	Watchdog watchdog.WifiWatchdog
 )
+
+//TODO: The watchdog should be a module or even a plugin not here. Refactor this before releasing
 
 func init() {
 	go func() {

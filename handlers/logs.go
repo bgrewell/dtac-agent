@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	. "github.com/BGrewell/system-api/common"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"runtime"
@@ -22,17 +21,17 @@ func (l *Logs) Append(line *LogLine) {
 }
 
 type LogLine struct {
-	File string `json:"file"`
-	Func string `json:"func"`
-	Level string `json:"level"`
-	Msg string `json:"msg"`
-	Time string `json:"time"`
+	File  string                 `json:"file"`
+	Func  string                 `json:"func"`
+	Level string                 `json:"level"`
+	Msg   string                 `json:"msg"`
+	Time  string                 `json:"time"`
 	Extra map[string]interface{} `json:"extra"`
 }
 
 func GetLogsHandler(c *gin.Context) {
 	start := time.Now()
-	filename := "/var/log/system-apid/system-apid.log"
+	filename := "/var/log/system-agentd/system-agentd.log"
 	if runtime.GOOS == "windows" {
 		filename = "C:\\Logs\\system-apid.log"
 	}

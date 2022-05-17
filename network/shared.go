@@ -1,9 +1,7 @@
 package network
 
 const (
-	app = "system-api"
+	app = "system-agent"
 )
 
-var (
-
-)
+var ()

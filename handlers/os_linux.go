@@ -2,10 +2,7 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/BGrewell/go-execute"
-	"github.com/BGrewell/go-iptables"
-	. "github.com/BGrewell/system-api/common"
-	"github.com/BGrewell/system-api/network"
+	"github.com/BGrewell/system-agent/network"
 	"github.com/gin-gonic/gin"
 	"strconv"
 	"time"

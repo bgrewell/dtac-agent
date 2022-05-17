@@ -1,7 +1,7 @@
 package httprouting
 
 import (
-	"github.com/BGrewell/system-api/handlers"
+	"github.com/BGrewell/system-agent/handlers"
 	"github.com/gin-gonic/gin"
 )
 
@@ -10,7 +10,7 @@ func AddGeneralHandlers(r *gin.Engine) {
 	r.GET("/", handlers.HomeHandler)                                              // postman | implemented
 	r.GET("/os", handlers.GetOSHandler)                                           // postman | implemented
 	r.GET("/cpu", handlers.GetCPUHandler)                                         // postman | implemented
-	r.GET("/cpu/usage", handlers.GetCPUUsageHandler)								// postman | implemented
+	r.GET("/cpu/usage", handlers.GetCPUUsageHandler)                              // postman | implemented
 	r.GET("/memory", handlers.GetMemoryHandler)                                   // postman | implemented
 	r.GET("/disk", handlers.GetDiskHandler)                                       // postman | implemented
 	r.GET("/docker", handlers.GetDockerHandler)                                   // postman | implemented
