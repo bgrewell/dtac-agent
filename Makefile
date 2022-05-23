@@ -4,7 +4,7 @@ GOBUILD=$(GOCMD) build
 GOCLEAN=$(GOCMD) clean
 GOTEST=$(GOCMD) test
 GOGET=$(GOCMD) get
-BINARY_NAME=system-apid
+BINARY_NAME=system-agentd
 LD_FLAGS=-X 'main.version=$$(git describe --tags)' -X 'main.date=$$(date +"%Y.%m.%d_%H%M%S")' -X 'main.rev=$$(git rev-parse --short HEAD)' -X 'main.branch=$$(git rev-parse --abbrev-ref HEAD | tr -d '\040\011\012\015\n')'
 TAGS=json,yaml,xml
 all: build
@@ -30,6 +30,7 @@ release: clean
 		goreleaser
 
 deps:
+		export GOPRIVATE=github.com/BGrewell
 		export GO111MODULE=on
 		export GOPROXY=direct
 		export GOSUMDB=off
@@ -37,29 +38,29 @@ deps:
 		$(GOCMD) install google.golang.org/protobuf/cmd/protoc-gen-go
 
 deploy: build
-		scp bin/system-apid intel@$(HOST):/home/intel/.
+		scp bin/system-agentd intel@$(HOST):/home/intel/.
 		scp bin/plugins/hello.so intel@$(HOST):/home/intel/.
-		scp support/service/system-apid.service intel@$(HOST):/home/intel/.
+		scp support/service/system-agentd.service intel@$(HOST):/home/intel/.
 		scp support/config/config.yaml intel@$(HOST):/home/intel/.
-		ssh intel@$(HOST) -C 'sudo systemctl stop system-apid || true'
-		ssh intel@$(HOST) -C 'sudo mkdir -p /opt/system-api/bin || true'
-		ssh intel@$(HOST) -C 'sudo mkdir -p /etc/system-api || true'
-		ssh intel@$(HOST) -C 'sudo mkdir -p /etc/system-api/plugins || true'
-		ssh intel@$(HOST) -C 'sudo mv ~/system-apid /opt/system-api/bin/.'
-		ssh intel@$(HOST) -C 'sudo mv ~/system-apid.service /lib/systemd/system/.'
-		ssh intel@$(HOST) -C 'sudo mv ~/config.yaml /etc/system-api/.'
-		ssh intel@$(HOST) -C 'sudo mv ~/hello.so /etc/system-api/plugins/.'
+		ssh intel@$(HOST) -C 'sudo systemctl stop system-agentd || true'
+		ssh intel@$(HOST) -C 'sudo mkdir -p /opt/system-agent/bin || true'
+		ssh intel@$(HOST) -C 'sudo mkdir -p /etc/system-agent || true'
+		ssh intel@$(HOST) -C 'sudo mkdir -p /etc/system-agent/plugins || true'
+		ssh intel@$(HOST) -C 'sudo mv ~/system-agentd /opt/system-agent/bin/.'
+		ssh intel@$(HOST) -C 'sudo mv ~/system-agentd.service /lib/systemd/system/.'
+		ssh intel@$(HOST) -C 'sudo mv ~/config.yaml /etc/system-agent/.'
+		ssh intel@$(HOST) -C 'sudo mv ~/hello.so /etc/system-agent/plugins/.'
 		ssh intel@$(HOST) -C 'sudo systemctl daemon-reload'
-		ssh intel@$(HOST) -C 'sudo systemctl start system-apid'
+		ssh intel@$(HOST) -C 'sudo systemctl start system-agentd'
 
 deploy-local: build
-		sudo systemctl stop system-apid || true
-		sudo mkdir -p /opt/system-api/bin || true
-		sudo cp bin/system-apid /opt/system-api/bin/.
-		sudo cp support/service/system-apid.service /lib/systemd/system/.
-		sudo cp -f bin/plugins/*.plugin /etc/system-api/plugins/.
+		sudo systemctl stop system-agentd || true
+		sudo mkdir -p /opt/system-agent/bin || true
+		sudo cp bin/system-agentd /opt/system-agent/bin/.
+		sudo cp support/service/system-agentd.service /lib/systemd/system/.
+		sudo cp -f bin/plugins/*.plugin /etc/system-agent/plugins/.
 		sudo systemctl daemon-reload
-		sudo systemctl start system-apid
+		sudo systemctl start system-agentd
 
 tag:
 		go get github.com/fatih/gomodifytags
@@ -72,8 +73,8 @@ package: build
 		cp bin/$(BINARY_NAME) update/.
 		cp bin/$(BINARY_NAME).exe update/.
 		cp support/config/config.yaml update/.
-		cp support/service/system-apid.service update/.
-		tar -czvf package/system-api_$$(date +"%Y.%m.%d_%H%M%S").tar.gz update/
+		cp support/service/system-agentd.service update/.
+		tar -czvf package/system-agent_$$(date +"%Y.%m.%d_%H%M%S").tar.gz update/
 		rm -rf update
 
 proto: deps

@@ -3,8 +3,6 @@ package handlers
 import (
 	"errors"
 	"fmt"
-	"github.com/BGrewell/go-iperf"
-	. "github.com/BGrewell/system-api/common"
 	"github.com/gin-contrib/sse"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
@@ -14,11 +12,13 @@ import (
 	"time"
 )
 
+//TODO: Iperf should be a module not built-in. Refactor this before release
+
 var (
 	iperfClients     map[string]*iperf.Client
 	iperfServers     map[string]*iperf.Server
-	iperfServerLock sync.Mutex
-	iperfClientLock sync.Mutex
+	iperfServerLock  sync.Mutex
+	iperfClientLock  sync.Mutex
 	iperfLiveResults map[string]<-chan *iperf.StreamIntervalReport
 	iperfController  *iperf.Controller
 )
@@ -117,9 +117,9 @@ func CreateIperfClientTestHandler(c *gin.Context) {
 	var options *iperf.ClientOptions
 	if err := c.ShouldBindJSON(&options); err != nil {
 		log.WithFields(log.Fields{
-			"host": host,
+			"host":    host,
 			"options": options,
-			"err": err,
+			"err":     err,
 		}).Error("error binding iperf client options")
 		fmt.Printf("error binding iperf client options: %v\n", err)
 		options = nil
@@ -127,9 +127,9 @@ func CreateIperfClientTestHandler(c *gin.Context) {
 	cli, err := iperfController.NewClient(host)
 	if err != nil {
 		log.WithFields(log.Fields{
-			"host": host,
+			"host":    host,
 			"options": options,
-			"err": err,
+			"err":     err,
 		}).Error("error getting new iperf client")
 		fmt.Printf("error getting new iperf client: %v\n", err)
 		WriteErrorResponseJSON(c, err)
@@ -148,9 +148,9 @@ func CreateIperfClientTestHandler(c *gin.Context) {
 	err = cli.Start()
 	if err != nil {
 		log.WithFields(log.Fields{
-			"host": host,
+			"host":    host,
 			"options": options,
-			"err": err,
+			"err":     err,
 		}).Error("error starting iperf client")
 		fmt.Printf("error starting iperf client: %v\n", err)
 		log.Fatalf("error starting: %v", err)
@@ -176,7 +176,7 @@ func CreateIperfServerTestHandler(c *gin.Context) {
 	if err != nil {
 		log.WithFields(log.Fields{
 			"server": s,
-			"err": err,
+			"err":    err,
 		}).Error("error starting iperf server")
 		WriteErrorResponseJSON(c, err)
 		return

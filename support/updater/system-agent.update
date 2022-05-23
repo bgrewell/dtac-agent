@@ -1,0 +1,19 @@
+# STOP = Stop Service
+# START = Start Service
+# KILL = Kill Process
+# EXEC = Execute Process
+# NOHUP = Execute Process with no hang up
+# COPY = Copy File
+# MERGE = Merge missing fields into yaml file but don't change existing values
+
+windows:
+  STOP system-agentd
+  COPY system-agentd.exe c:\program files\system-agent\system-agentd.exe
+  MERGE config.yaml c:\program files\system-agent\config.yaml
+  START system-agentd
+
+linux:
+  STOP system-agentd
+  COPY system-agent /opt/system-agent/bin/system-agentd
+  MERGE config.yaml /etc/system-agent/config.yaml
+  START system-agentd

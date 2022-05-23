@@ -2,10 +2,7 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/BGrewell/go-execute"
-	"github.com/BGrewell/go-iptables"
-	. "github.com/BGrewell/system-api/common"
-	"github.com/BGrewell/system-api/network"
+	"github.com/BGrewell/system-agent/network"
 	"github.com/gin-gonic/gin"
 	"strconv"
 	"time"
@@ -425,7 +422,7 @@ func SystemApiRestartHandler(c *gin.Context) {
 	start := time.Now()
 	go func() {
 		time.Sleep(time.Duration(t) * time.Second)
-		execute.ExecuteCmd("/bin/systemctl restart system-apid")
+		execute.ExecuteCmd("/bin/systemctl restart system-agentd")
 	}()
 	WriteResponseJSON(c, time.Since(start), fmt.Sprintf("service will restart in %d seconds", t))
 }

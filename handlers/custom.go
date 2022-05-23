@@ -3,9 +3,7 @@ package handlers
 import (
 	"crypto/sha1"
 	"fmt"
-	"github.com/BGrewell/go-execute"
-	. "github.com/BGrewell/system-api/common"
-	"github.com/BGrewell/system-api/configuration"
+	"github.com/BGrewell/system-agent/configuration"
 	"github.com/fsnotify/fsnotify"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
@@ -132,4 +130,3 @@ func CustomCmdHandler(c *gin.Context) {
 	stderr = strings.Trim(stderr, "\r\n")
 	WriteResponseJSON(c, time.Since(start), gin.H{"stdout": stdout, "stderr": stderr, "err": err})
 }
-

@@ -5,20 +5,16 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/BGrewell/go-conversions"
-	"github.com/BGrewell/go-update"
 	"github.com/BGrewell/go-update/stores/github"
-	. "github.com/BGrewell/system-api/common"
-	"github.com/BGrewell/system-api/configuration"
-	"github.com/BGrewell/system-api/handlers"
-	"github.com/BGrewell/system-api/httprouting"
-	"github.com/BGrewell/system-api/middleware"
-	"github.com/BGrewell/system-api/module"
-	"github.com/BGrewell/system-api/plugin"
+	"github.com/BGrewell/system-agent/configuration"
+	"github.com/BGrewell/system-agent/handlers"
+	"github.com/BGrewell/system-agent/httprouting"
+	"github.com/BGrewell/system-agent/middleware"
+	"github.com/BGrewell/system-agent/module"
+	"github.com/BGrewell/system-agent/plugin"
 	"github.com/gin-gonic/gin"
 	"github.com/kardianos/service"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/natefinch/lumberjack.v2"
 	"net/http"
 	"os"
 	"runtime"
@@ -70,9 +66,9 @@ func (p *program) run() {
 	httprouting.AddOSSpecificHandlers(r)
 
 	// Load Configuration and Custom Routes
-	cfgfile := "/etc/system-api/config.yaml"
+	cfgfile := "/etc/system-agent/config.yaml"
 	if runtime.GOOS == "windows" {
-		cfgfile = "c:\\Program Files\\Intel\\System-Api\\config.yaml"
+		cfgfile = "c:\\Program Files\\Intel\\system-agent\\config.yaml"
 	}
 
 	// Check for custom config file location
@@ -110,7 +106,7 @@ func (p *program) run() {
 	// Before starting update the handlers Routes var
 	handlers.Routes = r.Routes()
 
-	log.Println("system-api server is running http://localhost:8080")
+	log.Println("system-agent server is running http://localhost:8080")
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%d", c.ListenPort),
 		Handler: r,
@@ -177,7 +173,7 @@ func checkForUpdates(token *string) (applied bool, err error) {
 		Command: binaryName,
 		Store: &github.Store{
 			Owner:   "BGrewell",
-			Repo:    "system-api",
+			Repo:    "system-agent",
 			Version: "",
 			Token:   token,
 		},
@@ -225,9 +221,9 @@ func checkForUpdates(token *string) (applied bool, err error) {
 
 func main() {
 
-	filename := "/var/log/system-apid/system-apid.log"
+	filename := "/var/log/system-agentd/system-agentd.log"
 	if runtime.GOOS == "windows" {
-		filename = "C:\\Logs\\system-apid.log"
+		filename = "C:\\Logs\\system-agentd.log"
 	}
 
 	log.SetOutput(&lumberjack.Logger{
@@ -261,9 +257,9 @@ func main() {
 		}
 	}
 	svcConfig := &service.Config{
-		Name:         "system-api.service",
-		DisplayName:  "System-API Service",
-		Description:  "System-API provides access to many system details via REST endpoints",
+		Name:         "system-agent.service",
+		DisplayName:  "System-Agent Service",
+		Description:  "System-Agent provides access to many system details via REST endpoints",
 		Dependencies: dependencies,
 		Option:       options,
 	}

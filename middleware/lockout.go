@@ -3,7 +3,6 @@ package middleware
 import (
 	"errors"
 	"fmt"
-	. "github.com/BGrewell/system-api/common"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"strconv"

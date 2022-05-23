@@ -12,7 +12,7 @@ builds:
     goos:
       - linux
       - windows
-    binary: system-apid
+    binary: system-agentd
 archives:
   - replacements:
       linux: Linux

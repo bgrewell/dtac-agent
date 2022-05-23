@@ -1,4 +1,4 @@
-# SYSTEM API
+# SYSTEM AGENT
 
 ## TODO BEFORE RELEASE
 
@@ -76,7 +76,7 @@ The home page provides some basic information about the system. The type of info
 
 ### HTTP Routes
 
-Routes section of the general information page `/` lists all of the supported endpoints active on the system. This output can be used to verify that a system supports the endpoint you wish to call. The nature of `system-api` is the flexibility to support multiple operating systems, custom endpoints and plugins and as such what is available system to system can be diffrent so it is always good to programmatically consume this section to verify availaility to endpoints before calling them.
+Routes section of the general information page `/` lists all of the supported endpoints active on the system. This output can be used to verify that a system supports the endpoint you wish to call. The nature of `system-agent` is the flexibility to support multiple operating systems, custom endpoints and plugins and as such what is available system to system can be diffrent so it is always good to programmatically consume this section to verify availaility to endpoints before calling them.
 
 ## Network
 

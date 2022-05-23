@@ -3,8 +3,7 @@ package handlers
 import (
 	"errors"
 	"fmt"
-	. "github.com/BGrewell/system-api/common"
-	"github.com/BGrewell/system-api/mods"
+	"github.com/BGrewell/system-agent/mods"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
@@ -16,7 +15,7 @@ const (
 )
 
 var (
-	Reflectors []mods.Reflector
+	Reflectors     []mods.Reflector
 	udpPingWorkers map[string]*mods.UdpPingWorker
 	tcpPingWorkers map[string]*mods.TcpPingWorker
 )
@@ -197,9 +196,9 @@ func CreateUdpPingWorkerHandler(c *gin.Context) {
 
 	id := uuid.New().String()
 	log.WithFields(log.Fields{
-		"target": target,
+		"target":  target,
 		"options": options,
-		"id": id,
+		"id":      id,
 	}).Trace("creating new udp worker")
 	w := mods.UdpPingWorker{}
 	w.SetOptions(options)
@@ -231,9 +230,9 @@ func CreateTcpPingWorkerHandler(c *gin.Context) {
 
 	id := uuid.New().String()
 	log.WithFields(log.Fields{
-		"target": target,
+		"target":  target,
 		"options": options,
-		"id": id,
+		"id":      id,
 	}).Trace("creating new tcp worker")
 	w := mods.TcpPingWorker{}
 	w.SetOptions(options)

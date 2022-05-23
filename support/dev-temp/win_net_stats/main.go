@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/BGrewell/system-api/network"
+	"github.com/BGrewell/system-agent/network"
 	"time"
 )
 
