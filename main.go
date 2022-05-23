@@ -173,7 +173,7 @@ func checkForUpdates(token *string) (applied bool, err error) {
 		Command: binaryName,
 		Store: &github.Store{
 			Owner:   "BGrewell",
-			Repo:    "system-api",
+			Repo:    "system-agent",
 			Version: "",
 			Token:   token,
 		},
@@ -221,9 +221,9 @@ func checkForUpdates(token *string) (applied bool, err error) {
 
 func main() {
 
-	filename := "/var/log/system-apid/system-apid.log"
+	filename := "/var/log/system-agentd/system-agentd.log"
 	if runtime.GOOS == "windows" {
-		filename = "C:\\Logs\\system-apid.log"
+		filename = "C:\\Logs\\system-agentd.log"
 	}
 
 	log.SetOutput(&lumberjack.Logger{
@@ -257,9 +257,9 @@ func main() {
 		}
 	}
 	svcConfig := &service.Config{
-		Name:         "system-api.service",
-		DisplayName:  "System-API Service",
-		Description:  "System-API provides access to many system details via REST endpoints",
+		Name:         "system-agent.service",
+		DisplayName:  "System-Agent Service",
+		Description:  "System-Agent provides access to many system details via REST endpoints",
 		Dependencies: dependencies,
 		Option:       options,
 	}

@@ -49,18 +49,18 @@ deploy: build
 		ssh intel@$(HOST) -C 'sudo mv ~/system-agentd /opt/system-agent/bin/.'
 		ssh intel@$(HOST) -C 'sudo mv ~/system-agentd.service /lib/systemd/system/.'
 		ssh intel@$(HOST) -C 'sudo mv ~/config.yaml /etc/system-agent/.'
-		ssh intel@$(HOST) -C 'sudo mv ~/hello.so /etc/system-api/plugins/.'
+		ssh intel@$(HOST) -C 'sudo mv ~/hello.so /etc/system-agent/plugins/.'
 		ssh intel@$(HOST) -C 'sudo systemctl daemon-reload'
-		ssh intel@$(HOST) -C 'sudo systemctl start system-apid'
+		ssh intel@$(HOST) -C 'sudo systemctl start system-agentd'
 
 deploy-local: build
-		sudo systemctl stop system-apid || true
-		sudo mkdir -p /opt/system-api/bin || true
-		sudo cp bin/system-apid /opt/system-api/bin/.
-		sudo cp support/service/system-apid.service /lib/systemd/system/.
-		sudo cp -f bin/plugins/*.plugin /etc/system-api/plugins/.
+		sudo systemctl stop system-agentd || true
+		sudo mkdir -p /opt/system-agent/bin || true
+		sudo cp bin/system-agentd /opt/system-agent/bin/.
+		sudo cp support/service/system-agentd.service /lib/systemd/system/.
+		sudo cp -f bin/plugins/*.plugin /etc/system-agent/plugins/.
 		sudo systemctl daemon-reload
-		sudo systemctl start system-apid
+		sudo systemctl start system-agentd
 
 tag:
 		go get github.com/fatih/gomodifytags
@@ -73,8 +73,8 @@ package: build
 		cp bin/$(BINARY_NAME) update/.
 		cp bin/$(BINARY_NAME).exe update/.
 		cp support/config/config.yaml update/.
-		cp support/service/system-apid.service update/.
-		tar -czvf package/system-api_$$(date +"%Y.%m.%d_%H%M%S").tar.gz update/
+		cp support/service/system-agentd.service update/.
+		tar -czvf package/system-agent_$$(date +"%Y.%m.%d_%H%M%S").tar.gz update/
 		rm -rf update
 
 proto: deps

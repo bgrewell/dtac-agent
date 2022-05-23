@@ -19,10 +19,10 @@ do
   ssh intel@$server -C 'sudo systemctl stop system-agentd || true'
   ssh intel@$server -C 'sudo mkdir -p /opt/system-agent/bin || true'
   ssh intel@$server -C 'sudo mkdir -p /etc/system-agent || true'
-  ssh intel@$server -C 'sudo mv ~/system-apid /opt/system-api/bin/.'
-  ssh intel@$server -C 'sudo mv ~/system-apid.service /lib/systemd/system/.'
-  ssh intel@$server -C 'sudo mv ~/config.yaml /etc/system-api/config.yaml'
+  ssh intel@$server -C 'sudo mv ~/system-agentd /opt/system-agent/bin/.'
+  ssh intel@$server -C 'sudo mv ~/system-agentd.service /lib/systemd/system/.'
+  ssh intel@$server -C 'sudo mv ~/config.yaml /etc/system-agent/config.yaml'
   ssh intel@$server -C 'sudo systemctl daemon-reload'
-  ssh intel@$server -C 'sudo systemctl start system-apid'
+  ssh intel@$server -C 'sudo systemctl start system-agentd'
   echo "finished deploying to $server"
 done

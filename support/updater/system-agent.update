@@ -15,5 +15,5 @@ windows:
 linux:
   STOP system-agentd
   COPY system-agent /opt/system-agent/bin/system-agentd
-  MERGE config.yaml /etc/system-api/config.yaml
-  START system-apid
+  MERGE config.yaml /etc/system-agent/config.yaml
+  START system-agentd

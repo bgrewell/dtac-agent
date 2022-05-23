@@ -3,7 +3,7 @@ package handlers
 import (
 	"errors"
 	"fmt"
-	"github.com/BGrewell/system-api/mods"
+	"github.com/BGrewell/system-agent/mods"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"

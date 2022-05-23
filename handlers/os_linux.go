@@ -422,7 +422,7 @@ func SystemApiRestartHandler(c *gin.Context) {
 	start := time.Now()
 	go func() {
 		time.Sleep(time.Duration(t) * time.Second)
-		execute.ExecuteCmd("/bin/systemctl restart system-apid")
+		execute.ExecuteCmd("/bin/systemctl restart system-agentd")
 	}()
 	WriteResponseJSON(c, time.Since(start), fmt.Sprintf("service will restart in %d seconds", t))
 }

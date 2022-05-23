@@ -33,7 +33,7 @@ func GetLogsHandler(c *gin.Context) {
 	start := time.Now()
 	filename := "/var/log/system-agentd/system-agentd.log"
 	if runtime.GOOS == "windows" {
-		filename = "C:\\Logs\\system-apid.log"
+		filename = "C:\\Logs\\system-agentd.log"
 	}
 
 	logbytes, err := ioutil.ReadFile(filename)
