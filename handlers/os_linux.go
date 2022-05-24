@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/BGrewell/system-agent/network"
+	"github.com/BGrewell/dtac-agent/network"
 	"github.com/gin-gonic/gin"
 	"strconv"
 	"time"
@@ -422,7 +422,7 @@ func SystemApiRestartHandler(c *gin.Context) {
 	start := time.Now()
 	go func() {
 		time.Sleep(time.Duration(t) * time.Second)
-		execute.ExecuteCmd("/bin/systemctl restart system-agentd")
+		execute.ExecuteCmd("/bin/systemctl restart dtac-agentd")
 	}()
 	WriteResponseJSON(c, time.Since(start), fmt.Sprintf("service will restart in %d seconds", t))
 }

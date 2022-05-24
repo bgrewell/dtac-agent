@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/BGrewell/system-agent/network"
+	"github.com/BGrewell/dtac-agent/network"
 	"github.com/gin-gonic/gin"
 	"strconv"
 	"time"

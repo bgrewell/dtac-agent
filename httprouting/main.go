@@ -1,7 +1,7 @@
 package httprouting
 
 import (
-	"github.com/BGrewell/system-agent/handlers"
+	"github.com/BGrewell/dtac-agent/handlers"
 	"github.com/gin-gonic/gin"
 )
 

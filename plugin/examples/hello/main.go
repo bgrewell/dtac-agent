@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/BGrewell/gin-plugins/host"
-	"github.com/BGrewell/system-agent/plugin/examples/hello/hello_plugin"
+	"github.com/BGrewell/dtac-agent/plugin/examples/hello/hello_plugin"
 	"log"
 )
 

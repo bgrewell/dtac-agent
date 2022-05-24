@@ -1,10 +1,10 @@
 FROM debian:buster
 
-WORKDIR /system-agent
+WORKDIR /dtac-agent
 
-COPY . /system-agent
+COPY . /dtac-agent
 
-RUN mkdir -p /etc/system-agent
-RUN cp /system-agent/support/config/config.yaml /etc/system-agent/config.yaml
+RUN mkdir -p /etc/dtac-agent
+RUN cp /dtac-agent/support/config/config.yaml /etc/dtac-agent/config.yaml
 
-CMD ["/system-agent/bin/system-agentd"]
+CMD ["/dtac-agent/bin/dtac-agentd"]

@@ -13,16 +13,16 @@ SERVERS=( 10.108.1.21 10.108.2.61 10.108.1.11 )
 for server in "${SERVERS[@]}"
 do
   echo "deploying to $server"
-  scp bin/system-agentd intel@$server:/home/intel/.
-  scp support/service/system-agentd.service intel@$server:/home/intel/.
+  scp bin/dtac-agentd intel@$server:/home/intel/.
+  scp support/service/dtac-agentd.service intel@$server:/home/intel/.
   scp support/config/config.yaml intel@$server:/home/intel/.
-  ssh intel@$server -C 'sudo systemctl stop system-agentd || true'
-  ssh intel@$server -C 'sudo mkdir -p /opt/system-agent/bin || true'
-  ssh intel@$server -C 'sudo mkdir -p /etc/system-agent || true'
-  ssh intel@$server -C 'sudo mv ~/system-agentd /opt/system-agent/bin/.'
-  ssh intel@$server -C 'sudo mv ~/system-agentd.service /lib/systemd/system/.'
-  ssh intel@$server -C 'sudo mv ~/config.yaml /etc/system-agent/config.yaml'
+  ssh intel@$server -C 'sudo systemctl stop dtac-agentd || true'
+  ssh intel@$server -C 'sudo mkdir -p /opt/dtac-agent/bin || true'
+  ssh intel@$server -C 'sudo mkdir -p /etc/dtac-agent || true'
+  ssh intel@$server -C 'sudo mv ~/dtac-agentd /opt/dtac-agent/bin/.'
+  ssh intel@$server -C 'sudo mv ~/dtac-agentd.service /lib/systemd/system/.'
+  ssh intel@$server -C 'sudo mv ~/config.yaml /etc/dtac-agent/config.yaml'
   ssh intel@$server -C 'sudo systemctl daemon-reload'
-  ssh intel@$server -C 'sudo systemctl start system-agentd'
+  ssh intel@$server -C 'sudo systemctl start dtac-agentd'
   echo "finished deploying to $server"
 done

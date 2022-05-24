@@ -1,6 +1,6 @@
 [Unit]
 Description=Systemapi Service Daemon
-ConditionPathExists=/opt/system-agent/bin/system-agentd
+ConditionPathExists=/opt/dtac-agent/bin/dtac-agentd
 After=network.target
 
 [Service]
@@ -10,11 +10,11 @@ Group=root
 Restart=on-failure
 RestartSec=10
 StartLimitInterval=60
-WorkingDirectory=/opt/system-agent/bin
-ExecStart=/opt/system-agent/bin/system-agentd
+WorkingDirectory=/opt/dtac-agent/bin
+ExecStart=/opt/dtac-agent/bin/dtac-agentd
 StandardOutput=syslog
 StandardError=syslog
-SyslogIdentifier=system-agentd
+SyslogIdentifier=dtac-agentd
 
 [Install]
 WantedBy=multi-user.target

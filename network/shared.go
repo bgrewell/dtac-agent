@@ -1,7 +1,7 @@
 package network
 
 const (
-	app = "system-agent"
+	app = "dtac-agent"
 )
 
 var ()

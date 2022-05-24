@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/system-agent.iml" filepath="$PROJECT_DIR$/.idea/system-agent.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/dtac-agent.iml" filepath="$PROJECT_DIR$/.idea/dtac-agent.iml" />
     </modules>
   </component>
 </project>

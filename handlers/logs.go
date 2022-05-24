@@ -31,9 +31,9 @@ type LogLine struct {
 
 func GetLogsHandler(c *gin.Context) {
 	start := time.Now()
-	filename := "/var/log/system-agentd/system-agentd.log"
+	filename := "/var/log/dtac-agentd/dtac-agentd.log"
 	if runtime.GOOS == "windows" {
-		filename = "C:\\Logs\\system-agentd.log"
+		filename = "C:\\Logs\\dtac-agentd.log"
 	}
 
 	logbytes, err := ioutil.ReadFile(filename)

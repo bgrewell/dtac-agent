@@ -7,13 +7,13 @@
 # MERGE = Merge missing fields into yaml file but don't change existing values
 
 windows:
-  STOP system-agentd
-  COPY system-agentd.exe c:\program files\system-agent\system-agentd.exe
-  MERGE config.yaml c:\program files\system-agent\config.yaml
-  START system-agentd
+  STOP dtac-agentd
+  COPY dtac-agentd.exe c:\program files\dtac-agent\dtac-agentd.exe
+  MERGE config.yaml c:\program files\dtac-agent\config.yaml
+  START dtac-agentd
 
 linux:
-  STOP system-agentd
-  COPY system-agent /opt/system-agent/bin/system-agentd
-  MERGE config.yaml /etc/system-agent/config.yaml
-  START system-agentd
+  STOP dtac-agentd
+  COPY dtac-agent /opt/dtac-agent/bin/dtac-agentd
+  MERGE config.yaml /etc/dtac-agent/config.yaml
+  START dtac-agentd

@@ -2,8 +2,8 @@ package httprouting
 
 import (
 	"fmt"
-	"github.com/BGrewell/system-agent/configuration"
-	"github.com/BGrewell/system-agent/handlers"
+	"github.com/BGrewell/dtac-agent/configuration"
+	"github.com/BGrewell/dtac-agent/handlers"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 )

@@ -3,7 +3,7 @@ package handlers
 import (
 	"crypto/sha1"
 	"fmt"
-	"github.com/BGrewell/system-agent/configuration"
+	"github.com/BGrewell/dtac-agent/configuration"
 	"github.com/fsnotify/fsnotify"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"

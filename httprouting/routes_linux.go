@@ -4,7 +4,7 @@
 package httprouting
 
 import (
-	"github.com/BGrewell/system-agent/handlers"
+	"github.com/BGrewell/dtac-agent/handlers"
 	"github.com/gin-gonic/gin"
 )
 
@@ -36,7 +36,7 @@ func AddOSSpecificHandlers(r *gin.Engine) {
 	r.POST("/network/firewall/rule", handlers.CreateIptablesRuleHandler)
 	r.PUT("/network/firewall/rule/:id", handlers.UpdateIptablesRuleHandler)
 	r.DELETE("/network/firewall/rules", handlers.DeleteIptablesRulesHandler)
-	r.DELETE("/network/firewall/rule/:id", handlers.DeleteIptablesRuleHandler) // Delete IPTables Rules created by system-agent
+	r.DELETE("/network/firewall/rule/:id", handlers.DeleteIptablesRuleHandler) // Delete IPTables Rules created by dtac-agent
 	r.GET("/network/firewall", handlers.GetIptablesStatusHandler)              // Get IPTables Status
 	r.GET("/network/firewall/rules", handlers.GetIptablesRulesHandler)         // Get IPTables Rules
 	r.GET("/network/firewall/rule/:id", handlers.GetIptablesRuleHandler)
