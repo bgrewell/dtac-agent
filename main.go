@@ -262,8 +262,8 @@ func main() {
 	}
 	svcConfig := &service.Config{
 		Name:         "dtac-agent.service",
-		DisplayName:  "System-Agent Service",
-		Description:  "System-Agent provides access to many system details via REST endpoints",
+		DisplayName:  "DTAC-Agent Service",
+		Description:  "DTAC-Agent provides access to many system details and controls  via REST endpoints",
 		Dependencies: dependencies,
 		Option:       options,
 	}
