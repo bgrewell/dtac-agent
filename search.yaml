@@ -1,0 +1,53 @@
+# The purpose of the search.yaml file is to assist with finding relevant projects and code.
+# This is designed to showcase how using a simple form like this could free projects from
+# the unnecessary complexity of having a hierarchy where they must fit into specific bins
+# which has the downside of being highly subjective for both the person placing the project
+# and the person searching for a project. Many projects also have a handful of places they
+# could fit. This approach would make hierarchy irrelevant and allow simple searching based
+# on the tags and labels sections. It's flexible enough that authors can mix and match as
+# needed and allows very natural searching.
+#
+# For example all of these searches would find this project
+# search: dtac-agent
+# search: windows telemetry
+# search: extensible linux control
+# search: extensible rest api
+# search: go rest api
+#
+# Labels could be made mandatory to aid in search such as active and state. Then you could
+# add to your search like active=true !state=beta
+---
+project: dtac-agent
+author: Benjamin Grewell <benjamin.grewell@intel.com>
+description: The distributed telemetry and advanced control agent is a system service designed to run on a multitude of
+  operating systems including Windows, Linux and MacOS. It provides a wide range of system telemetry and control 
+  functions out of the box and is highly extensible through plugins and compiled in modules. All of these telemetry and
+  control functions are exposed through a rich flexible REST API.
+license: not_determined_yet
+search:
+  tags:
+    - dtac
+    - dtac-agent
+    - distributed
+    - telemetry
+    - control
+    - monitoring
+    - automation
+    - devops
+    - rest
+    - api
+    - windows
+    - linux
+    - macos
+    - darwin
+    - golang
+    - go
+    - plugins
+    - extensible
+  labels:
+    active: true
+    state: beta
+    suite: dtac
+    tools: dtac
+    author: benjamin grewell
+    function: agent
