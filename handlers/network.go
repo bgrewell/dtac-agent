@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	. "github.com/BGrewell/dtac-agent/common"
 	"github.com/BGrewell/dtac-agent/network"
 	"github.com/gin-gonic/gin"
 	"strconv"

@@ -14,6 +14,7 @@ build:	deps plugins
 		[ -d bin ] || mkdir bin
 		GOOS=linux $(GOBUILD) -ldflags "$(LD_FLAGS)" -o bin/$(BINARY_NAME) -v main.go
 		GOOS=windows $(GOBUILD) -ldflags "$(LD_FLAGS)" -o bin/$(BINARY_NAME).exe -v main.go
+		GOOS=darwin $(GOBUILD) -ldflags "$(LD_FLAGS)" -o bin/$(BINARY_NAME).app -v main.go
 
 test:
 		$(GOTEST) -v ./...
@@ -81,6 +82,6 @@ proto: deps
 		protoc -I=plugin/api --go_out=plugin/api --go_opt=paths=source_relative plugin/api/plugin-api.proto
 
 plugins:
-		[ -d bin/plugins ] || mkdir bin/plugins
+		[ -d bin/plugins ] || mkdir -p bin/plugins
 		$(GOCMD) build -o bin/plugins/hello.plugin plugin/examples/hello/main.go
 

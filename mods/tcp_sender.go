@@ -3,6 +3,7 @@ package mods
 import (
 	"bufio"
 	"fmt"
+	. "github.com/BGrewell/dtac-agent/common"
 	log "github.com/sirupsen/logrus"
 	"math/rand"
 	"net"

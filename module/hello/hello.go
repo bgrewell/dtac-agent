@@ -1,6 +1,7 @@
 package hello
 
 import (
+	. "github.com/BGrewell/dtac-agent/common"
 	"github.com/gin-gonic/gin"
 	"time"
 )

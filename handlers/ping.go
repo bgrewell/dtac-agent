@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	. "github.com/BGrewell/dtac-agent/common"
 	"github.com/BGrewell/dtac-agent/mods"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
