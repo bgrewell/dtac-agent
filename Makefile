@@ -84,4 +84,5 @@ proto: deps
 plugins:
 		[ -d bin/plugins ] || mkdir -p bin/plugins
 		$(GOCMD) build -o bin/plugins/hello.plugin plugin/examples/hello/main.go
+		$(GOCMD) build -o bin/plugins/maas.plugin plugin/maas/main.go
 

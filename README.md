@@ -1,10 +1,50 @@
 # DTAC AGENT
 
-## TODO BEFORE RELEASE
+The Distributed Telemetry and Advanced Control (DTAC) framework is a collection of projects designed to reduce the time
+to completion of software projects and testbeds by providing a highly reusable and extensible framework for the
+collection of monitoring and manipulation of a wide variety of systems. 
 
- - Auto-Restart on update
- - Deploy to all systems
- - Package as Kubernetes Sidecar
+This project, the DTAC Agent, is focused on the endpoints. It is designed to run on various operating systems including
+Windows, Linux and MacOS (Darwin). It provides access to a wide variety of telemetry on these systems and also provides
+the ability to control many of the system parameters out of the box. It has been designed to be highly extensible 
+through a multitude of methodologies described in more detail in the [extensibility](#extensibility) section below.
+
+## Installation
+
+Release packages for DTAC-Agent contain scripts to help users install the agent on the operating systems that are 
+supported out of the box. This includes Windows (x86 and amd64), Linux (x86 and amd64) and MacOS (amd64). For additional
+operating systems or hardware architectures you will need to compile the agent by following the instructions in the 
+[compilation](#compilation) section below. In addition to release packages found in this repository if you are on the
+Intel network you can install the latest version using the commands below.
+
+### Windows
+
+Click `start` then type `powershell` and `right click` on `Windows Powershell` and select `Run as Administrator` and 
+then in the powershell window type in the following
+
+```powershell
+powershell -exec bypass -c "(New-Object Net.WebClient).Proxy.Credentials=[Net.CredentialCache]::DefaultNetworkCredentials;iwr('https://software.labs.intel.com/dtac/agent/windows/install.ps1')|iex"
+```
+
+### Linux
+
+### MacOS
+
+## Usage
+
+### 
+
+## Compilation
+
+
+
+
+
+
+
+
+
+
 
 ## Basic Info
 
