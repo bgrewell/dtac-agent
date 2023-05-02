@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"errors"
+	"github.com/bgrewell/gin-plugins/loader"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 )
@@ -69,7 +70,7 @@ type Config struct {
 	Updater      UpdaterEntry                        `json:"updater" yaml:"updater" xml:"updater"`
 	PluginDir    string                              `json:"plugin_dir" yaml:"plugin_dir" xml:"plugin_dir"`
 	PluginCookie string                              `json:"plugin_cookie" yaml:"plugin_cookie" xml:"plugin_cookie"`
-	Plugins      []map[string]map[string]interface{} `json:"plugins" yaml:"plugins" xml:"plugins"`
+	Plugins      map[string]*loader.PluginConfig     `json:"plugins" yaml:"plugins" xml:"plugins"`
 	Modules      []map[string]map[string]interface{} `json:"modules" yaml:"modules" xml:"modules"`
 	Custom       []map[string]*CustomEntry           `json:"custom" yaml:"custom" xml:"custom"`
 	Watchdog     WatchdogEntry                       `json:"watchdog" yaml:"watchdog" xml:"watchdog"`

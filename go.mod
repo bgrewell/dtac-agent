@@ -9,7 +9,7 @@ require (
 	github.com/BGrewell/go-iptables v0.0.0-20220328194520-978d1a617fec
 	github.com/BGrewell/go-netqospolicy v0.0.0-20201207170710-eb97b3455d4f
 	github.com/BGrewell/go-update v0.0.0-20210317195128-dfe40a6eb7e9
-	github.com/bgrewell/gin-plugins v0.0.0-20230427223642-ea75720ec067
+	github.com/bgrewell/gin-plugins v0.0.0-20230501180034-14e15ce0020e
 	github.com/boltdb/bolt v1.3.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fsnotify/fsnotify v1.5.4

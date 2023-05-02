@@ -97,7 +97,7 @@ func (p *program) run() {
 	module.Initialize(c.Modules, r)
 
 	// Initialize plugins
-	err = plugin.Initialize(c.PluginDir, c.PluginCookie, c.Plugins, r)
+	err = plugin.Initialize(c.PluginDir, c.Plugins, r)
 	if err != nil {
 		log.Errorf("failed to load plugins: %s\n", err)
 	}
