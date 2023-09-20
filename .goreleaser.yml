@@ -37,5 +37,7 @@ changelog:
       - '^test:'
 release:
   github:
-      owner: intel-innersource
-      name: frameworks.automation.dtac.agent
+    owner: intel-innersource
+    name: frameworks.automation.dtac.agent
+  skip_upload: false
+  disable: false
