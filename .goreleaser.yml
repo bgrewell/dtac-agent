@@ -14,13 +14,14 @@ builds:
       - windows
     binary: dtac-agentd
 archives:
-    format_overrides:
-      - goos: windows
-        format: zip
-    files:
-      - README.md
-      - support/config/*
-      - support/service/*
+    - id: default
+      format_overrides:
+        - goos: windows
+          format: zip
+      files:
+        - README.md
+        - support/config/*
+        - support/service/*
 checksum:
   name_template: 'checksums.txt'
 snapshot:
