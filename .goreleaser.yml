@@ -35,3 +35,7 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
+release:
+  github:
+      owner: intel-innersource
+      name: frameworks.automation.dtac.agent
