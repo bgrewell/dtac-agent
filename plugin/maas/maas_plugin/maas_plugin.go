@@ -2,8 +2,8 @@ package maas_plugin
 
 import (
 	"fmt"
-	"github.com/BGrewell/dtac-agent/plugin/maas/maas_plugin/engine"
-	"github.com/BGrewell/dtac-agent/plugin/maas/maas_plugin/structs"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/plugin/maas/maas_plugin/engine"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/plugin/maas/maas_plugin/structs"
 	plugins "github.com/bgrewell/gin-plugins"
 	"log"
 	"net/http"

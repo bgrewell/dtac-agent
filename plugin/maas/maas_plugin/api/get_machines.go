@@ -2,7 +2,7 @@ package api
 
 import (
 	"encoding/json"
-	"github.com/BGrewell/dtac-agent/plugin/maas/maas_plugin/structs"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/plugin/maas/maas_plugin/structs"
 )
 
 func GetMachines(settings *structs.MAASSettings) ([]*structs.Machine, error) {

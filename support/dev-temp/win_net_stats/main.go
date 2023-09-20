@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/BGrewell/dtac-agent/network"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/network"
 	"time"
 )
 

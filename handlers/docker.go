@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	. "github.com/BGrewell/dtac-agent/common"
+	. "github.com/intel-innersource/frameworks.automation.dtac.agent/common"
 	"github.com/gin-gonic/gin"
 )
 

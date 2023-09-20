@@ -3,7 +3,7 @@ package handlers
 // TODO: This is commented out because of import issues with BGrewell/wifi-watchdog being private.
 
 //import (
-//	"github.com/BGrewell/dtac-agent/configuration"
+//	"github.com/intel-innersource/frameworks.automation.dtac.agent/configuration"
 //	"github.com/gin-gonic/gin"
 //	log "github.com/sirupsen/logrus"
 //	"time"

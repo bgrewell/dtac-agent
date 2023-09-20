@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"fmt"
-	. "github.com/BGrewell/dtac-agent/common"
-	"github.com/BGrewell/dtac-agent/network"
+	. "github.com/intel-innersource/frameworks.automation.dtac.agent/common"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/network"
 	"github.com/gin-gonic/gin"
 	"strconv"
 	"time"

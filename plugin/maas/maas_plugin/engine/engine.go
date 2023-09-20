@@ -1,8 +1,8 @@
 package engine
 
 import (
-	"github.com/BGrewell/dtac-agent/plugin/maas/maas_plugin/api"
-	"github.com/BGrewell/dtac-agent/plugin/maas/maas_plugin/structs"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/plugin/maas/maas_plugin/api"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/plugin/maas/maas_plugin/structs"
 )
 
 type Engine struct {

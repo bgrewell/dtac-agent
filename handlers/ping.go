@@ -3,8 +3,8 @@ package handlers
 import (
 	"errors"
 	"fmt"
-	. "github.com/BGrewell/dtac-agent/common"
-	"github.com/BGrewell/dtac-agent/mods"
+	. "github.com/intel-innersource/frameworks.automation.dtac.agent/common"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/mods"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"

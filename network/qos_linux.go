@@ -3,7 +3,7 @@ package network
 import (
 	"errors"
 	"fmt"
-	. "github.com/BGrewell/dtac-agent/common"
+	. "github.com/intel-innersource/frameworks.automation.dtac.agent/common"
 	"github.com/BGrewell/go-iptables"
 	"github.com/google/uuid"
 )

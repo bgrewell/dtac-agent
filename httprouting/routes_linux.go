@@ -4,7 +4,7 @@
 package httprouting
 
 import (
-	"github.com/BGrewell/dtac-agent/handlers"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/handlers"
 	"github.com/gin-gonic/gin"
 )
 

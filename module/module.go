@@ -2,8 +2,8 @@ package module
 
 import (
 	"fmt"
-	"github.com/BGrewell/dtac-agent/module/hello"
-	"github.com/BGrewell/dtac-agent/module/remote"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/module/hello"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/module/remote"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 )

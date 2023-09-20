@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/BGrewell/dtac-agent/plugin/examples/hello/hello_plugin"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/plugin/examples/hello/hello_plugin"
 	"github.com/bgrewell/gin-plugins/host"
 	"log"
 )
