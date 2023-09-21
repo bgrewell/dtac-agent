@@ -3,16 +3,17 @@ package handlers
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/boltdb/bolt"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
-	"github.com/twinj/uuid"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/boltdb/bolt"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
+	"github.com/twinj/uuid"
 )
 
 const (
