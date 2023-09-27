@@ -1,0 +1,295 @@
+//go:build mage
+// +build mage
+
+package main
+
+import (
+	"fmt"
+	"github.com/magefile/mage/sh"
+	log "github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"os"
+	"os/exec"
+	"path"
+	"path/filepath"
+	"runtime"
+	"strings"
+	"time"
+)
+
+const (
+	packageName = "github.com/intel-innersource/frameworks.automation.dtac.agent"
+)
+
+var (
+	ldflagsArr []string
+	ldflags    = "-X "
+	goexe      = "go"
+	binaryname = "dtac-agentd"
+)
+
+func init() {
+
+	if exe := os.Getenv("GOEXE"); exe != "" {
+		goexe = exe
+	}
+
+	if name := os.Getenv("BINARY_NAME"); name != "" {
+		binaryname = name
+	}
+
+	// Setup ldflags
+	buildVer := getBuildVersion()
+	ldflagsArr = append(ldflagsArr, fmt.Sprintf("main.version=%s", buildVer))
+
+	buildDate := getBuildDate()
+	ldflagsArr = append(ldflagsArr, fmt.Sprintf("main.date=%s", buildDate))
+
+	buildRev := getBuildRevision()
+	ldflagsArr = append(ldflagsArr, fmt.Sprintf("main.rev=%s", buildRev))
+
+	buildBranch := getBuildBranch()
+	ldflagsArr = append(ldflagsArr, fmt.Sprintf("main.branch=%s", buildBranch))
+
+	ldflags += strings.Join(ldflagsArr, " -X ")
+}
+
+func outputWith(env map[string]string, cmd string, inArgs ...any) (string, error) {
+	s := argsToStrings(inArgs...)
+	return sh.OutputWith(env, cmd, s...)
+}
+
+func runWith(env map[string]string, cmd string, inArgs ...any) error {
+	s := argsToStrings(inArgs...)
+	return sh.RunWith(env, cmd, s...)
+}
+
+func argsToStrings(v ...any) []string {
+	var args []string
+	for _, arg := range v {
+		switch v := arg.(type) {
+		case string:
+			if v != "" {
+				args = append(args, v)
+			}
+		case []string:
+			if v != nil {
+				args = append(args, v...)
+			}
+		default:
+			panic("invalid type")
+		}
+	}
+
+	return args
+}
+
+func getBuildVersion() string {
+	v, err := outputWith(nil, "git", "describe", "--tags")
+	if err != nil {
+		log.Fatal(err)
+	}
+	vr := strings.Split(v, "-g")
+	return vr[0]
+}
+
+func getBuildDate() string {
+	d, err := outputWith(nil, "date", "+\"%Y.%m.%d_%H%M%S\"")
+	if err != nil {
+		log.Fatal(err)
+	}
+	return d
+}
+
+func getBuildRevision() string {
+	r, err := outputWith(nil, "git", "rev-parse", "--short", "HEAD")
+	if err != nil {
+		log.Fatal(err)
+	}
+	return r
+}
+
+func getBuildBranch() string {
+	b, err := outputWith(nil, "git", "rev-parse", "--abbrev-ref", "HEAD")
+	if err != nil {
+		log.Fatal(err)
+	}
+	b = strings.TrimSpace(b)
+	b = strings.ReplaceAll(b, "\040", "")
+	b = strings.ReplaceAll(b, "\011", "")
+	b = strings.ReplaceAll(b, "\012", "")
+	b = strings.ReplaceAll(b, "\015", "")
+	return b
+}
+
+func flagEnv() map[string]string {
+	hash, _ := sh.Output("git", "rev-parse", "--short", "HEAD")
+	return map[string]string{
+		"PACKAGE":     packageName,
+		"COMMIT_HASH": hash,
+		"BUILD_DATE":  time.Now().Format("2006-01-02T15:04:05Z0700"),
+	}
+}
+
+func buildFlags() []string {
+	if runtime.GOOS == "windows" {
+		return []string{"-buildmode", "exe"}
+	}
+	return nil
+}
+
+func buildTags() string {
+	// NOT USED CURRENTLY
+	if envtags := os.Getenv("DTAC_BUILD_TAGS"); envtags != "" {
+		return envtags
+	}
+	return "none"
+}
+
+func findBuildYAMLFiles(rootDir string) ([]string, error) {
+	var paths []string
+
+	err := filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Check if the file is named build.yaml and it's not a directory.
+		if !info.IsDir() && info.Name() == "build.yaml" {
+			absPath, err := filepath.Abs(path)
+			if err != nil {
+				return err
+			}
+			paths = append(paths, absPath)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return paths, nil
+}
+
+func buildLin64() error {
+	fmt.Println("\tCompiling Linux amd64")
+	return build("linux", "amd64")
+}
+
+func buildLinArm() error {
+	fmt.Println("\tCompiling Linux Arm")
+	return build("linux", "arm")
+}
+
+func buildWin64() error {
+	fmt.Println("\tCompiling Windows amd64")
+	return build("windows", "amd64")
+}
+
+func buildMac64() error {
+	fmt.Println("\tCompiling MacOS amd64")
+	return build("darwin", "amd64")
+}
+
+func build(os string, arch string) error {
+	extension := ""
+	if os == "windows" {
+		extension = ".exe"
+	} else if os == "darwin" {
+		extension = ".app"
+	}
+	env := flagEnv()
+	env["GOOS"] = os
+	env["GOARCH"] = arch
+	output := fmt.Sprintf("bin/%s%s%s", binaryname, fmt.Sprintf("-%s", arch), extension)
+	return runWith(env, goexe, "build", "-ldflags", ldflags, buildFlags(), "-tags", buildTags(), "-o", output, "main.go")
+}
+
+func Build() error {
+	fmt.Println("Building agent")
+	funcs := []func() error{buildLin64, buildLinArm, buildWin64, buildMac64}
+	for _, f := range funcs {
+		if err := f(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func Deps() error {
+	fmt.Println("Updating dependencies")
+	env := make(map[string]string)
+	env["GOPRIVATE"] = "github.com/bgrewell"
+	env["GOPROXY"] = "direct"
+	env["GO111MODULE"] = "on"
+	env["GOSUMDB"] = "off"
+	if err := runWith(env, goexe, "get", "-u", "./..."); err != nil {
+		return err
+	}
+	if err := runWith(env, goexe, "mod", "tidy"); err != nil {
+		return err
+	}
+	//$(GOCMD) install google.golang.org/protobuf/cmd/protoc-gen-go
+	return runWith(nil, goexe, "install", "google.golang.org/protobuf/cmd/protoc-gen-go")
+}
+
+func Run() error {
+	env := make(map[string]string)
+	env["DTAC_CFG_LOCATION"] = "support/config/config.yaml"
+	// TODO: Execute but pipe to stdin, stdout, stderr
+	return runWith(env, "sudo", "-E", "/usr/local/go/bin/go", "run", "main.go")
+}
+
+func Plugins() error {
+	fmt.Println("Building plugins")
+	// Define a struct to unmarshal the build.yaml contents into.
+	type BuildInfo struct {
+		Name  string `yaml:"name"`
+		Entry string `yaml:"entry"`
+	}
+
+	buildFiles, err := findBuildYAMLFiles("plugin")
+	if err != nil {
+		return err
+	}
+
+	for _, filename := range buildFiles {
+		var buildInfo BuildInfo
+
+		data, err := ioutil.ReadFile(filename)
+		if err != nil {
+			return fmt.Errorf("failed reading %s: %v", filename, err)
+		}
+
+		err = yaml.Unmarshal(data, &buildInfo)
+		if err != nil {
+			return fmt.Errorf("failed unmarshaling %s: %v", filename, err)
+		}
+
+		// Run the go build command using the extracted name and entry values.
+		inPath := filepath.Dir(filename)
+		outPath := fmt.Sprintf("bin/plugins/%s.plugin", buildInfo.Name)
+		cmd := exec.Command("go", "build", "-o", outPath, path.Join(inPath, buildInfo.Entry))
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		err = cmd.Run()
+		if err != nil {
+			return fmt.Errorf("failed building plugin %s: %v", buildInfo.Name, err)
+		}
+	}
+
+	return nil
+}
+
+func Clean() error {
+	os.RemoveAll("dist")
+	os.RemoveAll("bin")
+	return nil
+}
+
+func Test() error {
+	return runWith(nil, goexe, "test", "-v", "./...")
+}

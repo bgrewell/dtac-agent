@@ -2,11 +2,11 @@ package handlers
 
 import (
 	"fmt"
-	. "github.com/intel-innersource/frameworks.automation.dtac.agent/common"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/network"
 	"github.com/BGrewell/go-execute"
 	"github.com/BGrewell/go-iptables"
 	"github.com/gin-gonic/gin"
+	. "github.com/intel-innersource/frameworks.automation.dtac.agent/common"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/network"
 	"strconv"
 	"time"
 )
@@ -402,7 +402,7 @@ func SystemRebootHandler(c *gin.Context) {
 	start := time.Now()
 	out, err := execute.ExecuteCmd("shutdown -r")
 	if err != nil {
-		WriteErrorResponseJSON(c, fmt.Errorf("failed to reboot computer: %v"))
+		WriteErrorResponseJSON(c, fmt.Errorf("failed to reboot computer: %v", err))
 		return
 	}
 	WriteResponseJSON(c, time.Since(start), out)

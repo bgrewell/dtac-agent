@@ -1,6 +1,6 @@
 ---
 # Port the service will use to listen for requests
-listen_port: 8080
+listen_port: 8180
 
 # Service uses https
 https: false
@@ -11,7 +11,7 @@ https: false
 lockout_timeout: 60
 
 watchdog:
-  enabled: true
+  enabled: false
   poll_interval: 10
   profile: NetworkOfFuture
   bssid: not_implemented_yet
@@ -29,66 +29,20 @@ plugin_dir: /etc/dtac-agent/plugins
 plugin_cookie: "this_is_not_a_security_feature"
 plugins:
   # TODO: New plugin system doesn't support passing a configuration to the plugin yet. Fix that
-  - hello:
+  hello.plugin:
+    enabled: true
+    cookie: "this_is_not_a_security_feature"
+    hash: abc123
+    config:
       message: "hello world plugin"
-
-  - non-existent:
-      message: "non-existent plugin"
-
 
 # Modules are compiled sections of code that can be selectively enabled
 modules:
   - hello:
       message: "hello world module"
 
-  - remote:
-      host: 127.0.0.1
-      port: "5555"
-      token: abcdefghijklmnopqrstuvwxyz0123456789
-      bob: uncle
-
-  - non_existent:
-      item1: 123
-      item2: abc
-      item3:
-        - 1
-        - 2
-        - 3
-        - 4
-        - 5
-
 # Custom is customer handlers. TODO: Look at replacing these with plugins?
 custom:
-  - stats_user1:
-      route: "/webrtc/stats_user1"
-      wrap_json: no
-      source:
-        type: file
-        value: "c:\\windows\\temp\\stats_user1.json"
-      methods: ["GET"]
-      access: open
-      mode: blocking # direct <default>, blocking
-      blocking:
-        trigger: change
-        detect: hash
-        timeout_ms: 10000
-        timeout_action: stale # error <default>, stale
-
-  - stats_screencast:
-      route: "/webrtc/stats_screencast"
-      wrap_json: no
-      source:
-        type: file
-        value: "c:\\windows\\temp\\stats_screencast.json"
-      methods: ["GET"]
-      access: open
-      mode: blocking
-      blocking:
-        trigger: change
-        detect: hash
-        timeout_ms: 10000
-        timeout_action: stale
-
   - date:
       wrap_json: yes
       source:
@@ -106,24 +60,24 @@ custom:
         value: whoami
       methods: ["GET"]
 
-  - wemo:
-      route: "/wemo/control"
-      wrap_json: no
-      source:
-        type: cmd
-        run_as: intel
-        value: wemo --json ${vars}
-        variables:
-          source: query_params
-          format: "--${key} ${value}"
-          whitelist:
-            latency: "[0-9]{1,4}"
-            jitter: "[0-9]{1,4}"
-            loss: "[-+]?[0-9]*\\.?[0-9]+"
-            reorder: "[-+]?[0-9]*\\.?[0-9]+"
-            corruption: "[-+]?[0-9]*\\.?[0-9]+"
-            duplication: "[-+]?[0-9]*\\.?[0-9]+"
-            rate: "[-+]?[0-9]*\\.?[0-9]+[bkmgBKMG]*"
-      methods: ["GET"]
+#  - wemo:
+#      route: "/wemo/control"
+#      wrap_json: no
+#      source:
+#        type: cmd
+#        run_as: intel
+#        value: wemo --json ${vars}
+#        variables:
+#          source: query_params
+#          format: "--${key} ${value}"
+#          whitelist:
+#            latency: "[0-9]{1,4}"
+#            jitter: "[0-9]{1,4}"
+#            loss: "[-+]?[0-9]*\\.?[0-9]+"
+#            reorder: "[-+]?[0-9]*\\.?[0-9]+"
+#            corruption: "[-+]?[0-9]*\\.?[0-9]+"
+#            duplication: "[-+]?[0-9]*\\.?[0-9]+"
+#            rate: "[-+]?[0-9]*\\.?[0-9]+[bkmgBKMG]*"
+#      methods: ["GET"]
 
 

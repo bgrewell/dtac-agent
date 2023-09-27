@@ -1,0 +1,3 @@
+---
+name: maas
+entry: main.go
