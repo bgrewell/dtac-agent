@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
-	"errors"
 	"flag"
 	"fmt"
+	"github.com/BGrewell/go-conversions"
+	"github.com/gin-gonic/gin"
 	. "github.com/intel-innersource/frameworks.automation.dtac.agent/common"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/configuration"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/handlers"
@@ -12,10 +13,6 @@ import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/middleware"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/module"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/plugin"
-	"github.com/BGrewell/go-conversions"
-	"github.com/BGrewell/go-update"
-	"github.com/BGrewell/go-update/stores/github"
-	"github.com/gin-gonic/gin"
 	"github.com/kardianos/service"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -57,6 +54,8 @@ func (p *program) Stop(s service.Service) error {
 
 func (p *program) run() {
 
+	gin.SetMode(gin.ReleaseMode)
+
 	// Default Router
 	r := gin.Default()
 
@@ -76,7 +75,7 @@ func (p *program) run() {
 	}
 
 	// Check for custom config file location
-	customCfgFile := os.Getenv("SYSTEMAPI_CFG_LOCATION")
+	customCfgFile := os.Getenv("DTAC_CFG_LOCATION")
 	if customCfgFile != "" {
 		cfgfile = customCfgFile
 	}
@@ -110,15 +109,16 @@ func (p *program) run() {
 	// Before starting update the handlers Routes var
 	handlers.Routes = r.Routes()
 
-	log.Println("dtac-agent server is running http://localhost:8080")
+	log.Printf("DTAC-Agent server is running on http://localhost:%d\n", c.ListenPort)
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%d", c.ListenPort),
 		Handler: r,
 	}
 	// Run in a goroutine so that it won't block the graceful shutdown handling
 	go func() {
+		logger.Info(fmt.Sprintf("DTAC-Agent server is running on http://localhost:%d\n", c.ListenPort))
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatal("failed to start server: %v\n", err)
+			log.Fatalf("failed to start server: %v\n", err)
 		}
 	}()
 
@@ -171,56 +171,57 @@ func runUpdateChecker(c *configuration.Config) {
 
 func checkForUpdates(token *string) (applied bool, err error) {
 
-	binaryName, _ := os.Executable()
-
-	m := &update.Manager{
-		Command: binaryName,
-		Store: &github.Store{
-			Owner:   "BGrewell",
-			Repo:    "dtac-agent",
-			Version: "",
-			Token:   token,
-		},
-	}
-
-	releases, err := m.LatestReleases()
-	if err != nil {
-		log.Infof("error getting releases: %s\n", err)
-		return
-	}
-
-	if len(releases) == 0 {
-		log.Info("no updates available")
-		return
-	}
-
-	latest := releases[0]
-
-	if latest.Newer(version) {
-		archive := latest.FindTarball(runtime.GOOS, runtime.GOARCH)
-		if archive == nil {
-			log.Info("unable to find binary for this system")
-			return false, errors.New("unable to find binary for this system")
-		}
-
-		tarball, err := archive.DownloadSecure(*token)
-		if err != nil {
-			log.Infof("failed to download update: %s\n", err)
-			return false, err
-		}
-
-		log.Printf("tarball: %s", tarball)
-		if err := m.Install(tarball); err != nil {
-			log.Infof("failed to install update: %s\n", err)
-			return false, err
-		}
-
-		log.Infof("updated to version %s\n", latest.Version)
-		return true, nil
-	} else {
-		log.Info("local version is the latest version")
-	}
+	//binaryName, _ := os.Executable()
+	//
+	//m := &update.Manager{
+	//	Command: binaryName,
+	//	Store: &github.Store{
+	//		Owner:   "BGrewell",
+	//		Repo:    "dtac-agent",
+	//		Version: "",
+	//		Token:   token,
+	//	},
+	//}
+	//
+	//releases, err := m.LatestReleases()
+	//if err != nil {
+	//	log.Infof("error getting releases: %s\n", err)
+	//	return
+	//}
+	//
+	//if len(releases) == 0 {
+	//	log.Info("no updates available")
+	//	return
+	//}
+	//
+	//latest := releases[0]
+	//
+	//if latest.Newer(version) {
+	//	archive := latest.FindTarball(runtime.GOOS, runtime.GOARCH)
+	//	if archive == nil {
+	//		log.Info("unable to find binary for this system")
+	//		return false, errors.New("unable to find binary for this system")
+	//	}
+	//
+	//	tarball, err := archive.DownloadSecure(*token)
+	//	if err != nil {
+	//		log.Infof("failed to download update: %s\n", err)
+	//		return false, err
+	//	}
+	//
+	//	log.Printf("tarball: %s", tarball)
+	//	if err := m.Install(tarball); err != nil {
+	//		log.Infof("failed to install update: %s\n", err)
+	//		return false, err
+	//	}
+	//
+	//	log.Infof("updated to version %s\n", latest.Version)
+	//	return true, nil
+	//} else {
+	//	log.Info("local version is the latest version")
+	//}
 	return false, nil
+
 }
 
 func main() {
@@ -246,6 +247,13 @@ func main() {
 	log.Printf("Rev: %s", rev)
 	log.Printf("Branch: %s", branch)
 	log.Printf("Version: %s", version)
+	fmt.Printf("=======================================================\n")
+	fmt.Printf("Build Info:\n")
+	fmt.Printf("\t|- Version: %s\n", version)
+	fmt.Printf("\t|- Rev: %s\n", rev)
+	fmt.Printf("\t|- Branch: %s\n", branch)
+	fmt.Printf("\t|- Compiled Date: %s\n", date)
+	fmt.Printf("=======================================================\n")
 
 	svcFlag := flag.String("service", "", "control the service")
 	flag.Parse()
