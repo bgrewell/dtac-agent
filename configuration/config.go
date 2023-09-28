@@ -1,112 +1,205 @@
 package configuration
 
 import (
-	"errors"
+	"fmt"
 	"github.com/bgrewell/gin-plugins/loader"
-	"gopkg.in/yaml.v2"
+	"github.com/spf13/viper"
 	"io/ioutil"
+	"log"
+	"os"
+	"path"
+	"strings"
 )
 
-type WatchdogEntry struct {
-	Enabled      bool   `json:"enabled" yaml:"enabled" xml:"enabled"`
-	PollInterval int    `json:"poll_interval" yaml:"poll_interval" xml:"poll_interval"`
-	Profile      string `json:"profile" yaml:"profile" xml:"profile"`
-	BSSID        string `json:"bssid" yaml:"bssid" xml:"bssid"`
+var (
+	Config *Configuration
+)
+
+type BlockingEntry struct {
+	Trigger       string `json:"trigger" yaml:"trigger" mapstructure:"trigger"`
+	Detect        string `json:"detect" yaml:"detect" mapstructure:"detect"`
+	TimeoutMs     int    `json:"timeout_ms" yaml:"timeout_ms" mapstructure:"timeout_ms"`
+	TimeoutAction string `json:"timeout_action" yaml:"timeout_action" mapstructure:"timeout_action"`
+}
+
+type ListenerEntry struct {
+	Port  int                `json:"port" yaml:"port" mapstructure:"port"`
+	Https ListenerHttpsEntry `json:"https" yaml:"https" mapstructure:"https"`
+}
+
+type ListenerHttpsEntry struct {
+	Enabled         bool     `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	Type            string   `json:"type" yaml:"type" mapstructure:"type"`
+	CreateIfMissing bool     `json:"create_if_missing" yaml:"create_if_missing" mapstructure:"create_if_missing"`
+	Domains         []string `json:"domains" yaml:"domains" mapstructure:"domains"`
+	CertFile        string   `json:"cert" yaml:"cert" mapstructure:"cert"`
+	KeyFile         string   `json:"key" yaml:"key" mapstructure:"key"`
+}
+
+type LockoutEntry struct {
+	Enabled        bool   `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	AutoUnlockTime string `json:"auto_unlock_time" yaml:"auto_unlock_time" mapstructure:"auto_unlock_time"`
+}
+
+type PluginEntry struct {
+	Enabled   bool                            `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	PluginDir string                          `json:"dir" yaml:"dir" mapstructure:"dir"`
+	Entries   map[string]*loader.PluginConfig `json:"entries" yaml:"entries" mapstructure:"entries"`
+}
+
+type RouteEntry struct {
+	Name     string         `json:"name" yaml:"name" mapstructure:"name"`
+	Route    string         `json:"route" yaml:"route" mapstructure:"route"`
+	Source   *SourceEntry   `json:"source" yaml:"source" mapstructure:"source"`
+	Methods  []string       `json:"methods" yaml:"methods" mapstructure:"methods"`
+	Access   string         `json:"access" yaml:"access" mapstructure:"access"`
+	Blocking *BlockingEntry `json:"blocking" yaml:"blocking" mapstructure:"blocking"`
+	WrapJson bool           `json:"wrap_json" yaml:"wrap_json" mapstructure:"wrap_json"`
+	Mode     string         `json:"mode" yaml:"mode" mapstructure:"mode"`
 }
 
 type SourceEntry struct {
-	Type  string `json:"type" yaml:"type" xml:"type"`
-	Value string `json:"value" yaml:"value" xml:"value"`
-	RunAs string `json:"run_as" yaml:"run_as" xml:"run_as"`
+	Type  string `json:"type" yaml:"type" mapstructure:"type"`
+	Value string `json:"value" yaml:"value" mapstructure:"value"`
+	RunAs string `json:"run_as" yaml:"run_as" mapstructure:"run_as"`
 }
 
-type BlockingEntry struct {
-	Trigger       string `json:"trigger" yaml:"trigger" xml:"trigger"`
-	Detect        string `json:"detect" yaml:"detect" xml:"detect"`
-	TimeoutMs     int    `json:"timeout_ms" yaml:"timeout_ms" xml:"timeout_ms"`
-	TimeoutAction string `json:"timeout_action" yaml:"timeout_action" xml:"timeout_action"`
-}
-
-type CustomEntry struct {
-	Name     string         `json:"name" yaml:"name" xml:"name"`
-	Route    string         `json:"route" yaml:"route" xml:"route"`
-	Source   *SourceEntry   `json:"source" yaml:"source" xml:"source"`
-	Methods  []string       `json:"methods" yaml:"methods" xml:"methods"`
-	Access   string         `json:"access" yaml:"access" xml:"access"`
-	Blocking *BlockingEntry `json:"blocking" yaml:"blocking" xml:"blocking"`
-	WrapJson bool           `json:"wrap_json" yaml:"wrap_json" xml:"wrap_json"`
-	Mode     string         `json:"mode" yaml:"mode" xml:"mode"`
+type SubsystemEntry struct {
+	Firewall     bool `json:"firewall" yaml:"firewall" mapstructure:"firewall"`
+	Iperf        bool `json:"iperf" yaml:"iperf" mapstructure:"iperf"`
+	TcpReflector bool `json:"tcp_reflector" yaml:"tcp_reflector" mapstructure:"tcp_reflector"`
+	UdpReflector bool `json:"udp_reflector" yaml:"udp_reflector" mapstructure:"udp_reflector"`
 }
 
 type UpdaterEntry struct {
-	Token           string `json:"token" yaml:"token" xml:"token"`
-	Mode            string `json:"mode" yaml:"mode" xml:"mode"`
-	Interval        string `json:"interval" yaml:"interval" xml:"interval"`
-	ErrorFallback   string `json:"error_fallback" yaml:"error_fallback" xml:"error_fallback"`
-	RestartOnUpdate bool   `json:"restart_on_update" yaml:"restart_on_update" xml:"restart_on_update"`
+	Enabled         bool   `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	Token           string `json:"token" yaml:"token" mapstructure:"token"`
+	Mode            string `json:"mode" yaml:"mode" mapstructure:"mode"`
+	Interval        string `json:"interval" yaml:"interval" mapstructure:"interval"`
+	ErrorFallback   string `json:"error_fallback" yaml:"error_fallback" mapstructure:"error_fallback"`
+	RestartOnUpdate bool   `json:"restart_on_update" yaml:"restart_on_update" mapstructure:"restart_on_update"`
 }
 
-//type PluginsEntry struct {
-//	ListenPort    int                       `json:"listen_port" yaml:"listen_port" xml:"listen_port"`
-//	PluginDir     string                    `json:"dir" yaml:"dir" xml:"dir"`
-//	ActivePlugins []map[string]*PluginEntry `json:"active" yaml:"active" xml:"active"`
-//}
-
-//type PluginEntry struct {
-//	Binary        string `json:"binary" yaml:"binary" xml:"binary"`
-//	Target        string `json:"target" yaml:"target" xml:"target"`
-//	Protocol      string `json:"protocol" yaml:"protocol" xml:"protocol"`
-//	User          string `json:"user" yaml:"user" xml:"user"`
-//	Pass          string `json:"pass" yaml:"pass" xml:"pass"`
-//	EnsureRunning bool   `json:"ensure_running" yaml:"ensure_running" xml:"ensure_running"`
-//}
-
-type Config struct {
-	ListenPort   int                                 `json:"listen_port" yaml:"listen_port" xml:"listen_port"`
-	HTTPS        bool                                `json:"https" yaml:"https" xml:"https"`
-	CertFile     string                              `json:"cert_file" yaml:"cert_file" xml:"cert_file"`
-	KeyFile      string                              `json:"key_file" yaml:"key_file" xml:"key_file"`
-	LockoutTime  int                                 `json:"lockout_timeout" yaml:"lockout_timeout" xml:"lockout_time"`
-	Updater      UpdaterEntry                        `json:"updater" yaml:"updater" xml:"updater"`
-	PluginDir    string                              `json:"plugin_dir" yaml:"plugin_dir" xml:"plugin_dir"`
-	PluginCookie string                              `json:"plugin_cookie" yaml:"plugin_cookie" xml:"plugin_cookie"`
-	Plugins      map[string]*loader.PluginConfig     `json:"plugins" yaml:"plugins" xml:"plugins"`
-	Modules      []map[string]map[string]interface{} `json:"modules" yaml:"modules" xml:"modules"`
-	Custom       []map[string]*CustomEntry           `json:"custom" yaml:"custom" xml:"custom"`
-	Watchdog     WatchdogEntry                       `json:"watchdog" yaml:"watchdog" xml:"watchdog"`
+type WatchdogEntry struct {
+	Enabled      bool   `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	PollInterval string `json:"poll_interval" yaml:"poll_interval" mapstructure:"poll_interval"`
+	Profile      string `json:"profile" yaml:"profile" mapstructure:"profile"`
+	BSSID        string `json:"bssid" yaml:"bssid" mapstructure:"bssid"`
 }
 
-var (
-	instance *Config
-)
-
-func GetActiveConfig() (config *Config, err error) {
-	if instance == nil {
-		return nil, errors.New("no active configuration exists")
-	}
-
-	return instance, nil
+type Configuration struct {
+	Listener     ListenerEntry            `json:"listener" yaml:"listener" mapstructure:"listener"`
+	Lockout      LockoutEntry             `json:"lockout" yaml:"lockout" mapstructure:"lockout"`
+	Subsystems   SubsystemEntry           `json:"subsystems" yaml:"subsystems" mapstructure:"subsystems"`
+	Updater      UpdaterEntry             `json:"updater" yaml:"updater" mapstructure:"updater"`
+	WifiWatchdog WatchdogEntry            `json:"wifi_watchdog" yaml:"wifi_watchdog" mapstructure:"wifi_watchdog"`
+	Plugins      PluginEntry              `json:"plugins" yaml:"plugins" mapstructure:"plugins"`
+	Custom       []map[string]*RouteEntry `json:"routes" yaml:"routes" mapstructure:"routes"`
 }
 
-func Load(filename string) (config *Config, err error) {
-	c := &Config{}
-	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return nil, err
+func Load(preferredLocation string) (err error) {
+	// Setup configuration file location(s)
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	if preferredLocation != "" {
+		viper.AddConfigPath(preferredLocation)
 	}
-	err = yaml.Unmarshal(data, c)
-	if err != nil {
-		return nil, err
+	viper.AddConfigPath(GLOBAL_CONFIG_FILE)
+	viper.AddConfigPath(LOCAL_CONFIG_FILE)
+	viper.AddConfigPath(".")
+
+	// Setup default values
+	kvp := map[string]interface{}{
+		"listener.port":                        8180,
+		"listener.https.enabled":               false,
+		"listener.https.type":                  "self-signed",
+		"listener.https.create_if_missing":     true,
+		"listener.https.domains":               []string{"localhost", "127.0.0.1"},
+		"listener.https.cert":                  "/etc/dtac/certs/tls.crt",
+		"listener.https.key":                   "/etc/dtac/certs/tls.key",
+		"lockout.enabled":                      true,
+		"lockout.auto_unlock_time":             "10s",
+		"wifi_watchdog.enabled":                false,
+		"wifi_watchdog.poll_interval":          "10s",
+		"wifi_watchdog.profile":                "",
+		"wifi_watchdog.bssid":                  "",
+		"updater.enabled":                      false,
+		"updater.token":                        "",
+		"updater.mode":                         "auto",
+		"updater.interval":                     "1m",
+		"updater.error_fallback":               "1h",
+		"updater.restart_on_update":            true,
+		"plugins.enabled":                      true,
+		"plugins.dir":                          "/opt/dtac/plugins",
+		"plugins.entries.hello.enabled":        true,
+		"plugins.entries.hello.cookie:":        "this_is_not_a_security_feature",
+		"plugins.entries.hello.hash":           "abc123",
+		"plugins.entries.hello.config.message": "hello world plugin",
+		"subsystems.iperf":                     true,
+		"subsystems.tcp_reflector":             true,
+		"subsystems.udp_reflector":             true,
+		"subsystems.firewall":                  true,
+		"routes":                               []map[string]*RouteEntry{},
 	}
-	// populate names
-	for _, entry := range c.Custom {
-		for key, value := range entry {
-			value.Name = key
+	for k, v := range kvp {
+		viper.SetDefault(k, v)
+	}
+
+	if err := viper.ReadInConfig(); err != nil {
+		// If the error is something other than the configuration file isn't found then
+		// throw a fatal error for the user to handle.
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			return fmt.Errorf("Failed to read configuration file: %v", err)
+		}
+
+		// If the file is simply not found then create a default one and display a warning
+		// to the user
+		log.Println("[WARN] Configuration file not found")
+		if checkWriteAccess(GLOBAL_CONFIG_FILE) {
+			log.Printf("[INFO] Creating configuration file %sconfig.yaml", GLOBAL_CONFIG_FILE)
+			if err := os.MkdirAll(GLOBAL_CONFIG_FILE, 0700); err != nil {
+				log.Printf("[WARN] Error creating global config directory: %v\n", err)
+			}
+			err := viper.WriteConfigAs(path.Join(GLOBAL_CONFIG_FILE, "config.yaml"))
+			if err != nil {
+				return fmt.Errorf("Failed to write log file: %v", err)
+			}
+		} else {
+			location := strings.Replace(LOCAL_CONFIG_FILE, "$HOME", os.Getenv("HOME"), 1)
+			if err := os.MkdirAll(location, 0700); err != nil {
+				log.Printf("[WARN] Error creating user config directory: %v\n", err)
+			}
+			log.Printf("[INFO] Creating configuration file %s.config.yaml", location)
+			err := viper.WriteConfigAs(path.Join(location, "config.yaml"))
+			if err != nil {
+				return fmt.Errorf("Failed to write log file: %v", err)
+			}
+		}
+		err := viper.ReadInConfig()
+		if err != nil {
+			return fmt.Errorf("Failed to read configuration file: %v", err)
 		}
 	}
-	if c.LockoutTime == 0 {
-		c.LockoutTime = 60
+
+	var c Configuration
+	if err := viper.Unmarshal(&c); err != nil {
+		return fmt.Errorf("Failed to unmarshal configuration: %v", err)
 	}
-	instance = c
-	return c, nil
+
+	Config = &c
+	return nil
+}
+
+// CheckWriteAccess checks if we have write access to a directory.
+func checkWriteAccess(dir string) bool {
+	// Try to create a temporary file in the directory.
+	tempFile, err := ioutil.TempFile(dir, "write-check-")
+	if err != nil {
+		fmt.Printf("Error checking access: %v", err)
+		return false
+	}
+
+	// If successful, delete the temporary file and return true.
+	defer os.Remove(tempFile.Name())
+	return true
 }

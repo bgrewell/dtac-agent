@@ -2,13 +2,13 @@ package httprouting
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/configuration"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/handlers"
-	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 )
 
-func AddCustomHandlers(c *configuration.Config, r *gin.Engine) {
+func AddCustomHandlers(c *configuration.Configuration, r *gin.Engine) {
 
 	for _, entry := range c.Custom {
 		for _, value := range entry {

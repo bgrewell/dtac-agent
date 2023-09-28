@@ -1,0 +1,84 @@
+---
+# Settings to control the API listener
+listener:
+  port: 8180
+  https:
+    enabled: false
+    type: self-signed
+    create_if_missing: true
+    domains:
+      - localhost
+      - 127.0.0.1
+    cert: ""
+    key: ""
+# Settings for the lockout function
+lockout:
+  auto_unlock_time: 10s
+  enabled: true
+# Flags to enable/disable various subsystems
+subsystems:
+  firewall: true
+  iperf: true
+  tcp_reflector: true
+  udp_reflector: true
+# Settings for the auto-updater
+updater:
+  enabled: false
+  error_fallback: 1h
+  interval: 1m
+  mode: auto
+  restart_on_update: true
+  token: ""
+# Settings for the wifi watchdog
+wifi_watchdog:
+  bssid: ""
+  enabled: false
+  poll_interval: 10s
+  profile: ""
+# Settings for the plugin subsystem and individual plugins
+plugins:
+  enabled: true
+  dir: /opt/dtac/plugins
+  entries:
+    hello:
+      config:
+        message: hello world plugin
+      cookie: this_is_not_a_security_feature
+      enabled: true
+      hash: abc123
+# Definition of custom routes
+routes:
+  - date:
+      wrap_json: yes
+      source:
+        type: cmd
+        run_as: intel
+        value: date
+      methods: ["GET"]
+  - whoami:
+      route: "/cmds/whoami"
+      wrap_json: yes
+      source:
+        type: cmd
+        run_as: sudo
+        value: whoami
+      methods: ["GET"]
+#  - wemo:
+#      route: "/wemo/control"
+#      wrap_json: no
+#      source:
+#        type: cmd
+#        run_as: intel
+#        value: wemo --json ${vars}
+#        variables:
+#          source: query_params
+#          format: "--${key} ${value}"
+#          whitelist:
+#            latency: "[0-9]{1,4}"
+#            jitter: "[0-9]{1,4}"
+#            loss: "[-+]?[0-9]*\\.?[0-9]+"
+#            reorder: "[-+]?[0-9]*\\.?[0-9]+"
+#            corruption: "[-+]?[0-9]*\\.?[0-9]+"
+#            duplication: "[-+]?[0-9]*\\.?[0-9]+"
+#            rate: "[-+]?[0-9]*\\.?[0-9]+[bkmgBKMG]*"
+#      methods: ["GET"]

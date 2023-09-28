@@ -3,10 +3,11 @@ package handlers
 import (
 	"errors"
 	"fmt"
-	. "github.com/intel-innersource/frameworks.automation.dtac.agent/common"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/mods"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	. "github.com/intel-innersource/frameworks.automation.dtac.agent/common"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/configuration"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/mods"
 	log "github.com/sirupsen/logrus"
 	"time"
 )
@@ -22,19 +23,29 @@ var (
 )
 
 func init() {
-	Reflectors = make([]mods.Reflector, 0)
-	udp := mods.UdpReflector{}
-	udp.SetPort(reflectorPort)
-	udp.Start()
-	Reflectors = append(Reflectors, &udp)
+	go func() {
+		// Delayed initialization
+		for configuration.Config == nil {
+			time.Sleep(100 * time.Millisecond)
+		}
+		Reflectors = make([]mods.Reflector, 0)
+		if configuration.Config.Subsystems.UdpReflector {
+			udp := mods.UdpReflector{}
+			udp.SetPort(reflectorPort)
+			udp.Start()
+			Reflectors = append(Reflectors, &udp)
+		}
 
-	tcp := mods.TcpReflector{}
-	tcp.SetPort(reflectorPort)
-	tcp.Start()
-	Reflectors = append(Reflectors, &tcp)
+		if configuration.Config.Subsystems.TcpReflector {
+			tcp := mods.TcpReflector{}
+			tcp.SetPort(reflectorPort)
+			tcp.Start()
+			Reflectors = append(Reflectors, &tcp)
+		}
 
-	udpPingWorkers = make(map[string]*mods.UdpPingWorker)
-	tcpPingWorkers = make(map[string]*mods.TcpPingWorker)
+		udpPingWorkers = make(map[string]*mods.UdpPingWorker)
+		tcpPingWorkers = make(map[string]*mods.TcpPingWorker)
+	}()
 }
 
 func GetPingHandler(c *gin.Context) {
