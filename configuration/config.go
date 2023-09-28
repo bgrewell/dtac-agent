@@ -3,6 +3,7 @@ package configuration
 import (
 	"fmt"
 	"github.com/bgrewell/gin-plugins/loader"
+	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 	"io/ioutil"
 	"log"
@@ -187,6 +188,11 @@ func Load(preferredLocation string) (err error) {
 	}
 
 	Config = &c
+
+	viper.OnConfigChange(func(e fsnotify.Event) {
+		fmt.Println("Config file changed:", e.Name)
+	})
+	viper.WatchConfig()
 	return nil
 }
 
