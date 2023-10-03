@@ -225,6 +225,9 @@ func Container() error {
 	if err := Build(); err != nil {
 		return err
 	}
+	if err := Plugins(); err != nil {
+		return err
+	}
 	if err := runWith(nil, "docker", "build", "-t", fmt.Sprintf("dtac-agent:%s", getBuildVersion()), "."); err != nil {
 		return err
 	}

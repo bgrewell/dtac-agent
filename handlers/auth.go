@@ -12,6 +12,7 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/configuration"
 	log "github.com/sirupsen/logrus"
 	"github.com/twinj/uuid"
 )
@@ -51,9 +52,11 @@ type AccessDetails struct {
 }
 
 func init() {
+	// TODO: All this should be replaced with wire so we can use dependency injection.
+
 	// Ensure db directory exits
-	if _, err := os.Stat("db"); os.IsNotExist(err) {
-		err = os.Mkdir("db", os.ModePerm)
+	if _, err := os.Stat(configuration.GLOBAL_DB_LOCATION); os.IsNotExist(err) {
+		err = os.MkdirAll(configuration.GLOBAL_DB_LOCATION, os.ModePerm)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -61,7 +64,7 @@ func init() {
 
 	// Initialize Database
 	var err error
-	DB, err = bolt.Open("db/auth.db", 0600, &bolt.Options{Timeout: 1 * time.Second})
+	DB, err = bolt.Open(configuration.DB_NAME, 0600, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		log.Fatal(err)
 	}

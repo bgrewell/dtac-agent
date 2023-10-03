@@ -106,9 +106,12 @@ func Load(preferredLocation string) (err error) {
 	if preferredLocation != "" {
 		viper.AddConfigPath(preferredLocation)
 	}
-	viper.AddConfigPath(GLOBAL_CONFIG_FILE)
-	viper.AddConfigPath(LOCAL_CONFIG_FILE)
+	viper.AddConfigPath(GLOBAL_CONFIG_LOCATION)
+	viper.AddConfigPath(LOCAL_CONFIG_LOCATION)
 	viper.AddConfigPath(".")
+
+	// Get the hostname and domain
+	hostname, _ := os.Hostname()
 
 	// Setup default values
 	kvp := map[string]interface{}{
@@ -116,9 +119,9 @@ func Load(preferredLocation string) (err error) {
 		"listener.https.enabled":               true,
 		"listener.https.type":                  "self-signed",
 		"listener.https.create_if_missing":     true,
-		"listener.https.domains":               []string{"localhost", "127.0.0.1"},
-		"listener.https.cert":                  "/etc/dtac/certs/tls.crt",
-		"listener.https.key":                   "/etc/dtac/certs/tls.key",
+		"listener.https.domains":               []string{"localhost", "127.0.0.1", hostname},
+		"listener.https.cert":                  DEFAULT_TLS_CERT_NAME,
+		"listener.https.key":                   DEFAULT_TLS_KEY_NAME,
 		"lockout.enabled":                      true,
 		"lockout.auto_unlock_time":             "10s",
 		"wifi_watchdog.enabled":                false,
@@ -132,7 +135,7 @@ func Load(preferredLocation string) (err error) {
 		"updater.error_fallback":               "1h",
 		"updater.restart_on_update":            true,
 		"plugins.enabled":                      true,
-		"plugins.dir":                          "/opt/dtac/plugins",
+		"plugins.dir":                          DEFAULT_PLUGIN_LOCATION,
 		"plugins.entries.hello.enabled":        true,
 		"plugins.entries.hello.cookie:":        "this_is_not_a_security_feature",
 		"plugins.entries.hello.hash":           "abc123",
@@ -151,35 +154,35 @@ func Load(preferredLocation string) (err error) {
 		// If the error is something other than the configuration file isn't found then
 		// throw a fatal error for the user to handle.
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			return fmt.Errorf("Failed to read configuration file: %v", err)
+			return fmt.Errorf("failed to read configuration file: %v", err)
 		}
 
 		// If the file is simply not found then create a default one and display a warning
 		// to the user
 		log.Println("[WARN] Configuration file not found")
-		if ensureDir(GLOBAL_CONFIG_FILE, true) && checkWriteAccess(GLOBAL_CONFIG_FILE) {
-			log.Printf("[INFO] Creating configuration file %sconfig.yaml", GLOBAL_CONFIG_FILE)
-			if err := os.MkdirAll(GLOBAL_CONFIG_FILE, 0700); err != nil {
+		if ensureDir(GLOBAL_CONFIG_LOCATION, true) && checkWriteAccess(GLOBAL_CONFIG_LOCATION) {
+			log.Printf("[INFO] Creating configuration file %sconfig.yaml", GLOBAL_CONFIG_LOCATION)
+			if err := os.MkdirAll(GLOBAL_CONFIG_LOCATION, 0700); err != nil {
 				log.Printf("[WARN] Error creating global config directory: %v\n", err)
 			}
-			err := viper.WriteConfigAs(path.Join(GLOBAL_CONFIG_FILE, "config.yaml"))
+			err := viper.WriteConfigAs(path.Join(GLOBAL_CONFIG_LOCATION, "config.yaml"))
 			if err != nil {
-				return fmt.Errorf("Failed to write log file: %v", err)
+				return fmt.Errorf("failed to write log file: %v", err)
 			}
 		} else {
-			location := strings.Replace(LOCAL_CONFIG_FILE, "$HOME", os.Getenv("HOME"), 1)
+			location := strings.Replace(LOCAL_CONFIG_LOCATION, "$HOME", os.Getenv("HOME"), 1)
 			if err := os.MkdirAll(location, 0700); err != nil {
 				log.Printf("[WARN] Error creating user config directory: %v\n", err)
 			}
 			log.Printf("[INFO] Creating configuration file %s.config.yaml", location)
 			err := viper.WriteConfigAs(path.Join(location, "config.yaml"))
 			if err != nil {
-				return fmt.Errorf("Failed to write log file: %v", err)
+				return fmt.Errorf("failed to write log file: %v", err)
 			}
 		}
 		err := viper.ReadInConfig()
 		if err != nil {
-			return fmt.Errorf("Failed to read configuration file: %v", err)
+			return fmt.Errorf("failed to read configuration file: %v", err)
 		}
 	}
 
