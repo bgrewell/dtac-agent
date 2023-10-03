@@ -3,9 +3,9 @@ package middleware
 import (
 	"errors"
 	"fmt"
-	. "github.com/intel-innersource/frameworks.automation.dtac.agent/common"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	. "github.com/intel-innersource/frameworks.automation.dtac.agent/common"
 	"strconv"
 	"strings"
 	"time"
@@ -35,8 +35,9 @@ type LockoutError struct {
 	Lock    LockoutStatus `json:"lock"`
 }
 
-func RegisterLockoutHandler(r *gin.Engine, lockoutTimeout int) {
-	locktimeout = lockoutTimeout
+func RegisterLockoutHandler(r *gin.Engine, autoUnlockTime string) {
+	lsecs := DurationToSeconds(autoUnlockTime)
+	locktimeout = lsecs
 	r.GET(LOCKOUT_PATH, GetLockoutHandler)
 	r.POST(LOCKOUT_PATH, GetLockoutHandler)
 	r.POST(LOCKOUT_PATH+"/:timeout", CreateLockoutHandler)

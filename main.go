@@ -4,6 +4,12 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"net/http"
+	"os"
+	"path/filepath"
+	"runtime"
+	"time"
+
 	"github.com/BGrewell/go-conversions"
 	"github.com/gin-gonic/gin"
 	. "github.com/intel-innersource/frameworks.automation.dtac.agent/common"
@@ -11,15 +17,10 @@ import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/handlers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/httprouting"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/middleware"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/module"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/plugin"
 	"github.com/kardianos/service"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/natefinch/lumberjack.v2"
-	"net/http"
-	"os"
-	"runtime"
-	"time"
 )
 
 var (
@@ -62,43 +63,45 @@ func (p *program) run() {
 	// Add Middleware (registration is further down after configuration is loaded)
 	r.Use(middleware.LockoutMiddleware())
 
+	// Check for custom config file location
+	cfgfile := ""
+	customCfgFile := os.Getenv("DTAC_CFG_LOCATION")
+	if customCfgFile != "" {
+		cfgfile = customCfgFile
+	}
+
+	// Load configuration
+	err := configuration.Load(cfgfile)
+	if err != nil {
+		logger.Errorf("failed to load configuration file: %v", err)
+	}
+	c := configuration.Config
+
 	// General Routes
 	httprouting.AddGeneralHandlers(r)
 
 	// OS Specific Routes
 	httprouting.AddOSSpecificHandlers(r)
 
-	// Load Configuration and Custom Routes
-	cfgfile := "/etc/dtac-agent/config.yaml"
-	if runtime.GOOS == "windows" {
-		cfgfile = "c:\\Program Files\\Intel\\dtac-agent\\config.yaml"
-	}
+	// Custom Routes
+	httprouting.AddCustomHandlers(c, r)
 
-	// Check for custom config file location
-	customCfgFile := os.Getenv("DTAC_CFG_LOCATION")
-	if customCfgFile != "" {
-		cfgfile = customCfgFile
+	if c.Lockout.Enabled {
+		middleware.RegisterLockoutHandler(r, c.Lockout.AutoUnlockTime)
 	}
-
-	c, err := configuration.Load(cfgfile)
-	if err != nil {
-		logger.Errorf("failed to load configuration file: %v", err)
-	} else {
-		httprouting.AddCustomHandlers(c, r)
-	}
-
-	middleware.RegisterLockoutHandler(r, c.LockoutTime)
 
 	// Check for updates
 	//go runUpdateChecker(c)
 
 	// Initialize internal modules
-	module.Initialize(c.Modules, r)
+	// module.Initialize(c.Modules, r) TODO: Modules need to be ported to plugins
 
 	// Initialize plugins
-	err = plugin.Initialize(c.PluginDir, c.Plugins, r)
-	if err != nil {
-		log.Errorf("failed to load plugins: %s\n", err)
+	if c.Plugins.Enabled {
+		err = plugin.Initialize(c.Plugins.PluginDir, c.Plugins.Entries, r)
+		if err != nil {
+			log.Errorf("failed to load plugins: %s\n", err)
+		}
 	}
 
 	// Setup custom 404 handler
@@ -109,15 +112,69 @@ func (p *program) run() {
 	// Before starting update the handlers Routes var
 	handlers.Routes = r.Routes()
 
-	log.Printf("DTAC-Agent server is running on http://localhost:%d\n", c.ListenPort)
+	// Setup the http(s) server
+	var srvFunc func() error
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", c.ListenPort),
+		Addr:    fmt.Sprintf(":%d", c.Listener.Port),
 		Handler: r,
 	}
+
+	// Setup cert manager if https is enabled
+	if c.Listener.Https.Enabled {
+
+		if c.Listener.Https.Type == TLS_TYPE_SELF_SIGNED {
+			// Create default files if not specified and save to config
+			if c.Listener.Https.CertFile == "" || c.Listener.Https.KeyFile == "" {
+				c.Listener.Https.CertFile = "/etc/dtac/certs/tls.crt"
+				c.Listener.Https.KeyFile = "/etc/dtac/certs/tls.key"
+			}
+
+			// Ensure the directories exist and are secure
+			if err := os.MkdirAll(filepath.Dir(c.Listener.Https.CertFile), 0700); err != nil {
+				log.Fatalf("Failed to create certificate directory: %v", err)
+			}
+			if err := os.MkdirAll(filepath.Dir(c.Listener.Https.KeyFile), 0700); err != nil {
+				log.Fatalf("Failed to create certificate key directory: %v", err)
+			}
+			if _, err := os.Stat(c.Listener.Https.CertFile); os.IsNotExist(err) {
+				if _, err := os.Stat(c.Listener.Https.KeyFile); os.IsNotExist(err) {
+					log.Printf("[INFO] Generating self-signed certificate (%s) and key (%s)\n",
+						c.Listener.Https.CertFile, c.Listener.Https.KeyFile)
+					if err := GenerateSelfSignedCertKey(
+						c.Listener.Https.CertFile,
+						c.Listener.Https.KeyFile,
+						365,
+						c.Listener.Https.Domains); err != nil {
+						log.Fatalf("Failed to generate self-signed certs: %v", err)
+					}
+				} else if err != nil {
+					log.Fatalf("Failed to check key file: %v", err)
+				}
+			} else if err != nil {
+				log.Fatalf("Failed to check cert file: %v", err)
+			}
+		}
+	}
+
+	// Setup serving function
+	if c.Listener.Https.Enabled {
+		wrapper := func() error {
+			return srv.ListenAndServeTLS(c.Listener.Https.CertFile, c.Listener.Https.KeyFile)
+		}
+		srvFunc = wrapper
+	} else {
+		srvFunc = srv.ListenAndServe
+	}
+
 	// Run in a goroutine so that it won't block the graceful shutdown handling
 	go func() {
-		logger.Info(fmt.Sprintf("DTAC-Agent server is running on http://localhost:%d\n", c.ListenPort))
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		proto := "http"
+		if c.Listener.Https.Enabled {
+			proto = "https"
+		}
+		log.Printf("DTAC-Agent server is running on %s://localhost:%d\n", proto, c.Listener.Port)
+		logger.Info(fmt.Sprintf("DTAC-Agent server is running on %s://localhost:%d\n", proto, c.Listener.Port))
+		if err := srvFunc(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("failed to start server: %v\n", err)
 		}
 	}()
@@ -134,7 +191,7 @@ func (p *program) run() {
 	logger.Info("server has exited")
 }
 
-func runUpdateChecker(c *configuration.Config) {
+func runUpdateChecker(c *configuration.Configuration) {
 	//todo: make run periodic checks
 	sleepTime, err := conversions.ConvertStringTimeToNanoseconds(c.Updater.Interval)
 	if err != nil {

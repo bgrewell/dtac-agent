@@ -3,10 +3,11 @@ package handlers
 import (
 	"errors"
 	"fmt"
-	. "github.com/intel-innersource/frameworks.automation.dtac.agent/common"
 	"github.com/BGrewell/go-iperf"
 	"github.com/gin-contrib/sse"
 	"github.com/gin-gonic/gin"
+	. "github.com/intel-innersource/frameworks.automation.dtac.agent/common"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/configuration"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"strconv"
@@ -26,17 +27,25 @@ var (
 )
 
 func init() {
-	var err error
-	iperfServerLock = sync.Mutex{}
-	iperfClientLock = sync.Mutex{}
-	iperfClients = make(map[string]*iperf.Client)
-	iperfServers = make(map[string]*iperf.Server)
-	iperfLiveResults = make(map[string]<-chan *iperf.StreamIntervalReport)
-	iperfController, err = iperf.NewController(8090) //TODO: Expose in configuration file
-	if err != nil {
-		log.Printf("[WARNING] unable to instantiate iperf controller: %v\n", err)
-		log.Printf("[WARNING] iperf will be unavailable")
-	}
+	go func() {
+		// Delayed initialization
+		for configuration.Config == nil {
+			time.Sleep(100 * time.Millisecond)
+		}
+		if configuration.Config.Subsystems.Iperf {
+			var err error
+			iperfServerLock = sync.Mutex{}
+			iperfClientLock = sync.Mutex{}
+			iperfClients = make(map[string]*iperf.Client)
+			iperfServers = make(map[string]*iperf.Server)
+			iperfLiveResults = make(map[string]<-chan *iperf.StreamIntervalReport)
+			iperfController, err = iperf.NewController(8090) //TODO: Expose in configuration file
+			if err != nil {
+				log.Printf("[WARNING] unable to instantiate iperf controller: %v\n", err)
+				log.Printf("[WARNING] iperf will be unavailable")
+			}
+		}
+	}()
 }
 
 func GetIperfClientTestLiveHandler(c *gin.Context) {
