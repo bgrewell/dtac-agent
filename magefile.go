@@ -4,10 +4,8 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"github.com/magefile/mage/sh"
-	log "github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -16,6 +14,10 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/magefile/mage/sh"
+	log "github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -217,6 +219,22 @@ func Build() error {
 		}
 	}
 	return nil
+}
+
+func Container() error {
+	if err := Build(); err != nil {
+		return err
+	}
+	if err := runWith(nil, "docker", "build", "-t", fmt.Sprintf("dtac-agent:%s", getBuildVersion()), "."); err != nil {
+		return err
+	}
+	return runWith(nil, "docker", "build", "-t", fmt.Sprintf("dtac-agent:%s", "latest"), ".")
+}
+
+func Debug() error {
+	// Launch container with "tail -f /dev/null"
+	// Execute command to install datc-agentd  "/tmp/dtac-agentd --install" piping to stdin/stdout/stderr
+	return errors.New("this method has not been implemented")
 }
 
 func Deps() error {

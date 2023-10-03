@@ -4,6 +4,12 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"net/http"
+	"os"
+	"path/filepath"
+	"runtime"
+	"time"
+
 	"github.com/BGrewell/go-conversions"
 	"github.com/gin-gonic/gin"
 	. "github.com/intel-innersource/frameworks.automation.dtac.agent/common"
@@ -15,11 +21,6 @@ import (
 	"github.com/kardianos/service"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/natefinch/lumberjack.v2"
-	"net/http"
-	"os"
-	"path/filepath"
-	"runtime"
-	"time"
 )
 
 var (
@@ -135,14 +136,22 @@ func (p *program) run() {
 			if err := os.MkdirAll(filepath.Dir(c.Listener.Https.KeyFile), 0700); err != nil {
 				log.Fatalf("Failed to create certificate key directory: %v", err)
 			}
-			log.Printf("[INFO] Generating self-signed certificate (%s) and key (%s)\n",
-				c.Listener.Https.CertFile, c.Listener.Https.KeyFile)
-			if err := GenerateSelfSignedCertKey(
-				c.Listener.Https.CertFile,
-				c.Listener.Https.KeyFile,
-				365,
-				c.Listener.Https.Domains); err != nil {
-				log.Fatalf("Failed to generate self-signed certs: %v", err)
+			if _, err := os.Stat(c.Listener.Https.CertFile); os.IsNotExist(err) {
+				if _, err := os.Stat(c.Listener.Https.KeyFile); os.IsNotExist(err) {
+					log.Printf("[INFO] Generating self-signed certificate (%s) and key (%s)\n",
+						c.Listener.Https.CertFile, c.Listener.Https.KeyFile)
+					if err := GenerateSelfSignedCertKey(
+						c.Listener.Https.CertFile,
+						c.Listener.Https.KeyFile,
+						365,
+						c.Listener.Https.Domains); err != nil {
+						log.Fatalf("Failed to generate self-signed certs: %v", err)
+					}
+				} else if err != nil {
+					log.Fatalf("Failed to check key file: %v", err)
+				}
+			} else if err != nil {
+				log.Fatalf("Failed to check cert file: %v", err)
 			}
 		}
 	}

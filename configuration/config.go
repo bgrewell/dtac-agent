@@ -2,14 +2,15 @@ package configuration
 
 import (
 	"fmt"
-	"github.com/bgrewell/gin-plugins/loader"
-	"github.com/fsnotify/fsnotify"
-	"github.com/spf13/viper"
 	"io/ioutil"
 	"log"
 	"os"
 	"path"
 	"strings"
+
+	"github.com/bgrewell/gin-plugins/loader"
+	"github.com/fsnotify/fsnotify"
+	"github.com/spf13/viper"
 )
 
 var (
@@ -112,7 +113,7 @@ func Load(preferredLocation string) (err error) {
 	// Setup default values
 	kvp := map[string]interface{}{
 		"listener.port":                        8180,
-		"listener.https.enabled":               false,
+		"listener.https.enabled":               true,
 		"listener.https.type":                  "self-signed",
 		"listener.https.create_if_missing":     true,
 		"listener.https.domains":               []string{"localhost", "127.0.0.1"},
@@ -156,7 +157,7 @@ func Load(preferredLocation string) (err error) {
 		// If the file is simply not found then create a default one and display a warning
 		// to the user
 		log.Println("[WARN] Configuration file not found")
-		if checkWriteAccess(GLOBAL_CONFIG_FILE) {
+		if ensureDir(GLOBAL_CONFIG_FILE, true) && checkWriteAccess(GLOBAL_CONFIG_FILE) {
 			log.Printf("[INFO] Creating configuration file %sconfig.yaml", GLOBAL_CONFIG_FILE)
 			if err := os.MkdirAll(GLOBAL_CONFIG_FILE, 0700); err != nil {
 				log.Printf("[WARN] Error creating global config directory: %v\n", err)
@@ -194,6 +195,28 @@ func Load(preferredLocation string) (err error) {
 	})
 	viper.WatchConfig()
 	return nil
+}
+
+// ensureDir checks if the directory exists. If it doesn't and the `create` flag is true, it attempts to create it.
+// It returns true if the directory exists or was created successfully, and false otherwise.
+func ensureDir(dir string, create bool) bool {
+	if _, err := os.Stat(dir); err == nil {
+		// Directory exists
+		return true
+	} else if os.IsNotExist(err) {
+		// Directory doesn't exist. Check the `create` flag.
+		if create {
+			// Try to create the directory
+			if mkdirErr := os.MkdirAll(dir, 0755); mkdirErr != nil {
+				return false
+			}
+			return true
+		}
+		return false
+	} else {
+		// Some other error occurred
+		return false
+	}
 }
 
 // CheckWriteAccess checks if we have write access to a directory.
