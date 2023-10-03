@@ -2,7 +2,6 @@ package common
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -20,7 +19,7 @@ func WriteResponseJSON(c *gin.Context, duration time.Duration, obj interface{}) 
 	response := OKResponse{
 		Time:    time.Now().Format(time.RFC3339Nano),
 		Status:  "success",
-		Elapsed: fmt.Sprintf("%s", duration),
+		Elapsed: duration.String(),
 		Output:  obj,
 	}
 	jout, err := json.Marshal(response)
@@ -52,7 +51,7 @@ func WriteErrorResponseJSON(c *gin.Context, err error) {
 func WriteNotFoundResponseJSON(c *gin.Context) {
 	er := ErrorResponse{
 		Time: time.Now().Format(time.RFC3339Nano),
-		Err: "404 page not found",
+		Err:  "404 page not found",
 	}
 	jerr, _ := json.Marshal(er)
 	c.Data(http.StatusNotFound, gin.MIMEJSON, jerr)
@@ -61,7 +60,7 @@ func WriteNotFoundResponseJSON(c *gin.Context) {
 func WriteNotImplementedResponseJSON(c *gin.Context) {
 	er := ErrorResponse{
 		Time: time.Now().Format(time.RFC3339Nano),
-		Err: "this method has not been implemented yet",
+		Err:  "this method has not been implemented yet",
 	}
 	jerr, err := json.Marshal(er)
 	if err != nil {
