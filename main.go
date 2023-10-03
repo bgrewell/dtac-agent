@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"syscall"
 	"time"
 
 	"github.com/BGrewell/go-conversions"
@@ -28,7 +29,6 @@ var (
 	rev     = "DEBUG"
 	branch  = "DEBUG"
 	version = "DEBUG"
-	logger  service.Logger
 )
 
 type program struct {
@@ -37,9 +37,9 @@ type program struct {
 
 func (p *program) Start(s service.Service) error {
 	if service.Interactive() {
-		logger.Info("Running interactively")
+		log.Info("Running interactively")
 	} else {
-		logger.Info("Running as a service")
+		log.Info("Running as a service")
 	}
 	p.exit = make(chan struct{})
 
@@ -48,7 +48,7 @@ func (p *program) Start(s service.Service) error {
 }
 
 func (p *program) Stop(s service.Service) error {
-	logger.Info("Stopping...")
+	log.Info("Stopping...")
 	close(p.exit)
 	return nil
 }
@@ -73,7 +73,7 @@ func (p *program) run() {
 	// Load configuration
 	err := configuration.Load(cfgfile)
 	if err != nil {
-		logger.Errorf("failed to load configuration file: %v", err)
+		log.Errorf("failed to load configuration file: %v", err)
 	}
 	c := configuration.Config
 
@@ -173,7 +173,7 @@ func (p *program) run() {
 			proto = "https"
 		}
 		log.Printf("DTAC-Agent server is running on %s://localhost:%d\n", proto, c.Listener.Port)
-		logger.Info(fmt.Sprintf("DTAC-Agent server is running on %s://localhost:%d\n", proto, c.Listener.Port))
+		fmt.Printf("DTAC-Agent server is running on %s://localhost:%d\n", proto, c.Listener.Port)
 		if err := srvFunc(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("failed to start server: %v\n", err)
 		}
@@ -185,10 +185,10 @@ func (p *program) run() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		logger.Error("forcing server to shutdown: %v", err)
+		log.Errorf("forcing server to shutdown: %v", err)
 	}
 
-	logger.Info("server has exited")
+	log.Info("server has exited")
 }
 
 func runUpdateChecker(c *configuration.Configuration) {
@@ -281,7 +281,26 @@ func checkForUpdates(token *string) (applied bool, err error) {
 
 }
 
+func isRoot() bool {
+	if runtime.GOOS == "windows" {
+		// Check for admin privileges on Windows
+		_, err := os.Open("\\\\.\\PHYSICALDRIVE0")
+		if err != nil {
+			return false
+		}
+		return true
+	} else {
+		// Check for root privileges on UNIX
+		return syscall.Geteuid() == 0
+	}
+}
+
 func main() {
+
+	if !isRoot() {
+		fmt.Println("[!] This program must be run as root/admin")
+		return
+	}
 
 	filename := "/var/log/dtac-agentd/dtac-agentd.log"
 	if runtime.GOOS == "windows" {
@@ -312,7 +331,10 @@ func main() {
 	fmt.Printf("\t|- Compiled Date: %s\n", date)
 	fmt.Printf("=======================================================\n")
 
-	svcFlag := flag.String("service", "", "control the service")
+	flagInstall := flag.Bool("install", false, "Install service")
+	flagUninstall := flag.Bool("uninstall", false, "Uninstall service")
+	flagStart := flag.Bool("start", false, "Start service")
+	flagStop := flag.Bool("stop", false, "Stop service")
 	flag.Parse()
 
 	options := make(service.KeyValue)
@@ -326,7 +348,7 @@ func main() {
 		}
 	}
 	svcConfig := &service.Config{
-		Name:         "dtac-agent.service",
+		Name:         "dtac-agent",
 		DisplayName:  "DTAC-Agent Service",
 		Description:  "DTAC-Agent provides access to many system details and controls  via REST endpoints",
 		Dependencies: dependencies,
@@ -339,33 +361,89 @@ func main() {
 		log.Fatal(err)
 	}
 
-	errs := make(chan error, 5)
-	logger, err = s.Logger(errs)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// errs := make(chan error, 5)
+	// logger, err = s.Logger(errs)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	// handle any errors that happen
-	go func() {
-		for {
-			err := <-errs
-			if err != nil {
-				log.Print(err)
-			}
-		}
-	}()
+	// go func() {
+	// 	for {
+	// 		err := <-errs
+	// 		if err != nil {
+	// 			log.Print(err)
+	// 		}
+	// 	}
+	// }()
 
-	if len(*svcFlag) != 0 {
-		err := service.Control(s, *svcFlag)
-		if err != nil {
-			log.Printf("Valid actions: %q\n", service.ControlAction)
-			log.Fatal(err)
+	if *flagInstall {
+		if BinaryIsCorrect() {
+			err = s.Install()
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			fmt.Println("Service installed successfully")
+			return
+		} else {
+			fmt.Println("Preparing to install...")
+			handlers.DB.Close()
+			PrepForInstall()
+			return
 		}
-		return
 	}
 
+	if *flagUninstall {
+		if BinaryIsCorrect() {
+			err = s.Uninstall()
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			fmt.Println("Service uninstalled successfully")
+			return
+		} else {
+			fmt.Printf("Current binary is not installed. Try running binary at %s\n", configuration.BINARY_NAME)
+			return
+		}
+
+	}
+
+	if *flagStart {
+		if BinaryIsCorrect() {
+			err = s.Start()
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			fmt.Println("Service started")
+			return
+		} else {
+			fmt.Printf("Current binary is not installed. Try running binary at %s\n", configuration.BINARY_NAME)
+			return
+		}
+
+	}
+
+	if *flagStop {
+		if BinaryIsCorrect() {
+			err = s.Stop()
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			fmt.Println("Service stopped")
+			return
+		} else {
+			fmt.Printf("Current binary is not installed. Try running binary at %s\n", configuration.BINARY_NAME)
+			return
+		}
+	}
+
+	// By default, let's run the service logic.
 	err = s.Run()
 	if err != nil {
-		logger.Error(err)
+		log.Fatal(err)
 	}
 }
