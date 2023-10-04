@@ -74,13 +74,15 @@ func main() {
 		}),
 		// Setup the providers
 		fx.Provide(
-			NewHTTPServer,           // Web Server
-			NewGinRouter,            // Web Request Router
-			helpers.NewTlsInfo,      // Tls Cert Handler
-			config.NewConfiguration, // Configuration
-			plugin.NewSubsystem,     // Plugin Subsystem
-			diag.NewSubsystem,       // Diagnostic Subsystem
-			zap.NewExample,          // Structured Logger
+			NewHTTPServer,            // Web Server
+			NewGinRouter,             // Web Request Router
+			helpers.NewTlsInfo,       // Tls Cert Handler
+			helpers.NewHttpRouteList, // Http Routing List
+			helpers.NewEchoSubsystem, // Demo Subsystem
+			config.NewConfiguration,  // Configuration
+			plugin.NewSubsystem,      // Plugin Subsystem
+			diag.NewSubsystem,        // Diagnostic Subsystem
+			zap.NewExample,           // Structured Logger
 		),
 		// Invoke any functions needed to initialize everything. The empty anonymous functions are
 		// used to ensure that the providers that return that type are initialized.
@@ -91,6 +93,8 @@ func main() {
 			func(*plugin.PluginSubsystem) {},
 			func(*diag.DiagSubsystem) {},
 			func(*helpers.TlsInfo) {},
+			func(*helpers.HttpRouteList) {},
+			func(*helpers.EchoSubsystem) {},
 		),
 	).Run()
 }

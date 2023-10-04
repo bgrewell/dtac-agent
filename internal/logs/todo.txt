@@ -1,0 +1,4 @@
+1. dtac logs
+2. dmesg
+3. syslog
+4. auth.log

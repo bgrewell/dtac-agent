@@ -1,6 +1,7 @@
 package diag
 
 import (
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version"
 	"net/http"
 
@@ -12,12 +13,13 @@ import (
 
 // NewSubsystem creates a new instances of the DiagSubsystem and if that subsystem is enabled it calls
 // the Register() function to register the routes that the DiagSubsystem handles
-func NewSubsystem(router *gin.Engine, log *zap.Logger, cfg *config.Configuration) *DiagSubsystem {
+func NewSubsystem(router *gin.Engine, log *zap.Logger, cfg *config.Configuration, hrl *helpers.HttpRouteList) *DiagSubsystem {
 	ds := DiagSubsystem{
-		Router:  router,
-		Logger:  log.With(zap.String("module", "diag")),
-		Config:  cfg,
-		enabled: cfg.Subsystems.Diag,
+		Router:        router,
+		Logger:        log.With(zap.String("module", "diag")),
+		Config:        cfg,
+		HttpRouteList: hrl,
+		enabled:       cfg.Subsystems.Diag,
 	}
 	if ds.enabled {
 		err := ds.Register()
@@ -31,10 +33,11 @@ func NewSubsystem(router *gin.Engine, log *zap.Logger, cfg *config.Configuration
 
 // DiagSubsystem is the subsystem that contains routes related to internal dtac diagnostics
 type DiagSubsystem struct {
-	Router  *gin.Engine
-	Logger  *zap.Logger
-	Config  *config.Configuration
-	enabled bool
+	Router        *gin.Engine
+	Logger        *zap.Logger
+	Config        *config.Configuration
+	HttpRouteList *helpers.HttpRouteList
+	enabled       bool
 }
 
 // Register() registers the routes that this module handles
@@ -45,6 +48,7 @@ func (ds *DiagSubsystem) Register() error {
 	// Routes
 	routes := []types.RouteInfo{
 		{HttpMethod: http.MethodGet, Path: "/", Handler: ds.rootHandler},
+		{HttpMethod: http.MethodGet, Path: "/routes", Handler: ds.HttpRouteList.HttpRoutePrintHandler},
 	}
 
 	// Register routes
@@ -72,11 +76,5 @@ func (ds *DiagSubsystem) rootHandler(c *gin.Context) {
 			Description: "current dtac agent memory usage",
 			Value:       CurrentMemoryStats(),
 		},
-	})
-}
-
-func (ds *DiagSubsystem) bobbyHandler(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, gin.H{
-		"message": "this works",
 	})
 }
