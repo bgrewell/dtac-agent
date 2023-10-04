@@ -2,7 +2,10 @@ package config
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path"
 	"strings"
@@ -97,9 +100,11 @@ type Configuration struct {
 	WifiWatchdog WatchdogEntry            `json:"wifi_watchdog" yaml:"wifi_watchdog" mapstructure:"wifi_watchdog"`
 	Plugins      PluginEntry              `json:"plugins" yaml:"plugins" mapstructure:"plugins"`
 	Custom       []map[string]*RouteEntry `json:"routes" yaml:"routes" mapstructure:"routes"`
+	router       *gin.Engine
+	logger       *zap.Logger
 }
 
-func NewConfiguration(log *zap.Logger) (config *Configuration, err error) {
+func NewConfiguration(router *gin.Engine, log *zap.Logger) (config *Configuration, err error) {
 	// Setup configuration file location(s)
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
@@ -187,11 +192,43 @@ func NewConfiguration(log *zap.Logger) (config *Configuration, err error) {
 		return nil, fmt.Errorf("Failed to unmarshal configuration: %v", err)
 	}
 
+	// Setup routes
+	c.router = router
+	c.logger = log
+	if err := c.Register(); err != nil {
+		log.Error("failed to register config routes", zap.Error(err))
+	}
+
 	viper.OnConfigChange(func(e fsnotify.Event) {
 		log.Info("config file changed", zap.String("filename", e.Name))
 	})
 	viper.WatchConfig()
 	return &c, nil
+}
+
+// Register() registers the routes that this module handles
+func (c *Configuration) Register() error {
+	// Create a group for this subsystem
+	base := c.router.Group("config")
+
+	// Routes
+	routes := []types.RouteInfo{
+		{HttpMethod: http.MethodGet, Path: "/", Handler: c.rootHandler},
+	}
+
+	// Register routes
+	for _, route := range routes {
+		base.Handle(route.HttpMethod, route.Path, route.Handler)
+	}
+	c.logger.Info("registered routes", zap.Int("routes", len(routes)))
+
+	return nil
+}
+
+func (c *Configuration) rootHandler(ctx *gin.Context) {
+	ctx.IndentedJSON(http.StatusOK, gin.H{
+		"configuration": c,
+	})
 }
 
 // ensureDir checks if the directory exists. If it doesn't and the `create` flag is true, it attempts to create it.

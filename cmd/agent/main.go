@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/plugin"
 	"net"
 	"net/http"
@@ -15,10 +16,22 @@ import (
 )
 
 // NewHTTPServer creates the webserver that handles the requests sent to the DTAC agente
-func NewHTTPServer(lc fx.Lifecycle, router *gin.Engine, log *zap.Logger) *http.Server {
+func NewHTTPServer(lc fx.Lifecycle, router *gin.Engine, log *zap.Logger, tls *helpers.TlsInfo) *http.Server {
 
 	// Create a new http server
 	srv := &http.Server{Addr: ":8180", Handler: router}
+
+	// Setup the serve function
+	srvFunc := srv.Serve
+	srvMsg := "starting HTTP server"
+
+	if tls.Enabled {
+		wrapper := func(l net.Listener) error {
+			return srv.ServeTLS(l, tls.CertFilename, tls.KeyFilename)
+		}
+		srvFunc = wrapper
+		srvMsg = "starting HTTPS server"
+	}
 
 	// Setup the Fx lifecycle controller
 	lc.Append(fx.Hook{
@@ -27,8 +40,13 @@ func NewHTTPServer(lc fx.Lifecycle, router *gin.Engine, log *zap.Logger) *http.S
 			if err != nil {
 				return err
 			}
-			log.Info("Starting HTTP server", zap.String("addr", srv.Addr))
-			go srv.Serve(ln)
+			log.Info(srvMsg, zap.String("addr", srv.Addr))
+			go func() {
+				err := srvFunc(ln)
+				if err != nil {
+					log.Fatal("failed to start server", zap.Error(err))
+				}
+			}()
 			return nil
 		},
 
@@ -58,6 +76,7 @@ func main() {
 		fx.Provide(
 			NewHTTPServer,           // Web Server
 			NewGinRouter,            // Web Request Router
+			helpers.NewTlsInfo,      // Tls Cert HAndler
 			config.NewConfiguration, // Configuration
 			plugin.NewSubsystem,     // Plugin Subsystem
 			diag.NewSubsystem,       // Diagnostic Subsystem
@@ -71,6 +90,7 @@ func main() {
 			func(*gin.Engine) {},
 			func(*plugin.PluginSubsystem) {},
 			func(*diag.DiagSubsystem) {},
+			func(*helpers.TlsInfo) {},
 		),
 	).Run()
 }

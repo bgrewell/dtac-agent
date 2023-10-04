@@ -53,9 +53,6 @@ func (ds *DiagSubsystem) Register() error {
 	}
 	ds.Logger.Info("registered routes", zap.Int("routes", len(routes)))
 
-	// TODO: DELETE ME
-	rg := ds.Router.RouterGroup
-	rg.GET("bobby", ds.bobbyHandler)
 	return nil
 }
 
