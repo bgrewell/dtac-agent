@@ -76,7 +76,7 @@ func main() {
 		fx.Provide(
 			NewHTTPServer,           // Web Server
 			NewGinRouter,            // Web Request Router
-			helpers.NewTlsInfo,      // Tls Cert HAndler
+			helpers.NewTlsInfo,      // Tls Cert Handler
 			config.NewConfiguration, // Configuration
 			plugin.NewSubsystem,     // Plugin Subsystem
 			diag.NewSubsystem,       // Diagnostic Subsystem
