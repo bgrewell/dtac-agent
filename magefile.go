@@ -6,6 +6,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -17,7 +18,6 @@ import (
 
 	"github.com/magefile/mage/sh"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -177,22 +177,22 @@ func findBuildYAMLFiles(rootDir string) ([]string, error) {
 }
 
 func buildLin64() error {
-	fmt.Println("\tCompiling Linux amd64")
+	fmt.Println("  Compiling Linux amd64")
 	return build("linux", "amd64")
 }
 
 func buildLinArm() error {
-	fmt.Println("\tCompiling Linux Arm")
+	fmt.Println("  Compiling Linux Arm")
 	return build("linux", "arm")
 }
 
 func buildWin64() error {
-	fmt.Println("\tCompiling Windows amd64")
+	fmt.Println("  Compiling Windows amd64")
 	return build("windows", "amd64")
 }
 
 func buildMac64() error {
-	fmt.Println("\tCompiling MacOS amd64")
+	fmt.Println("  Compiling MacOS amd64")
 	return build("darwin", "amd64")
 }
 
@@ -207,7 +207,7 @@ func build(os string, arch string) error {
 	env["GOOS"] = os
 	env["GOARCH"] = arch
 	output := fmt.Sprintf("bin/%s%s%s", binaryname, fmt.Sprintf("-%s", arch), extension)
-	return runWith(env, goexe, "build", "-ldflags", ldflags, buildFlags(), "-tags", buildTags(), "-o", output, "main.go")
+	return runWith(env, goexe, "build", "-ldflags", ldflags, buildFlags(), "-tags", buildTags(), "-o", output, "cmd/agent/main.go")
 }
 
 func Build() error {
@@ -228,10 +228,13 @@ func Container() error {
 	if err := Plugins(); err != nil {
 		return err
 	}
-	if err := runWith(nil, "docker", "build", "-t", fmt.Sprintf("dtac-agent:%s", getBuildVersion()), "."); err != nil {
+	if err := runWith(nil, "cp", "-r", "bin", "deployments/docker"); err != nil {
 		return err
 	}
-	return runWith(nil, "docker", "build", "-t", fmt.Sprintf("dtac-agent:%s", "latest"), ".")
+	if err := runWith(nil, "docker", "build", "-t", fmt.Sprintf("dtac-agent:%s", getBuildVersion()), "deployments/docker/."); err != nil {
+		return err
+	}
+	return runWith(nil, "docker", "build", "-t", fmt.Sprintf("dtac-agent:%s", "latest"), "deployments/docker/.")
 }
 
 func Debug() error {
@@ -253,15 +256,15 @@ func Deps() error {
 	if err := runWith(env, goexe, "mod", "tidy"); err != nil {
 		return err
 	}
-	//$(GOCMD) install google.golang.org/protobuf/cmd/protoc-gen-go
 	return runWith(nil, goexe, "install", "google.golang.org/protobuf/cmd/protoc-gen-go")
 }
 
 func Run() error {
-	env := make(map[string]string)
-	env["DTAC_CFG_LOCATION"] = "support/config/config.yaml"
-	// TODO: Execute but pipe to stdin, stdout, stderr
-	return runWith(env, "sudo", "-E", "/usr/local/go/bin/go", "run", "main.go")
+	//env := make(map[string]string)
+	//env["DTAC_CFG_LOCATION"] = "support/config/config.yaml"
+	//// TODO: Execute but pipe to stdin, stdout, stderr
+	//return runWith(env, "sudo", "-E", "/usr/local/go/bin/go", "run", "main.go")
+	return errors.New("this method not implemented")
 }
 
 func Plugins() error {
@@ -272,7 +275,7 @@ func Plugins() error {
 		Entry string `yaml:"entry"`
 	}
 
-	buildFiles, err := findBuildYAMLFiles("plugin")
+	buildFiles, err := findBuildYAMLFiles("cmd/plugins")
 	if err != nil {
 		return err
 	}
@@ -291,6 +294,7 @@ func Plugins() error {
 		}
 
 		// Run the go build command using the extracted name and entry values.
+		fmt.Printf("  Compiling %s\n", buildInfo.Name)
 		inPath := filepath.Dir(filename)
 		outPath := fmt.Sprintf("bin/plugins/%s.plugin", buildInfo.Name)
 		cmd := exec.Command("go", "build", "-o", outPath, path.Join(inPath, buildInfo.Entry))
