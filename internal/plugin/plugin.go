@@ -7,25 +7,21 @@ import (
 	"github.com/bgrewell/gin-plugins/loader"
 	"github.com/gin-gonic/gin"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
 	"go.uber.org/zap"
 	"io"
 	"os"
 	"path"
 )
 
-func NewSubsystem(router *gin.Engine, log *zap.Logger, cfg *config.Configuration) *PluginSubsystem {
+func NewSubsystem(router *gin.Engine, log *zap.Logger, cfg *config.Configuration) interfaces.Subsystem {
+	name := "plugin"
 	ps := PluginSubsystem{
 		Router:  router,
-		Logger:  log.With(zap.String("module", "plugin")),
+		Logger:  log.With(zap.String("module", name)),
 		Config:  cfg,
 		enabled: cfg.Plugins.Enabled,
-	}
-	if ps.enabled {
-		err := ps.Initialize()
-		if err != nil {
-			ps.Logger.Error("failed to initialize plugin subsystem", zap.Error(err))
-			return nil
-		}
+		name:    name,
 	}
 	return &ps
 }
@@ -35,9 +31,14 @@ type PluginSubsystem struct {
 	Logger  *zap.Logger
 	Config  *config.Configuration
 	enabled bool
+	name    string // Subsystem name
 }
 
-func (ps *PluginSubsystem) Initialize() (err error) {
+func (ps *PluginSubsystem) Register() (err error) {
+	if !ps.Enabled() {
+		ps.Logger.Info("subsystem is disabled", zap.String("subsystem", ps.Name()))
+		return nil
+	}
 
 	group := &ps.Router.RouterGroup
 	if ps.Config.Plugins.PluginGroup != "" {
@@ -97,6 +98,14 @@ func (ps *PluginSubsystem) Initialize() (err error) {
 	}
 
 	return nil
+}
+
+func (ps *PluginSubsystem) Enabled() bool {
+	return ps.enabled
+}
+
+func (ps *PluginSubsystem) Name() string {
+	return ps.name
 }
 
 // ComputeSHA256 computes the SHA-256 hash of a file specified by its path.

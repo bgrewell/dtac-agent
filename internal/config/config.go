@@ -68,7 +68,9 @@ type SourceEntry struct {
 }
 
 type SubsystemEntry struct {
-	Diag bool `json:"diag" yaml:"diag" mapstructure:"diag"`
+	Diag     bool `json:"diag" yaml:"diag" mapstructure:"diag"`
+	Hardware bool `json:"hardware" yaml:"hardware" mapstructure:"hardware"`
+	Network  bool `json:"network" yaml:"network" mapstructure:"network"`
 	//TODO: Below this line are old and should be removed
 	Firewall     bool `json:"firewall" yaml:"firewall" mapstructure:"firewall"`
 	Iperf        bool `json:"iperf" yaml:"iperf" mapstructure:"iperf"`
@@ -92,7 +94,13 @@ type WatchdogEntry struct {
 	BSSID        string `json:"bssid" yaml:"bssid" mapstructure:"bssid"`
 }
 
+type AuthEntry struct {
+	User string `json:"user" yaml:"user" mapstructure:"user"`
+	Pass string `json:"pass" yaml:"pass" mapstructure:"pass"`
+}
+
 type Configuration struct {
+	Auth         AuthEntry                `json:"auth" yaml:"auth" mapstructure:"auth"`
 	Listener     ListenerEntry            `json:"listener" yaml:"listener" mapstructure:"listener"`
 	Lockout      LockoutEntry             `json:"lockout" yaml:"lockout" mapstructure:"lockout"`
 	Subsystems   SubsystemEntry           `json:"subsystems" yaml:"subsystems" mapstructure:"subsystems"`
@@ -117,6 +125,8 @@ func NewConfiguration(router *gin.Engine, log *zap.Logger) (config *Configuratio
 
 	// Setup default values
 	kvp := map[string]interface{}{
+		"auth.user":                            "admin",
+		"auth.pass":                            "need_to_generate_a_random_password_on_install_or_first_run",
 		"listener.port":                        8180,
 		"listener.https.enabled":               true,
 		"listener.https.type":                  "self-signed",
@@ -145,6 +155,8 @@ func NewConfiguration(router *gin.Engine, log *zap.Logger) (config *Configuratio
 		"plugins.entries.hello.hash":           "",
 		"plugins.entries.hello.config.message": "hello world plugin",
 		"subsystems.diag":                      true,
+		"subsystems.network":                   true,
+		"subsystems.hardware":                  true,
 		"routes":                               []map[string]*RouteEntry{},
 	}
 	for k, v := range kvp {

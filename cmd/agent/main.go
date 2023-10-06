@@ -2,7 +2,14 @@ package main
 
 import (
 	"context"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/auth"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/auth_db"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/basic"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
+	httpRoutes "github.com/intel-innersource/frameworks.automation.dtac.agent/internal/http"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/network"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/plugin"
 	"net"
 	"net/http"
@@ -14,6 +21,12 @@ import (
 	"go.uber.org/fx/fxevent"
 	"go.uber.org/zap"
 )
+
+type RegisterParams struct {
+	fx.In
+	Controller *controller.Controller
+	Subsystems []interfaces.Subsystem `group:"subsystems"`
+}
 
 // NewHTTPServer creates the webserver that handles the requests sent to the DTAC agente
 func NewHTTPServer(lc fx.Lifecycle, router *gin.Engine, log *zap.Logger, tls *helpers.TlsInfo) *http.Server {
@@ -66,6 +79,46 @@ func NewGinRouter() *gin.Engine {
 	return router
 }
 
+func NewController(router *gin.Engine, logger *zap.Logger, cfg *config.Configuration,
+	hrl *httpRoutes.HttpRouteList, db *auth_db.AuthDB) *controller.Controller {
+	// Create the SubsystemParams object
+	c := controller.Controller{
+		Router:           router,
+		Logger:           logger,
+		Config:           cfg,
+		HttpRouteList:    hrl,
+		SecureMiddleware: make([]gin.HandlerFunc, 0),
+		AuthDB:           db,
+	}
+	return &c
+}
+
+func Register(params RegisterParams) {
+	// Find all auth middleware and setup
+	for _, sub := range params.Subsystems {
+		params.Controller.Logger.Info("checking for subsystem for auth middleware", zap.String("subsystem", sub.Name()))
+		if a, ok := sub.(interfaces.AuthMiddleware); ok {
+			params.Controller.Logger.Info("registering auth middleware", zap.String("subsystem", sub.Name()))
+			params.Controller.SecureMiddleware = append(params.Controller.SecureMiddleware, a.AuthHandler)
+		}
+	}
+
+	// Call register function on all subsystems
+	for _, sub := range params.Subsystems {
+		if err := sub.Register(); err != nil {
+			params.Controller.Logger.Error("failed to register routes for subsystem", zap.String("subsystem", sub.Name()))
+		}
+	}
+}
+
+func AsSubsystem(f any) any {
+	return fx.Annotate(
+		f,
+		fx.As(new(interfaces.Subsystem)),
+		fx.ResultTags(`group:"subsystems"`),
+	)
+}
+
 func main() {
 	fx.New(
 		// Setup zap logger with the Fx framework
@@ -74,27 +127,26 @@ func main() {
 		}),
 		// Setup the providers
 		fx.Provide(
-			NewHTTPServer,            // Web Server
-			NewGinRouter,             // Web Request Router
-			helpers.NewTlsInfo,       // Tls Cert Handler
-			helpers.NewHttpRouteList, // Http Routing List
-			helpers.NewEchoSubsystem, // Demo Subsystem
-			config.NewConfiguration,  // Configuration
-			plugin.NewSubsystem,      // Plugin Subsystem
-			diag.NewSubsystem,        // Diagnostic Subsystem
-			zap.NewExample,           // Structured Logger
+			NewHTTPServer,                           // Web Server
+			NewGinRouter,                            // Web Request Router
+			config.NewConfiguration,                 // Configuration
+			zap.NewDevelopment,                      // Structured Logger
+			helpers.NewTlsInfo,                      // Tls Cert Handler
+			httpRoutes.NewHttpRouteList,             // Http Routing List
+			NewController,                           // Wrapper around common subsystem input components
+			auth_db.NewAuthDB,                       // Authentication database
+			AsSubsystem(auth.NewAuthSubsystem),      // Authentication subsystem
+			AsSubsystem(basic.NewEchoSubsystem),     // Demo Subsystem
+			AsSubsystem(basic.NewHomePageSubsystem), // Homepage handler
+			AsSubsystem(plugin.NewSubsystem),        // Plugin Subsystem
+			AsSubsystem(network.NewSubsystem),       // Network Subsystem
+			AsSubsystem(diag.NewSubsystem),          // Diagnostic Subsystem
 		),
 		// Invoke any functions needed to initialize everything. The empty anonymous functions are
 		// used to ensure that the providers that return that type are initialized.
 		fx.Invoke(
-			func(*config.Configuration) {},
 			func(*http.Server) {},
-			func(*gin.Engine) {},
-			func(*plugin.PluginSubsystem) {},
-			func(*diag.DiagSubsystem) {},
-			func(*helpers.TlsInfo) {},
-			func(*helpers.HttpRouteList) {},
-			func(*helpers.EchoSubsystem) {},
+			Register,
 		),
 	).Run()
 }

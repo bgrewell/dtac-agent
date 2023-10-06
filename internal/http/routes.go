@@ -1,11 +1,9 @@
-package helpers
+package http
 
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
 	"go.uber.org/zap"
-	"net/http"
 )
 
 func NewHttpRouteList(router *gin.Engine, cfg *config.Configuration, log *zap.Logger) *HttpRouteList {
@@ -35,16 +33,6 @@ func (hrl *HttpRouteList) UpdateRoutes() {
 			Handler: route.Handler,
 		}
 	}
-}
-
-func (hrl *HttpRouteList) HttpRoutePrintHandler(c *gin.Context) {
-	hrl.UpdateRoutes()
-	c.IndentedJSON(http.StatusOK, gin.H{
-		"routes": types.AnnotatedStruct{
-			Description: "list of registered http endpoints being served by dtac",
-			Value:       hrl.Routes,
-		},
-	})
 }
 
 type HttpRouteInfo struct {

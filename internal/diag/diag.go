@@ -1,60 +1,58 @@
 package diag
 
 import (
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/register"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
 	"go.uber.org/zap"
 )
 
 // NewSubsystem creates a new instances of the DiagSubsystem and if that subsystem is enabled it calls
 // the Register() function to register the routes that the DiagSubsystem handles
-func NewSubsystem(router *gin.Engine, log *zap.Logger, cfg *config.Configuration, hrl *helpers.HttpRouteList) *DiagSubsystem {
+func NewSubsystem(c *controller.Controller) interfaces.Subsystem {
+	name := "diag"
 	ds := DiagSubsystem{
-		Router:        router,
-		Logger:        log.With(zap.String("module", "diag")),
-		Config:        cfg,
-		HttpRouteList: hrl,
-		enabled:       cfg.Subsystems.Diag,
-	}
-	if ds.enabled {
-		err := ds.Register()
-		if err != nil {
-			ds.Logger.Error("failed to initialize plugin subsystem", zap.Error(err))
-			return nil
-		}
+		Controller: c,
+		Logger:     c.Logger.With(zap.String("module", name)),
+		enabled:    c.Config.Subsystems.Diag,
+		name:       name,
 	}
 	return &ds
 }
 
 // DiagSubsystem is the subsystem that contains routes related to internal dtac diagnostics
 type DiagSubsystem struct {
-	Router        *gin.Engine
-	Logger        *zap.Logger
-	Config        *config.Configuration
-	HttpRouteList *helpers.HttpRouteList
-	enabled       bool
+	Controller *controller.Controller
+	Logger     *zap.Logger
+	enabled    bool
+	name       string // Subsystem name
 }
 
 // Register() registers the routes that this module handles
 func (ds *DiagSubsystem) Register() error {
+	if !ds.Enabled() {
+		ds.Logger.Info("subsystem is disabled", zap.String("subsystem", ds.Name()))
+		return nil
+	}
 	// Create a group for this subsystem
-	base := ds.Router.Group("diag")
+	base := ds.Controller.Router.Group(ds.name)
 
 	// Routes
 	routes := []types.RouteInfo{
-		{HttpMethod: http.MethodGet, Path: "/", Handler: ds.rootHandler},
-		{HttpMethod: http.MethodGet, Path: "/routes", Handler: ds.HttpRouteList.HttpRoutePrintHandler},
+		{Group: base, HttpMethod: http.MethodGet, Path: "/", Handler: ds.rootHandler, Protected: false},
+		{Group: base, HttpMethod: http.MethodGet, Path: "/jwt", Handler: ds.jwtTestHandler, Protected: true},
+		{Group: base, HttpMethod: http.MethodGet, Path: "/routes", Handler: ds.httpRoutePrintHandler, Protected: false},
 	}
 
 	// Register routes
-	for _, route := range routes {
-		base.Handle(route.HttpMethod, route.Path, route.Handler)
-	}
+	register.RegisterRoutes(routes, ds.Controller.SecureMiddleware)
 	ds.Logger.Info("registered routes", zap.Int("routes", len(routes)))
 
 	return nil
@@ -65,9 +63,14 @@ func (ds *DiagSubsystem) Enabled() bool {
 	return ds.enabled
 }
 
+func (ds *DiagSubsystem) Name() string {
+	return ds.name
+}
+
 // rootHandler handles requests for the root path for this subsystem
 func (ds *DiagSubsystem) rootHandler(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, gin.H{
+	start := time.Now()
+	response := gin.H{
 		"version": types.AnnotatedStruct{
 			Description: "dtac version information",
 			Value:       version.Current(),
@@ -76,5 +79,26 @@ func (ds *DiagSubsystem) rootHandler(c *gin.Context) {
 			Description: "current dtac agent memory usage",
 			Value:       CurrentMemoryStats(),
 		},
-	})
+	}
+	helpers.WriteResponseJSON(c, time.Since(start), response)
+}
+
+func (ds *DiagSubsystem) httpRoutePrintHandler(c *gin.Context) {
+	start := time.Now()
+	ds.Controller.HttpRouteList.UpdateRoutes()
+	response := gin.H{
+		"routes": types.AnnotatedStruct{
+			Description: "list of registered http endpoints being served by dtac",
+			Value:       ds.Controller.HttpRouteList.Routes,
+		},
+	}
+	helpers.WriteResponseJSON(c, time.Since(start), response)
+}
+
+func (ds *DiagSubsystem) jwtTestHandler(c *gin.Context) {
+	start := time.Now()
+	response := gin.H{
+		"message": "jwt test page",
+	}
+	helpers.WriteResponseJSON(c, time.Since(start), response)
 }

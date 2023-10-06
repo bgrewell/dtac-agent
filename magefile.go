@@ -43,16 +43,16 @@ func init() {
 
 	// Setup ldflags
 	buildVer := getBuildVersion()
-	ldflagsArr = append(ldflagsArr, fmt.Sprintf("main.version=%s", buildVer))
+	ldflagsArr = append(ldflagsArr, fmt.Sprintf("github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version.version=%s", buildVer))
 
 	buildDate := getBuildDate()
-	ldflagsArr = append(ldflagsArr, fmt.Sprintf("main.date=%s", buildDate))
+	ldflagsArr = append(ldflagsArr, fmt.Sprintf("github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version.date=%s", buildDate))
 
 	buildRev := getBuildRevision()
-	ldflagsArr = append(ldflagsArr, fmt.Sprintf("main.rev=%s", buildRev))
+	ldflagsArr = append(ldflagsArr, fmt.Sprintf("github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version.rev=%s", buildRev))
 
 	buildBranch := getBuildBranch()
-	ldflagsArr = append(ldflagsArr, fmt.Sprintf("main.branch=%s", buildBranch))
+	ldflagsArr = append(ldflagsArr, fmt.Sprintf("github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version.branch=%s", buildBranch))
 
 	ldflags += strings.Join(ldflagsArr, " -X ")
 }
@@ -260,11 +260,10 @@ func Deps() error {
 }
 
 func Run() error {
-	//env := make(map[string]string)
-	//env["DTAC_CFG_LOCATION"] = "support/config/config.yaml"
+	env := make(map[string]string)
+	env["DTAC_CFG_LOCATION"] = "configs/example.yaml"
 	//// TODO: Execute but pipe to stdin, stdout, stderr
-	//return runWith(env, "sudo", "-E", "/usr/local/go/bin/go", "run", "main.go")
-	return errors.New("this method not implemented")
+	return runWith(nil, "sudo", "-E", "/usr/local/go/bin/go", "run", "cmd/agent/main.go")
 }
 
 func Plugins() error {

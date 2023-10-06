@@ -1,6 +1,9 @@
 # Use Ubuntu 22.04 as the base image
 FROM ubuntu:22.04
 
+# Update apt and install net-tools
+RUN apt-get update && apt-get install -y net-tools && rm -rf /var/lib/apt/lists/*
+
 # Create directories
 RUN mkdir -p /opt/dtac/{bin,plugins}
 RUN mkdir -p /etc/dtac/{certs,db}
