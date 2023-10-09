@@ -19,46 +19,6 @@ import (
 	"time"
 )
 
-func AuthorizationHandler(c *gin.Context) {
-	token := extractToken(c.Request)
-	if token == "" {
-		c.Header("DTAC-AUTHORIZATION", "DENIED")
-		c.JSON(http.StatusUnauthorized, "Invalid Authorization Header")
-		c.Abort()
-		return
-	}
-
-	err := tokenValid(c.Request)
-	if err != nil {
-		c.Header("DTAC-AUTHORIZATION", "DENIED")
-		c.JSON(http.StatusUnauthorized, fmt.Sprintf("Token is not valid: %v", err))
-		c.Abort()
-		return
-	}
-
-	_, err = verifyToken(c.Request)
-	if err != nil {
-		c.Header("DTAC-AUTHORIZATION", "DENIED")
-		c.JSON(http.StatusUnauthorized, fmt.Sprintf("Unable to verify token: %v", err))
-		c.Abort()
-		return
-	}
-	c.Header("DTAC-AUTHORIZATION", "GRANTED")
-	c.Next()
-}
-
-func extractToken(r *http.Request) string {
-	bearToken := r.Header.Get("Authorization")
-	if bearToken == "" {
-		return ""
-	}
-	tokenArr := strings.Split(bearToken, " ")
-	if len(tokenArr) == 2 {
-		return tokenArr[1]
-	}
-	return ""
-}
-
 func NewAuthSubsystem(c *controller.Controller) interfaces.Subsystem {
 	name := "auth"
 	as := AuthSubsystem{
@@ -108,8 +68,33 @@ func (as *AuthSubsystem) Enabled() bool {
 }
 
 func (as *AuthSubsystem) AuthHandler(c *gin.Context) {
-	as.Logger.Info("!!! THIS IS WORKING !!!")
-	c.Header("TEST", "THIS IS WORKING")
+	token := extractToken(c.Request)
+	if token == "" {
+		c.Header("DTAC-AUTHORIZATION", "DENIED")
+		c.JSON(http.StatusUnauthorized, "Invalid Authorization Header")
+		c.Abort()
+		return
+	}
+
+	err := tokenValid(c.Request)
+	if err != nil {
+		c.Header("DTAC-AUTHORIZATION", "DENIED")
+		c.JSON(http.StatusUnauthorized, fmt.Sprintf("Token is not valid: %v", err))
+		c.Abort()
+		return
+	}
+
+	_, err = verifyToken(c.Request)
+	if err != nil {
+		c.Header("DTAC-AUTHORIZATION", "DENIED")
+		c.JSON(http.StatusUnauthorized, fmt.Sprintf("Unable to verify token: %v", err))
+		c.Abort()
+		return
+	}
+	c.Header("DTAC-AUTHORIZATION", "GRANTED")
+
+	userDetails, err := extractTokenMetadata(c.Request)
+	as.Logger.Info("user granted access", zap.Uint64("user_id", userDetails.UserId), zap.String("uuid", userDetails.AccessUuid))
 	c.Next()
 }
 
@@ -147,6 +132,42 @@ func (as *AuthSubsystem) loginHandler(c *gin.Context) {
 		"refresh_token": token.RefreshToken,
 	}
 	c.JSON(http.StatusOK, tokens)
+}
+
+func extractToken(r *http.Request) string {
+	bearToken := r.Header.Get("Authorization")
+	if bearToken == "" {
+		return ""
+	}
+	tokenArr := strings.Split(bearToken, " ")
+	if len(tokenArr) == 2 {
+		return tokenArr[1]
+	}
+	return ""
+}
+
+func extractTokenMetadata(r *http.Request) (*auth_db.AccessDetails, error) {
+	token, err := verifyToken(r)
+	if err != nil {
+		return nil, err
+	}
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if ok && token.Valid {
+		accessUuid, ok := claims["access_uuid"].(string)
+		if !ok {
+			return nil, err
+		}
+		userId, err := strconv.ParseUint(fmt.Sprintf("%.f", claims["user_id"]), 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		return &auth_db.AccessDetails{
+			AccessUuid: accessUuid,
+			UserId:     userId,
+		}, nil
+	}
+
+	return nil, err
 }
 
 func (as *AuthSubsystem) createToken(userid uint64) (token *auth_db.TokenDetails, err error) {
@@ -227,30 +248,6 @@ func tokenValid(r *http.Request) error {
 		return fmt.Errorf("token is invalid")
 	}
 	return nil
-}
-
-func extractTokenMetadata(r *http.Request) (*auth_db.AccessDetails, error) {
-	token, err := verifyToken(r)
-	if err != nil {
-		return nil, err
-	}
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if ok && token.Valid {
-		accessUuid, ok := claims["access_uuid"].(string)
-		if !ok {
-			return nil, err
-		}
-		userId, err := strconv.ParseUint(fmt.Sprintf("%.f", claims["user_id"]), 10, 64)
-		if err != nil {
-			return nil, err
-		}
-		return &auth_db.AccessDetails{
-			AccessUuid: accessUuid,
-			UserId:     userId,
-		}, nil
-	}
-
-	return nil, err
 }
 
 func (as *AuthSubsystem) fetchAuth(authD *auth_db.AccessDetails) (userId uint64, err error) {
