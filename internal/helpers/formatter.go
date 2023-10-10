@@ -46,6 +46,21 @@ func WriteErrorResponseJSON(c *gin.Context, err error) {
 		return
 	}
 	c.Data(http.StatusInternalServerError, gin.MIMEJSON, jerr)
+	c.Abort()
+}
+
+func WriteUnauthorizedResponseJSON(c *gin.Context, err error) {
+	er := ErrorResponse{
+		Time: time.Now().Format(time.RFC3339Nano),
+		Err:  err.Error(),
+	}
+	jerr, err := json.Marshal(er)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error(), "time": time.Now().Format(time.RFC3339Nano)})
+		return
+	}
+	c.Data(http.StatusUnauthorized, gin.MIMEJSON, jerr)
+	c.Abort()
 }
 
 func WriteNotFoundResponseJSON(c *gin.Context) {
@@ -55,6 +70,7 @@ func WriteNotFoundResponseJSON(c *gin.Context) {
 	}
 	jerr, _ := json.Marshal(er)
 	c.Data(http.StatusNotFound, gin.MIMEJSON, jerr)
+	c.Abort()
 }
 
 func WriteNotImplementedResponseJSON(c *gin.Context) {
@@ -68,4 +84,5 @@ func WriteNotImplementedResponseJSON(c *gin.Context) {
 		return
 	}
 	c.Data(http.StatusNotImplemented, gin.MIMEJSON, jerr)
+	c.Abort()
 }

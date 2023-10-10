@@ -43,8 +43,9 @@ func (es *EchoSubsystem) Register() error {
 	base := es.Controller.Router.Group(es.name)
 
 	// Routes
+	secure := es.Controller.Config.Auth.DefaultSecure
 	routes := []types.RouteInfo{
-		{Group: base, HttpMethod: http.MethodGet, Path: "/", Handler: es.rootHandler, Protected: false},
+		{Group: base, HttpMethod: http.MethodGet, Path: "/", Handler: es.rootHandler, Protected: secure},
 	}
 
 	// Register routes

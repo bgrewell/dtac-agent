@@ -95,8 +95,9 @@ type WatchdogEntry struct {
 }
 
 type AuthEntry struct {
-	User string `json:"user" yaml:"user" mapstructure:"user"`
-	Pass string `json:"pass" yaml:"pass" mapstructure:"pass"`
+	User          string `json:"user" yaml:"user" mapstructure:"user"`
+	Pass          string `json:"pass" yaml:"pass" mapstructure:"pass"`
+	DefaultSecure bool   `json:"default_secure" yaml:"default_secure" mapstructure:"default_secure"`
 }
 
 type Configuration struct {
@@ -127,6 +128,7 @@ func NewConfiguration(router *gin.Engine, log *zap.Logger) (config *Configuratio
 	kvp := map[string]interface{}{
 		"auth.user":                            "admin",
 		"auth.pass":                            "need_to_generate_a_random_password_on_install_or_first_run",
+		"auth.default_secure":                  true,
 		"listener.port":                        8180,
 		"listener.https.enabled":               true,
 		"listener.https.type":                  "self-signed",

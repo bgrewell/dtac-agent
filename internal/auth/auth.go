@@ -2,11 +2,13 @@ package auth
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/auth_db"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/register"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
@@ -68,33 +70,15 @@ func (as *AuthSubsystem) Enabled() bool {
 }
 
 func (as *AuthSubsystem) AuthHandler(c *gin.Context) {
-	token := extractToken(c.Request)
-	if token == "" {
+	user, err := as.authorizeUser(c.Request)
+	if err != nil {
 		c.Header("DTAC-AUTHORIZATION", "DENIED")
-		c.JSON(http.StatusUnauthorized, "Invalid Authorization Header")
-		c.Abort()
+		helpers.WriteUnauthorizedResponseJSON(c, err)
 		return
 	}
 
-	err := tokenValid(c.Request)
-	if err != nil {
-		c.Header("DTAC-AUTHORIZATION", "DENIED")
-		c.JSON(http.StatusUnauthorized, fmt.Sprintf("Token is not valid: %v", err))
-		c.Abort()
-		return
-	}
-
-	_, err = verifyToken(c.Request)
-	if err != nil {
-		c.Header("DTAC-AUTHORIZATION", "DENIED")
-		c.JSON(http.StatusUnauthorized, fmt.Sprintf("Unable to verify token: %v", err))
-		c.Abort()
-		return
-	}
+	as.Logger.Info("user granted access", zap.Uint64("userid", user.ID), zap.String("username", user.Username))
 	c.Header("DTAC-AUTHORIZATION", "GRANTED")
-
-	userDetails, err := extractTokenMetadata(c.Request)
-	as.Logger.Info("user granted access", zap.Uint64("user_id", userDetails.UserId), zap.String("uuid", userDetails.AccessUuid))
 	c.Next()
 }
 
@@ -134,7 +118,7 @@ func (as *AuthSubsystem) loginHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, tokens)
 }
 
-func extractToken(r *http.Request) string {
+func (as *AuthSubsystem) extractToken(r *http.Request) string {
 	bearToken := r.Header.Get("Authorization")
 	if bearToken == "" {
 		return ""
@@ -146,16 +130,12 @@ func extractToken(r *http.Request) string {
 	return ""
 }
 
-func extractTokenMetadata(r *http.Request) (*auth_db.AccessDetails, error) {
-	token, err := verifyToken(r)
-	if err != nil {
-		return nil, err
-	}
+func (as *AuthSubsystem) extractTokenMetadata(token *jwt.Token) (*auth_db.AccessDetails, error) {
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if ok && token.Valid {
 		accessUuid, ok := claims["access_uuid"].(string)
 		if !ok {
-			return nil, err
+			return nil, errors.New("unable to extract access id from token")
 		}
 		userId, err := strconv.ParseUint(fmt.Sprintf("%.f", claims["user_id"]), 10, 64)
 		if err != nil {
@@ -167,7 +147,7 @@ func extractTokenMetadata(r *http.Request) (*auth_db.AccessDetails, error) {
 		}, nil
 	}
 
-	return nil, err
+	return nil, errors.New("failed to get claims from token")
 }
 
 func (as *AuthSubsystem) createToken(userid uint64) (token *auth_db.TokenDetails, err error) {
@@ -225,9 +205,8 @@ func (as *AuthSubsystem) createAuth(userid uint64, td *auth_db.TokenDetails) (er
 	return nil
 }
 
-func verifyToken(r *http.Request) (*jwt.Token, error) {
-	tokenString := extractToken(r)
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+func (as *AuthSubsystem) verifyToken(tokenStr string) (*jwt.Token, error) {
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -236,18 +215,11 @@ func verifyToken(r *http.Request) (*jwt.Token, error) {
 	if err != nil {
 		return nil, err
 	}
-	return token, nil
-}
 
-func tokenValid(r *http.Request) error {
-	token, err := verifyToken(r)
-	if err != nil {
-		return err
-	}
 	if _, ok := token.Claims.(jwt.Claims); !ok && !token.Valid {
-		return fmt.Errorf("token is invalid")
+		return nil, fmt.Errorf("token is invalid")
 	}
-	return nil
+	return token, nil
 }
 
 func (as *AuthSubsystem) fetchAuth(authD *auth_db.AccessDetails) (userId uint64, err error) {
@@ -260,14 +232,27 @@ func (as *AuthSubsystem) fetchAuth(authD *auth_db.AccessDetails) (userId uint64,
 }
 
 func (as *AuthSubsystem) authorizeUser(r *http.Request) (user *auth_db.User, err error) {
-	tokenAuth, err := extractTokenMetadata(r)
+	tokenStr := as.extractToken(r)
+	if tokenStr == "" {
+		return nil, errors.New("invalid authorization header")
+	}
+
+	token, err := as.verifyToken(tokenStr)
+	if err != nil {
+		as.Logger.Error("failed to verify token", zap.Error(err))
+		return nil, errors.New("unable to authorize token")
+	}
+
+	tokenAuth, err := as.extractTokenMetadata(token)
 	if err != nil {
 		as.Logger.Error("failed to get token metadata", zap.Error(err))
-		return nil, fmt.Errorf("unauthorized")
+		return nil, errors.New("unable to authorize token")
 	}
+
 	userId, err := as.fetchAuth(tokenAuth)
 	if err != nil {
-		return nil, err
+		as.Logger.Error("failed to fetch auth", zap.Error(err))
+		return nil, errors.New("unable to authorize token")
 	}
 
 	if userId == as.admin.ID {

@@ -1,56 +1,53 @@
-package hardware
+package system
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/register"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
 	"go.uber.org/zap"
 	"net/http"
+	"time"
 )
 
 func NewSubsystem(c *controller.Controller) interfaces.Subsystem {
-	name := "hardware"
-	hw := HardwareSubsystem{
+	name := "system"
+	s := SystemSubsystem{
 		Controller: c,
 		Logger:     c.Logger.With(zap.String("module", name)),
-		enabled:    c.Config.Subsystems.Diag,
+		enabled:    true,
 		name:       name,
-		nic:        &LiveNicInfo{},
 	}
-	return &hw
+	s.info = &SystemInfo{}
+	s.info.Initialize(s.Logger)
+	return &s
 }
 
-type HardwareSubsystem struct {
+// SystemSubsystem is a simple example subsystem for showing how the pieces fit together
+type SystemSubsystem struct {
 	Controller *controller.Controller
-	Logger     *zap.Logger
-	enabled    bool
-	name       string // Subsystem name
-	nic        NicInfo
+	Logger     *zap.Logger // All subsystems have a pointer to the logger
+	enabled    bool        // Optional subsystems have a boolean to control if they are enabled
+	name       string      // Subsystem name
+	info       *SystemInfo // SystemInfo structure
 }
 
 // Register() registers the routes that this module handles
-func (s *HardwareSubsystem) Register() error {
+func (s *SystemSubsystem) Register() error {
 	if !s.Enabled() {
 		s.Logger.Info("subsystem is disabled", zap.String("subsystem", s.Name()))
 		return nil
 	}
+
 	// Create a group for this subsystem
 	base := s.Controller.Router.Group(s.name)
 
 	// Routes
 	secure := s.Controller.Config.Auth.DefaultSecure
 	routes := []types.RouteInfo{
-		// CPU Routes
-		// Memory Routes
-		// Disk Routes
-		// GPU Routes
-		// Network Routes
-		{Group: base, HttpMethod: http.MethodGet, Path: "/network", Handler: s.nicRootHandler, Protected: secure},
-		{Group: base, HttpMethod: http.MethodGet, Path: "/network/interfaces", Handler: s.nicRootHandler, Protected: secure},
-		{Group: base, HttpMethod: http.MethodGet, Path: "/network/interface/:name", Handler: s.nicInterfaceHandler, Protected: secure},
-		// Misc Hardware Routes
-
+		{Group: base, HttpMethod: http.MethodGet, Path: "/", Handler: s.rootHandler, Protected: secure},
 	}
 
 	// Register routes
@@ -60,11 +57,15 @@ func (s *HardwareSubsystem) Register() error {
 	return nil
 }
 
-// Enabled returns true if this module is enabled otherwise it returns false
-func (s *HardwareSubsystem) Enabled() bool {
+func (s *SystemSubsystem) Enabled() bool {
 	return s.enabled
 }
 
-func (s *HardwareSubsystem) Name() string {
+func (s *SystemSubsystem) Name() string {
 	return s.name
+}
+
+func (s *SystemSubsystem) rootHandler(c *gin.Context) {
+	start := time.Now()
+	helpers.WriteResponseJSON(c, time.Since(start), s.info)
 }

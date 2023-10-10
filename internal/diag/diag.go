@@ -45,10 +45,11 @@ func (ds *DiagSubsystem) Register() error {
 	base := ds.Controller.Router.Group(ds.name)
 
 	// Routes
+	secure := ds.Controller.Config.Auth.DefaultSecure
 	routes := []types.RouteInfo{
-		{Group: base, HttpMethod: http.MethodGet, Path: "/", Handler: ds.rootHandler, Protected: false},
+		{Group: base, HttpMethod: http.MethodGet, Path: "/", Handler: ds.rootHandler, Protected: secure},
 		{Group: base, HttpMethod: http.MethodGet, Path: "/jwt", Handler: ds.jwtTestHandler, Protected: true},
-		{Group: base, HttpMethod: http.MethodGet, Path: "/routes", Handler: ds.httpRoutePrintHandler, Protected: false},
+		{Group: base, HttpMethod: http.MethodGet, Path: "/routes", Handler: ds.httpRoutePrintHandler, Protected: secure},
 	}
 
 	// Register routes

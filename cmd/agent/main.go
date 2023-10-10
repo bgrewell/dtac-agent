@@ -2,17 +2,22 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/auth"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/auth_db"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/basic"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/hardware"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	httpRoutes "github.com/intel-innersource/frameworks.automation.dtac.agent/internal/http"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/network"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/plugin"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/system"
 	"net"
 	"net/http"
+	"os"
+	"runtime"
 
 	"github.com/gin-gonic/gin"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
@@ -120,6 +125,16 @@ func AsSubsystem(f any) any {
 }
 
 func main() {
+
+	if !helpers.IsRunningAsRoot() {
+		if runtime.GOOS == "windows" {
+			fmt.Println("Please run this application with elevated privileges!")
+		} else {
+			fmt.Println("Please run this application as root!")
+		}
+		os.Exit(1)
+	}
+
 	fx.New(
 		// Setup zap logger with the Fx framework
 		fx.WithLogger(func(log *zap.Logger) fxevent.Logger {
@@ -141,6 +156,8 @@ func main() {
 			AsSubsystem(plugin.NewSubsystem),        // Plugin Subsystem
 			AsSubsystem(network.NewSubsystem),       // Network Subsystem
 			AsSubsystem(diag.NewSubsystem),          // Diagnostic Subsystem
+			AsSubsystem(hardware.NewSubsystem),      // Hardware Subsystem
+			AsSubsystem(system.NewSubsystem),        // System Subsystem
 		),
 		// Invoke any functions needed to initialize everything. The empty anonymous functions are
 		// used to ensure that the providers that return that type are initialized.
