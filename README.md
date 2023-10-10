@@ -181,3 +181,9 @@ This endpoint provides details about the named network interface.
 **Method:** `GET`
 
 This endpoint is used to get Windows based network QoS policies also known as `NetQoSPolicies`
+
+
+## Creating Plugins
+
+### Creating a Python plugin
+

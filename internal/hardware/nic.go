@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/shirou/gopsutil/net"
 	"go.uber.org/zap"
@@ -17,9 +16,7 @@ type NicInfo interface {
 }
 
 type LiveNicInfo struct {
-	Router         *gin.Engine           // All subsystems have a pointer to the gin.Engine
-	Config         *config.Configuration // All subsystems have a pointer to the configuration
-	Logger         *zap.Logger           // All subsystems have a pointer to the logger
+	Logger         *zap.Logger // All subsystems have a pointer to the logger
 	InterfaceStats []net.InterfaceStat
 }
 

@@ -11,12 +11,15 @@ import (
 
 func NewSubsystem(c *controller.Controller) interfaces.Subsystem {
 	name := "hardware"
+	logger := c.Logger.With(zap.String("module", name))
 	hw := HardwareSubsystem{
 		Controller: c,
-		Logger:     c.Logger.With(zap.String("module", name)),
+		Logger:     logger,
 		enabled:    c.Config.Subsystems.Diag,
 		name:       name,
-		nic:        &LiveNicInfo{},
+		nic:        &LiveNicInfo{Logger: logger},
+		cpu:        &LiveCpuInfo{Logger: logger},
+		mem:        &LiveMemoryInfo{Logger: logger},
 	}
 	return &hw
 }
@@ -27,6 +30,8 @@ type HardwareSubsystem struct {
 	enabled    bool
 	name       string // Subsystem name
 	nic        NicInfo
+	cpu        CpuInfo
+	mem        MemoryInfo
 }
 
 // Register() registers the routes that this module handles
@@ -42,7 +47,10 @@ func (s *HardwareSubsystem) Register() error {
 	secure := s.Controller.Config.Auth.DefaultSecure
 	routes := []types.RouteInfo{
 		// CPU Routes
+		{Group: base, HttpMethod: http.MethodGet, Path: "/cpu", Handler: s.cpuInfoHandler, Protected: secure},
+		{Group: base, HttpMethod: http.MethodGet, Path: "/cpu/usage", Handler: s.cpuUsageHandler, Protected: secure},
 		// Memory Routes
+		{Group: base, HttpMethod: http.MethodGet, Path: "/memory", Handler: s.memInfoHandler, Protected: secure},
 		// Disk Routes
 		// GPU Routes
 		// Network Routes

@@ -13,6 +13,11 @@ func GetSystemProductName() (product string, err error) {
 	return helpers.RunAsUser(command, "root")
 }
 
+func GetSystemUUID() (uuid string, err error) {
+	command := "dmidecode -s system-uuid"
+	return helpers.RunAsUser(command, "root")
+}
+
 func GetOSName() (os string, err error) {
 	return getLinuxInfo("ID")
 }
@@ -32,7 +37,9 @@ func getLinuxInfo(id string) (string, error) {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if strings.HasPrefix(line, fmt.Sprintf("%s=", id)) {
-			return strings.TrimPrefix(line, fmt.Sprintf("%s=", id)), nil
+			val := strings.TrimPrefix(line, fmt.Sprintf("%s=", id))
+			val = strings.Trim(val, "\"")
+			return val, nil
 		}
 	}
 

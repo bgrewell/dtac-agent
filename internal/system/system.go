@@ -48,6 +48,9 @@ func (s *SystemSubsystem) Register() error {
 	secure := s.Controller.Config.Auth.DefaultSecure
 	routes := []types.RouteInfo{
 		{Group: base, HttpMethod: http.MethodGet, Path: "/", Handler: s.rootHandler, Protected: secure},
+		{Group: base, HttpMethod: http.MethodGet, Path: "/uuid", Handler: s.uuidHandler, Protected: secure},
+		{Group: base, HttpMethod: http.MethodGet, Path: "/product", Handler: s.productHandler, Protected: secure},
+		{Group: base, HttpMethod: http.MethodGet, Path: "/os", Handler: s.osHandler, Protected: secure},
 	}
 
 	// Register routes
@@ -68,4 +71,22 @@ func (s *SystemSubsystem) Name() string {
 func (s *SystemSubsystem) rootHandler(c *gin.Context) {
 	start := time.Now()
 	helpers.WriteResponseJSON(c, time.Since(start), s.info)
+}
+
+func (s *SystemSubsystem) uuidHandler(c *gin.Context) {
+	start := time.Now()
+	uuid := s.info.Uuid
+	helpers.WriteResponseJSON(c, time.Since(start), uuid)
+}
+
+func (s *SystemSubsystem) productHandler(c *gin.Context) {
+	start := time.Now()
+	product := s.info.ProductName
+	helpers.WriteResponseJSON(c, time.Since(start), product)
+}
+
+func (s *SystemSubsystem) osHandler(c *gin.Context) {
+	start := time.Now()
+	os := s.info.serializeOs()
+	helpers.WriteResponseJSON(c, time.Since(start), os)
 }

@@ -1,8 +1,11 @@
 package system
 
-import "go.uber.org/zap"
+import (
+	"go.uber.org/zap"
+)
 
 type SystemInfo struct {
+	Uuid                   string `json:"uuid"`
 	ProductName            string `json:"product_name"`
 	OperatingSystemName    string `json:"operating_system_name"`
 	OperatingSystemVersion string `json:"operating_system_version"`
@@ -15,6 +18,14 @@ func (si *SystemInfo) Initialize(log *zap.Logger) {
 		si.ProductName = "unknown"
 	} else {
 		si.ProductName = pn
+	}
+
+	id, err := GetSystemUUID()
+	if err != nil {
+		log.Error("failed to get system uuid", zap.Error(err))
+		si.Uuid = "unknown"
+	} else {
+		si.Uuid = id
 	}
 
 	os, err := GetOSName()
@@ -32,4 +43,18 @@ func (si *SystemInfo) Initialize(log *zap.Logger) {
 	} else {
 		si.OperatingSystemVersion = ver
 	}
+}
+
+func (si *SystemInfo) serializeOs() (os interface{}) {
+	type OsOnlyInfo struct {
+		Name    string `json:"name"`
+		Version string `json:"version"`
+	}
+
+	i := OsOnlyInfo{
+		Name:    si.OperatingSystemName,
+		Version: si.OperatingSystemVersion,
+	}
+
+	return i
 }
