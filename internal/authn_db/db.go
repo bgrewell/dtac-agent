@@ -1,4 +1,4 @@
-package auth_db
+package authn_db
 
 import (
 	"fmt"
@@ -10,9 +10,10 @@ import (
 )
 
 type User struct {
-	ID       uint64 `json:"id"`
-	Username string `json:"username"`
-	Password string `json:"password"`
+	ID       uint64   `json:"id"`
+	Username string   `json:"username"`
+	Password string   `json:"password"`
+	Groups   []string `json:"groups"`
 }
 
 type TokenDetails struct {
@@ -30,14 +31,14 @@ type AccessDetails struct {
 }
 
 func NewAuthDB(log *zap.Logger) *AuthDB {
-	name := "auth_db"
+	name := "authn_db"
 	db := AuthDB{
 		Logger: log.With(zap.String("module", name)),
 		bucket: name,
 	}
 	err := db.Initialize()
 	if err != nil {
-		db.Logger.Error("failed to initialize auth database", zap.String("subsystem", name), zap.Error(err))
+		db.Logger.Error("failed to initialize authn database", zap.String("subsystem", name), zap.Error(err))
 		return nil
 	}
 	return &db

@@ -1,4 +1,4 @@
-package auth
+package authn
 
 import (
 	"encoding/base64"
@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/auth_db"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/authn_db"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
@@ -21,31 +21,39 @@ import (
 	"time"
 )
 
-func NewAuthSubsystem(c *controller.Controller) interfaces.Subsystem {
+func NewAuthnSubsystem(c *controller.Controller) interfaces.Subsystem {
 	name := "auth"
-	as := AuthSubsystem{
+	as := AuthnSubsystem{
 		Controller: c,
 		Logger:     c.Logger.With(zap.String("module", name)),
 		enabled:    true,
 		name:       name,
-		admin: auth_db.User{
+		admin: authn_db.User{ // This is all stubbed in until we get the authentication database up and running
 			ID:       1,
 			Username: c.Config.Auth.User,
 			Password: c.Config.Auth.Pass,
+			Groups:   []string{"admin"},
+		},
+		guest: authn_db.User{
+			ID:       2,
+			Username: "guest",
+			Password: "guest",
+			Groups:   []string{"guest"},
 		},
 	}
 	return &as
 }
 
-type AuthSubsystem struct {
+type AuthnSubsystem struct {
 	Controller *controller.Controller
 	Logger     *zap.Logger
 	enabled    bool
 	name       string
-	admin      auth_db.User
+	admin      authn_db.User
+	guest      authn_db.User
 }
 
-func (as *AuthSubsystem) Register() error {
+func (as *AuthnSubsystem) Register() error {
 	if !as.Enabled() {
 		as.Logger.Info("subsystem is disabled", zap.String("subsystem", as.Name()))
 		return nil
@@ -65,47 +73,65 @@ func (as *AuthSubsystem) Register() error {
 	return nil
 }
 
-func (as *AuthSubsystem) Enabled() bool {
+func (as *AuthnSubsystem) Enabled() bool {
 	return as.enabled
 }
 
-func (as *AuthSubsystem) AuthHandler(c *gin.Context) {
+func (as *AuthnSubsystem) AuthenticationHandler(c *gin.Context) {
+	// The AuthenticationHandler is a middleware function that is called before every secure request
+	// that is used to get the user_id from the JWT token and store it in the request context to be
+	// used by the Authorization handler
 	user, err := as.authorizeUser(c.Request)
 	if err != nil {
-		c.Header("DTAC-AUTHORIZATION", "DENIED")
+		c.Header("X-DTAC-AUTHENTICATION", "INCOMPLETE")
 		helpers.WriteUnauthorizedResponseJSON(c, err)
+		c.Abort()
 		return
 	}
+	//as.Logger.Info("user granted access",
+	//	zap.Uint64("userid", user.ID),
+	//	zap.String("username", user.Username),
+	//	zap.Any("groups", user.Groups))
+	c.Header("X-DTAC-AUTHENTICATION", user.Username)
 
-	as.Logger.Info("user granted access", zap.Uint64("userid", user.ID), zap.String("username", user.Username))
-	c.Header("DTAC-AUTHORIZATION", "GRANTED")
+	c.Set("user_id", user.ID)
+	c.Set("username", user.Username)
+	c.Set("groups", user.Groups)
 	c.Next()
 }
 
-func (as *AuthSubsystem) Name() string {
+func (as *AuthnSubsystem) Name() string {
 	return as.name
 }
 
-func (as *AuthSubsystem) loginHandler(c *gin.Context) {
-	var u auth_db.User
+func (as *AuthnSubsystem) loginHandler(c *gin.Context) {
+	var u authn_db.User
 	if err := c.ShouldBindJSON(&u); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, "invalid json provided")
 		return
 	}
 
 	// check the admin user
-	if as.admin.Username != u.Username || as.admin.Password != u.Password {
+	if (as.admin.Username != u.Username || as.admin.Password != u.Password) &&
+		(as.guest.Username != u.Username || as.guest.Password != u.Password) {
 		c.JSON(http.StatusUnauthorized, "invalid login credentials")
 		return
 	}
 
-	token, err := as.createToken(as.admin.ID)
+	// TODO: Fake lookup in database
+	if u.Username == "admin" {
+		u = as.admin // set the user to admins
+	} else {
+		u = as.guest // guest is the only other valid user at this point
+	}
+
+	token, err := as.createToken(u.ID)
 	if err != nil {
 		c.JSON(http.StatusUnprocessableEntity, err.Error())
 		return
 	}
 
-	saveErr := as.createAuth(as.admin.ID, token)
+	saveErr := as.createAuth(u.ID, token)
 	if saveErr != nil {
 		c.JSON(http.StatusUnprocessableEntity, fmt.Sprintf("CreateAuth: %s", saveErr.Error()))
 		return
@@ -118,7 +144,7 @@ func (as *AuthSubsystem) loginHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, tokens)
 }
 
-func (as *AuthSubsystem) extractToken(r *http.Request) string {
+func (as *AuthnSubsystem) extractToken(r *http.Request) string {
 	bearToken := r.Header.Get("Authorization")
 	if bearToken == "" {
 		return ""
@@ -130,7 +156,7 @@ func (as *AuthSubsystem) extractToken(r *http.Request) string {
 	return ""
 }
 
-func (as *AuthSubsystem) extractTokenMetadata(token *jwt.Token) (*auth_db.AccessDetails, error) {
+func (as *AuthnSubsystem) extractTokenMetadata(token *jwt.Token) (*authn_db.AccessDetails, error) {
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if ok && token.Valid {
 		accessUuid, ok := claims["access_uuid"].(string)
@@ -141,7 +167,7 @@ func (as *AuthSubsystem) extractTokenMetadata(token *jwt.Token) (*auth_db.Access
 		if err != nil {
 			return nil, err
 		}
-		return &auth_db.AccessDetails{
+		return &authn_db.AccessDetails{
 			AccessUuid: accessUuid,
 			UserId:     userId,
 		}, nil
@@ -150,9 +176,9 @@ func (as *AuthSubsystem) extractTokenMetadata(token *jwt.Token) (*auth_db.Access
 	return nil, errors.New("failed to get claims from token")
 }
 
-func (as *AuthSubsystem) createToken(userid uint64) (token *auth_db.TokenDetails, err error) {
+func (as *AuthnSubsystem) createToken(userid uint64) (token *authn_db.TokenDetails, err error) {
 
-	td := &auth_db.TokenDetails{
+	td := &authn_db.TokenDetails{
 		AtExpires:   time.Now().Add(time.Minute * 15).Unix(),
 		AccessUuid:  uuid.NewV4().String(),
 		RtExpires:   time.Now().Add(time.Hour * 24 * 7).Unix(),
@@ -192,7 +218,7 @@ func (as *AuthSubsystem) createToken(userid uint64) (token *auth_db.TokenDetails
 	return td, nil
 }
 
-func (as *AuthSubsystem) createAuth(userid uint64, td *auth_db.TokenDetails) (err error) {
+func (as *AuthnSubsystem) createAuth(userid uint64, td *authn_db.TokenDetails) (err error) {
 	errAccess := as.Controller.AuthDB.UpdateDB(td.AccessUuid, strconv.Itoa(int(userid))) //todo: need to look into how to time-expire these entries
 	if errAccess != nil {
 		return errAccess
@@ -205,7 +231,7 @@ func (as *AuthSubsystem) createAuth(userid uint64, td *auth_db.TokenDetails) (er
 	return nil
 }
 
-func (as *AuthSubsystem) verifyToken(tokenStr string) (*jwt.Token, error) {
+func (as *AuthnSubsystem) verifyToken(tokenStr string) (*jwt.Token, error) {
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -222,16 +248,16 @@ func (as *AuthSubsystem) verifyToken(tokenStr string) (*jwt.Token, error) {
 	return token, nil
 }
 
-func (as *AuthSubsystem) fetchAuth(authD *auth_db.AccessDetails) (userId uint64, err error) {
+func (as *AuthnSubsystem) fetchAuth(authD *authn_db.AccessDetails) (userId uint64, err error) {
 	userIdStr, err := as.Controller.AuthDB.ViewDB(authD.AccessUuid)
 	if userIdStr == "" || err != nil {
-		return 0, fmt.Errorf("unable to find %s auth details in database", authD.AccessUuid)
+		return 0, fmt.Errorf("unable to find %s authn details in database", authD.AccessUuid)
 	}
 	userId, _ = strconv.ParseUint(userIdStr, 10, 64)
 	return userId, nil
 }
 
-func (as *AuthSubsystem) authorizeUser(r *http.Request) (user *auth_db.User, err error) {
+func (as *AuthnSubsystem) authorizeUser(r *http.Request) (user *authn_db.User, err error) {
 	tokenStr := as.extractToken(r)
 	if tokenStr == "" {
 		return nil, errors.New("invalid authorization header")
@@ -251,12 +277,14 @@ func (as *AuthSubsystem) authorizeUser(r *http.Request) (user *auth_db.User, err
 
 	userId, err := as.fetchAuth(tokenAuth)
 	if err != nil {
-		as.Logger.Error("failed to fetch auth", zap.Error(err))
+		as.Logger.Error("failed to fetch authn", zap.Error(err))
 		return nil, errors.New("unable to authorize token")
 	}
 
 	if userId == as.admin.ID {
 		return &as.admin, nil
+	} else if userId == as.guest.ID {
+		return &as.guest, nil
 	} else {
 		return nil, fmt.Errorf("unable to find %v", userId)
 	}

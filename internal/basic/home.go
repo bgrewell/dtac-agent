@@ -1,6 +1,7 @@
 package basic
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
@@ -52,7 +53,7 @@ func (hps *HomePageSubsystem) homeHandler(c *gin.Context) {
 	start := time.Now()
 	hps.Controller.HttpRouteList.UpdateRoutes()
 	response := gin.H{
-		"message": "welcome to the dtac agent",
+		"message": fmt.Sprintf("welcome to the %s", hps.Controller.Config.Internal.ProductName),
 		"version": version.Current().String(),
 		"routes":  hps.Controller.HttpRouteList.Routes,
 	}

@@ -16,6 +16,13 @@ import (
 	"go.uber.org/zap"
 )
 
+// InternalSettings are never written out to the configuration file
+type InternalSettings struct {
+	ProductName string `json:"product_name" yaml:"product_name" mapstructure:"product_name"`
+	ShortName   string `json:"short_name" yaml:"short_name" mapstructure:"short_name"`
+	FileName    string `json:"file_name" yaml:"file_name" mapstructure:"file_name"`
+}
+
 type BlockingEntry struct {
 	Trigger       string `json:"trigger" yaml:"trigger" mapstructure:"trigger"`
 	Detect        string `json:"detect" yaml:"detect" mapstructure:"detect"`
@@ -98,10 +105,13 @@ type AuthEntry struct {
 	User          string `json:"user" yaml:"user" mapstructure:"user"`
 	Pass          string `json:"pass" yaml:"pass" mapstructure:"pass"`
 	DefaultSecure bool   `json:"default_secure" yaml:"default_secure" mapstructure:"default_secure"`
+	Model         string `json:"model" yaml:"model" mapstructure:"model"`
+	Policy        string `json:"policy" yaml:"policy" mapstructure:"policy"`
 }
 
 type Configuration struct {
-	Auth         AuthEntry                `json:"auth" yaml:"auth" mapstructure:"auth"`
+	Auth         AuthEntry                `json:"authn" yaml:"authn" mapstructure:"authn"`
+	Internal     InternalSettings         `json:"internal" yaml:"internal" mapstructure:"internal"`
 	Listener     ListenerEntry            `json:"listener" yaml:"listener" mapstructure:"listener"`
 	Lockout      LockoutEntry             `json:"lockout" yaml:"lockout" mapstructure:"lockout"`
 	Subsystems   SubsystemEntry           `json:"subsystems" yaml:"subsystems" mapstructure:"subsystems"`
@@ -126,9 +136,14 @@ func NewConfiguration(router *gin.Engine, log *zap.Logger) (config *Configuratio
 
 	// Setup default values
 	kvp := map[string]interface{}{
-		"auth.user":                            "admin",
-		"auth.pass":                            "need_to_generate_a_random_password_on_install_or_first_run",
-		"auth.default_secure":                  true,
+		"authn.user":                           "admin",
+		"authn.pass":                           "need_to_generate_a_random_password_on_install_or_first_run",
+		"authn.default_secure":                 true,
+		"authn.model":                          DEFAULT_AUTH_MODEL_NAME,
+		"authn.policy":                         DEFAULT_AUTH_POLICY_NAME,
+		"internal.product_name":                "DTAC Agent",
+		"internal.short_name":                  "dtac",
+		"internal.file_name":                   "dtac-agentd",
 		"listener.port":                        8180,
 		"listener.https.enabled":               true,
 		"listener.https.type":                  "self-signed",
@@ -181,7 +196,8 @@ func NewConfiguration(router *gin.Engine, log *zap.Logger) (config *Configuratio
 			if err := os.MkdirAll(GLOBAL_CONFIG_LOCATION, 0700); err != nil {
 				log.Error("error creating global config directory", zap.Error(err))
 			}
-			err := viper.WriteConfigAs(path.Join(GLOBAL_CONFIG_LOCATION, "config.yaml"))
+
+			err := writeConfigWithoutInternalKeys(path.Join(GLOBAL_CONFIG_LOCATION, "config.yaml"))
 			if err != nil {
 				return nil, fmt.Errorf("failed to write log file: %v", err)
 			}
@@ -191,7 +207,7 @@ func NewConfiguration(router *gin.Engine, log *zap.Logger) (config *Configuratio
 				log.Error("error creating user config directory", zap.Error(err))
 			}
 			log.Info("creating configuration file", zap.String("filename", path.Join(location, "config.yaml")))
-			err := viper.WriteConfigAs(path.Join(location, "config.yaml"))
+			err := writeConfigWithoutInternalKeys(path.Join(location, "config.yaml"))
 			if err != nil {
 				return nil, fmt.Errorf("failed to write log file: %v", err)
 			}
@@ -279,4 +295,29 @@ func checkWriteAccess(dir string) bool {
 	// If successful, delete the temporary file and return true.
 	defer os.Remove(tempFile.Name())
 	return true
+}
+
+func writeConfigWithoutInternalKeys(filename string) error {
+	// Backup internal settings
+	internalBackup := make(map[string]interface{})
+	allSettings := viper.AllSettings()
+	for key, value := range allSettings {
+		if strings.HasPrefix(key, "internal.") {
+			internalBackup[key] = value
+			viper.Set(key, nil) // Temporarily remove the setting
+		}
+	}
+
+	// Write the configuration without internal keys
+	err := viper.WriteConfigAs(filename)
+	if err != nil {
+		return err
+	}
+
+	// Restore internal settings from the backup
+	for key, value := range internalBackup {
+		viper.Set(key, value)
+	}
+
+	return nil
 }

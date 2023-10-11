@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/auth"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/auth_db"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/authn"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/authn_db"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/authz"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/basic"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config/authorization"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/hardware"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
@@ -14,6 +16,7 @@ import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/network"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/plugin"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/system"
+	"go.uber.org/fx"
 	"net"
 	"net/http"
 	"os"
@@ -22,7 +25,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/diag"
-	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 	"go.uber.org/zap"
 )
@@ -33,13 +35,13 @@ type RegisterParams struct {
 	Subsystems []interfaces.Subsystem `group:"subsystems"`
 }
 
-// NewHTTPServer creates the webserver that handles the requests sent to the DTAC agente
+// NewHTTPServer creates the webserver that handles the requests sent to the DTAC agent
 func NewHTTPServer(lc fx.Lifecycle, router *gin.Engine, log *zap.Logger, tls *helpers.TlsInfo) *http.Server {
 
 	// Create a new http server
 	srv := &http.Server{Addr: ":8180", Handler: router}
 
-	// Setup the serve function
+	// Set up the serve function
 	srvFunc := srv.Serve
 	srvMsg := "starting HTTP server"
 
@@ -51,7 +53,7 @@ func NewHTTPServer(lc fx.Lifecycle, router *gin.Engine, log *zap.Logger, tls *he
 		srvMsg = "starting HTTPS server"
 	}
 
-	// Setup the Fx lifecycle controller
+	// Set up the Fx lifecycle controller
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			ln, err := net.Listen("tcp", srv.Addr)
@@ -85,7 +87,7 @@ func NewGinRouter() *gin.Engine {
 }
 
 func NewController(router *gin.Engine, logger *zap.Logger, cfg *config.Configuration,
-	hrl *httpRoutes.HttpRouteList, db *auth_db.AuthDB) *controller.Controller {
+	hrl *httpRoutes.HttpRouteList, db *authn_db.AuthDB) *controller.Controller {
 	// Create the SubsystemParams object
 	c := controller.Controller{
 		Router:           router,
@@ -99,12 +101,21 @@ func NewController(router *gin.Engine, logger *zap.Logger, cfg *config.Configura
 }
 
 func Register(params RegisterParams) {
-	// Find all auth middleware and setup
+	// Find all authentication middleware and setup
 	for _, sub := range params.Subsystems {
-		params.Controller.Logger.Info("checking for subsystem for auth middleware", zap.String("subsystem", sub.Name()))
-		if a, ok := sub.(interfaces.AuthMiddleware); ok {
-			params.Controller.Logger.Info("registering auth middleware", zap.String("subsystem", sub.Name()))
-			params.Controller.SecureMiddleware = append(params.Controller.SecureMiddleware, a.AuthHandler)
+		params.Controller.Logger.Info("checking for subsystem for authentication middleware", zap.String("subsystem", sub.Name()))
+		if a, ok := sub.(interfaces.AuthenticationMiddleware); ok {
+			params.Controller.Logger.Info("registering authentication middleware", zap.String("subsystem", sub.Name()))
+			params.Controller.SecureMiddleware = append(params.Controller.SecureMiddleware, a.AuthenticationHandler)
+		}
+	}
+
+	// Find all authorization middleware and setup
+	for _, sub := range params.Subsystems {
+		params.Controller.Logger.Info("checking for subsystem for authentication middleware", zap.String("subsystem", sub.Name()))
+		if a, ok := sub.(interfaces.AuthorizationMiddleware); ok {
+			params.Controller.Logger.Info("registering authentication middleware", zap.String("subsystem", sub.Name()))
+			params.Controller.SecureMiddleware = append(params.Controller.SecureMiddleware, a.AuthorizationHandler)
 		}
 	}
 
@@ -140,7 +151,7 @@ func main() {
 		fx.WithLogger(func(log *zap.Logger) fxevent.Logger {
 			return &fxevent.ZapLogger{Logger: log}
 		}),
-		// Setup the providers
+		// Set up the providers
 		fx.Provide(
 			NewHTTPServer,                           // Web Server
 			NewGinRouter,                            // Web Request Router
@@ -149,8 +160,9 @@ func main() {
 			helpers.NewTlsInfo,                      // Tls Cert Handler
 			httpRoutes.NewHttpRouteList,             // Http Routing List
 			NewController,                           // Wrapper around common subsystem input components
-			auth_db.NewAuthDB,                       // Authentication database
-			AsSubsystem(auth.NewAuthSubsystem),      // Authentication subsystem
+			authn_db.NewAuthDB,                      // Authentication database
+			AsSubsystem(authn.NewAuthnSubsystem),    // Authentication Subsystem
+			AsSubsystem(authz.NewAuthzSubsystem),    // Authorization Subsystem
 			AsSubsystem(basic.NewEchoSubsystem),     // Demo Subsystem
 			AsSubsystem(basic.NewHomePageSubsystem), // Homepage handler
 			AsSubsystem(plugin.NewSubsystem),        // Plugin Subsystem
@@ -162,8 +174,10 @@ func main() {
 		// Invoke any functions needed to initialize everything. The empty anonymous functions are
 		// used to ensure that the providers that return that type are initialized.
 		fx.Invoke(
-			func(*http.Server) {},
-			Register,
+			authorization.EnsureAuthzModel,  // Ensure we have at least a default authorization model
+			authorization.EnsureAuthzPolicy, // Ensure we have at least a default authorization policy
+			func(*http.Server) {},           // Set up the http server by requiring it for an anonymous function
+			Register,                        // Register all the subsystems
 		),
 	).Run()
 }

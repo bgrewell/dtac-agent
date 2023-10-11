@@ -1,6 +1,7 @@
 package diag
 
 import (
+	"fmt"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
@@ -73,11 +74,11 @@ func (ds *DiagSubsystem) rootHandler(c *gin.Context) {
 	start := time.Now()
 	response := gin.H{
 		"version": types.AnnotatedStruct{
-			Description: "dtac version information",
+			Description: fmt.Sprintf("%s version information", ds.Controller.Config.Internal.ShortName),
 			Value:       version.Current(),
 		},
 		"memory": types.AnnotatedStruct{
-			Description: "current dtac agent memory usage",
+			Description: fmt.Sprintf("current %s memory usage", ds.Controller.Config.Internal.ShortName),
 			Value:       CurrentMemoryStats(),
 		},
 	}
@@ -89,7 +90,7 @@ func (ds *DiagSubsystem) httpRoutePrintHandler(c *gin.Context) {
 	ds.Controller.HttpRouteList.UpdateRoutes()
 	response := gin.H{
 		"routes": types.AnnotatedStruct{
-			Description: "list of registered http endpoints being served by dtac",
+			Description: fmt.Sprintf("list of registered http endpoints being served by %s", ds.Controller.Config.Internal.ShortName),
 			Value:       ds.Controller.HttpRouteList.Routes,
 		},
 	}

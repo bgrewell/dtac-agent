@@ -22,7 +22,10 @@ bin/
 dist/
 update/
 package/
+
+# Local directories
 .old/
+.scripts/
 
 # Sensitive files
 .env
