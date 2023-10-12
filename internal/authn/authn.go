@@ -187,7 +187,9 @@ func (as *AuthnSubsystem) createToken(userid uint64) (token *authn_db.TokenDetai
 
 	if os.Getenv("ACCESS_SECRET") == "" {
 		err := os.Setenv("ACCESS_SECRET", "NEED_TO_GET_A_SECURE_SECRET_FROM_SOMEWHERE_IF_ENV_IS_EMPTY")
-		as.Logger.Error("failed to set ACCESS_SECRET env variable", zap.Error(err))
+		if err != nil {
+			as.Logger.Error("failed to set ACCESS_SECRET env variable", zap.Error(err))
+		}
 	}
 	atClaims := jwt.MapClaims{}
 	atClaims["authorized"] = true
@@ -203,7 +205,9 @@ func (as *AuthnSubsystem) createToken(userid uint64) (token *authn_db.TokenDetai
 
 	if os.Getenv("REFRESH_SECRET") == "" {
 		err := os.Setenv("REFRESH_SECRET", "NEED_TO_GET_A_REFRESH_SECRET_FROM_SOMEWHERE_IF_ENV_IS_EMPTY")
-		as.Logger.Error("failed to set REFRESH_SECRET env variable", zap.Error(err))
+		if err != nil {
+			as.Logger.Error("failed to set REFRESH_SECRET env variable", zap.Error(err))
+		}
 	}
 	rtClaims := jwt.MapClaims{}
 	rtClaims["refresh_uuid"] = td.RefreshUuid

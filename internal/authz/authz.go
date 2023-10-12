@@ -55,14 +55,10 @@ func (as *AuthzSubsystem) AuthorizationHandler(c *gin.Context) {
 	// This is just a extremely basic authorization function right now. Will need to be built out to have full
 	// RBAC or ACL access controls in place. This implementation just checks to see if the user can access the
 	// resource and the default model says that "admin" can access anything.
-	as.Logger.Info("authorization handler called")
 	if user, ok := c.Get("username"); ok {
-		as.Logger.Info("user requesting authorization", zap.String("user", user.(string)))
 		if res, _ := as.enforcer.Enforce(user, c.Request.URL.Path, c.Request.Method); res {
-			as.Logger.Info("user authorized", zap.String("user", user.(string)))
 			c.Next()
 		} else {
-			as.Logger.Info("user not authorized", zap.String("user", user.(string)))
 			helpers.WriteUnauthorizedResponseJSON(c, errors.New("user not authorized to access this resource"))
 			return
 		}

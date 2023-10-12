@@ -20,6 +20,7 @@ func NewSubsystem(c *controller.Controller) interfaces.Subsystem {
 		nic:        &LiveNicInfo{Logger: logger},
 		cpu:        &LiveCpuInfo{Logger: logger},
 		mem:        &LiveMemoryInfo{Logger: logger},
+		disk:       &LiveDiskInfo{Logger: logger},
 	}
 	return &hw
 }
@@ -32,9 +33,10 @@ type HardwareSubsystem struct {
 	nic        NicInfo
 	cpu        CpuInfo
 	mem        MemoryInfo
+	disk       DiskInfo
 }
 
-// Register() registers the routes that this module handles
+// Register registers the routes that this module handles
 func (s *HardwareSubsystem) Register() error {
 	if !s.Enabled() {
 		s.Logger.Info("subsystem is disabled", zap.String("subsystem", s.Name()))
@@ -52,6 +54,10 @@ func (s *HardwareSubsystem) Register() error {
 		// Memory Routes
 		{Group: base, HttpMethod: http.MethodGet, Path: "/memory", Handler: s.memInfoHandler, Protected: secure},
 		// Disk Routes
+		{Group: base, HttpMethod: http.MethodGet, Path: "/disk", Handler: s.diskRootHandler, Protected: secure},
+		{Group: base, HttpMethod: http.MethodGet, Path: "/disk/partitions", Handler: s.diskPartitionHandler, Protected: secure},
+		{Group: base, HttpMethod: http.MethodGet, Path: "/disk/disks", Handler: s.diskPhysicalDisksHandler, Protected: secure},
+		{Group: base, HttpMethod: http.MethodGet, Path: "/disk/usage", Handler: s.diskUsageHandler, Protected: secure},
 		// GPU Routes
 		// Network Routes
 		{Group: base, HttpMethod: http.MethodGet, Path: "/network", Handler: s.nicRootHandler, Protected: secure},
@@ -73,6 +79,7 @@ func (s *HardwareSubsystem) Enabled() bool {
 	return s.enabled
 }
 
+// Name returns the name of the subsystem
 func (s *HardwareSubsystem) Name() string {
 	return s.name
 }
