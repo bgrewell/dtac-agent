@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// NewMockNicInfo creates a new instance of the MockNicInfo struct
 func NewMockNicInfo() *MockNicInfo {
 	mockData := []net.InterfaceStat{
 		{
@@ -41,6 +42,7 @@ func NewMockNicInfo() *MockNicInfo {
 	}
 }
 
+// MockNicInfo is used in tests of the NicInfo subsystem
 type MockNicInfo struct {
 	Router         *gin.Engine           // All subsystems have a pointer to the gin.Engine
 	Config         *config.Configuration // All subsystems have a pointer to the configuration
@@ -48,6 +50,7 @@ type MockNicInfo struct {
 	InterfaceStats []net.InterfaceStat
 }
 
+// Update updates the nic information
 func (ni *MockNicInfo) Update() {
 	n, err := net.Interfaces()
 	if err != nil {
@@ -56,6 +59,7 @@ func (ni *MockNicInfo) Update() {
 	ni.InterfaceStats = n
 }
 
+// Info returns the nic information
 func (ni *MockNicInfo) Info() []net.InterfaceStat {
 	return ni.InterfaceStats
 }

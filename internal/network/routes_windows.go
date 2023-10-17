@@ -9,6 +9,7 @@ import (
 	"unsafe"
 )
 
+// RouteTableRow is the struct for the route table entry
 type RouteTableRow struct {
 	Destination    string          `json:"destination"`
 	Mask           string          `json:"mask"`
@@ -26,10 +27,12 @@ type RouteTableRow struct {
 	Metric5        uint32          `json:"metric_5"`
 }
 
+// String returns the string representation of the route table entry
 func (rtr RouteTableRow) String() string {
 	return rtr.JSON()
 }
 
+// JSON returns the json representation of the route table entry
 func (rtr RouteTableRow) JSON() string {
 	jout, err := json.Marshal(rtr)
 	if err != nil {
@@ -38,18 +41,22 @@ func (rtr RouteTableRow) JSON() string {
 	return string(jout)
 }
 
+// Create creates the route on the system
 func (rtr RouteTableRow) Create() error {
 	return rtr.modifyRoute(fCreateIpForwardEntry)
 }
 
+// Update updates the route on the system
 func (rtr RouteTableRow) Update() error {
 	return rtr.modifyRoute(fSetIpForwardEntry)
 }
 
+// Remove removes the route from the system
 func (rtr RouteTableRow) Remove() error {
 	return rtr.modifyRoute(fDeleteIpForwardEntry)
 }
 
+// Applied returns whether or not the route is applied
 func (rtr RouteTableRow) Applied() bool {
 	return false
 }

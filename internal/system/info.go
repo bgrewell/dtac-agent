@@ -4,6 +4,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// SystemInfo is the struct for the system information
 type SystemInfo struct {
 	Uuid                   string `json:"uuid"`
 	ProductName            string `json:"product_name"`
@@ -11,6 +12,7 @@ type SystemInfo struct {
 	OperatingSystemVersion string `json:"operating_system_version"`
 }
 
+// Initialize initializes the system info
 func (si *SystemInfo) Initialize(log *zap.Logger) {
 	pn, err := GetSystemProductName()
 	if err != nil {

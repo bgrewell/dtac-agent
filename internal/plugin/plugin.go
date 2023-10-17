@@ -14,6 +14,7 @@ import (
 	"path"
 )
 
+// NewSubsystem creates a new instance of the PluginSubsystem struct
 func NewSubsystem(router *gin.Engine, log *zap.Logger, cfg *config.Configuration) interfaces.Subsystem {
 	name := "plugin"
 	ps := PluginSubsystem{
@@ -26,6 +27,7 @@ func NewSubsystem(router *gin.Engine, log *zap.Logger, cfg *config.Configuration
 	return &ps
 }
 
+// PluginSubsystem handles plugin related functionalities
 type PluginSubsystem struct {
 	Router  *gin.Engine
 	Logger  *zap.Logger
@@ -34,6 +36,7 @@ type PluginSubsystem struct {
 	name    string // Subsystem name
 }
 
+// Register registers the routes that this module handles.
 func (ps *PluginSubsystem) Register() (err error) {
 	if !ps.Enabled() {
 		ps.Logger.Info("subsystem is disabled", zap.String("subsystem", ps.Name()))
@@ -100,10 +103,12 @@ func (ps *PluginSubsystem) Register() (err error) {
 	return nil
 }
 
+// Enabled returns true if the subsystem is enabled
 func (ps *PluginSubsystem) Enabled() bool {
 	return ps.enabled
 }
 
+// Name returns the name of the subsystem
 func (ps *PluginSubsystem) Name() string {
 	return ps.name
 }

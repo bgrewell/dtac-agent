@@ -45,15 +45,18 @@ const (
 	MIB_IPROUTE_TYPE_INDIRECT ForwardType = 4
 )
 
+// MIB_IPFORWARDROW structure
 type MIB_IPFORWARDTABLE struct {
 	dwNumEntries uint32
 	table        [10000]MIB_IPFORWARDROW
 }
 
+// Size returns the size of the MIB_IPFORWARDTABLE structure
 func (m MIB_IPFORWARDTABLE) Size() uint32 {
 	return uint32(unsafe.Sizeof(m))
 }
 
+// MIB_IPFORWARDROW structure
 type MIB_IPFORWARDROW struct {
 	dwForwardDest      uint32
 	dwForwardMask      uint32
@@ -71,10 +74,12 @@ type MIB_IPFORWARDROW struct {
 	dwForwardMetric5   uint32
 }
 
+// Size returns the size of the MIB_IPFORWARDROW structure
 func (m MIB_IPFORWARDROW) Size() uint32 {
 	return uint32(unsafe.Sizeof(m))
 }
 
+// MIB_IPSTATS_LH structure
 type MIB_IP_STATS_LH struct {
 	dwForwarding      uint32
 	dwDefaultTTL      uint32
@@ -101,6 +106,7 @@ type MIB_IP_STATS_LH struct {
 	dwNumRoutes       uint32
 }
 
+// Size returns the size of the MIB_IP_STATS_LH structure
 func (m *MIB_IP_STATS_LH) Size() uint32 {
 	return uint32(unsafe.Sizeof(m))
 }

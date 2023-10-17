@@ -14,6 +14,7 @@ import (
 	"time"
 )
 
+// NewSubsystem creates a new instance of the NetworkSubsystem struct
 func NewSubsystem(c *controller.Controller) interfaces.Subsystem {
 	name := "network"
 	ns := NetworkSubsystem{
@@ -69,10 +70,12 @@ func (s *NetworkSubsystem) Register() error {
 	return nil
 }
 
+// Enabled returns true if the subsystem is enabled
 func (s *NetworkSubsystem) Enabled() bool {
 	return s.enabled
 }
 
+// Name returns the name of the subsystem
 func (s *NetworkSubsystem) Name() string {
 	return s.name
 }

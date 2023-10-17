@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// GetArpTable returns the ARP table as a slice of ArpEntry structs.
 func GetArpTable() ([]ArpEntry, error) {
 	cmd := exec.Command("arp", "-n")
 	output, err := cmd.Output()

@@ -5,6 +5,7 @@ import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
 )
 
+// RegisterRoutes registers the routes that this module handles
 func RegisterRoutes(routes []types.RouteInfo, secureMw []gin.HandlerFunc) {
 	for _, route := range routes {
 		funcs := []gin.HandlerFunc{}

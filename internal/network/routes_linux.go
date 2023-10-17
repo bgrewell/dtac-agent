@@ -8,6 +8,7 @@ import (
 	"net"
 )
 
+// RouteTableRow is the struct for the route table entry
 type RouteTableRow struct {
 	LinkIndex  int                    `json:"link_index"`
 	ILinkIndex int                    `json:"i_link_index"`
@@ -31,10 +32,12 @@ type RouteTableRow struct {
 	Hoplimit   int                    `json:"hoplimit"`
 }
 
+// String returns the string representation of the route table entry
 func (rtr RouteTableRow) String() string {
 	return rtr.JSON()
 }
 
+// JSON returns the json representation of the route table entry
 func (rtr RouteTableRow) JSON() string {
 	jout, err := json.Marshal(rtr)
 	if err != nil {
@@ -43,18 +46,22 @@ func (rtr RouteTableRow) JSON() string {
 	return string(jout)
 }
 
+// Create creates the route on the system
 func (rtr RouteTableRow) Create() error {
 	return rtr.modifyRoute(Route_Create)
 }
 
+// Update updates the route on the system
 func (rtr RouteTableRow) Update() error {
 	return rtr.modifyRoute(Route_Update)
 }
 
+// Remove removes the route from the system
 func (rtr RouteTableRow) Remove() error {
 	return rtr.modifyRoute(Route_Delete)
 }
 
+// Applied returns true if the route is applied to the system
 func (rtr RouteTableRow) Applied() bool {
 	return false
 }
@@ -104,6 +111,7 @@ func (rtr RouteTableRow) modifyRoute(action RouteAction) (err error) {
 	}
 }
 
+// RouteAction is an enum for the route actions
 type RouteAction int
 
 const (

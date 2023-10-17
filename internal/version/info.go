@@ -13,6 +13,7 @@ var (
 	version = "DEBUG"
 )
 
+// Info is the struct for the version information
 type Info struct {
 	Version string `json:"version" yaml:"version"`
 	Date    string `json:"date" yaml:"date"`
@@ -20,10 +21,12 @@ type Info struct {
 	Rev     string `json:"rev" yaml:"rev"`
 }
 
+// String returns the version information as a string
 func (i Info) String() string {
 	return fmt.Sprintf("version: %s date: %s branch: %s rev: %s", i.Version, i.Date, i.Branch, i.Rev)
 }
 
+// JSON returns the version information as a JSON string
 func (i Info) JSON(pretty bool) string {
 	var j []byte
 	var err error
@@ -38,6 +41,7 @@ func (i Info) JSON(pretty bool) string {
 	return string(j)
 }
 
+// Current returns the current version information
 func Current() *Info {
 	v := Info{
 		Version: version,

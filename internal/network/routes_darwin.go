@@ -6,6 +6,7 @@ import (
 	"net"
 )
 
+// RouteTableRow is the struct for the route table entry
 type RouteTableRow struct {
 	LinkIndex  int                    `json:"link_index"`
 	ILinkIndex int                    `json:"i_link_index"`

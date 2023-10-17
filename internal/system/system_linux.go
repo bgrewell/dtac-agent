@@ -8,20 +8,24 @@ import (
 	"strings"
 )
 
+// GetSystemProductName returns the product name of the system
 func GetSystemProductName() (product string, err error) {
 	command := "dmidecode -s system-product-name"
 	return helpers.RunAsUser(command, "root")
 }
 
+// GetSystemUUID returns the UUID of the system
 func GetSystemUUID() (uuid string, err error) {
 	command := "dmidecode -s system-uuid"
 	return helpers.RunAsUser(command, "root")
 }
 
+// GetOSName returns the name of the operating system
 func GetOSName() (os string, err error) {
 	return getLinuxInfo("ID")
 }
 
+// GetOSVersion returns the version of the operating system
 func GetOSVersion() (version string, err error) {
 	return getLinuxInfo("VERSION")
 }

@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// ArpEntry is the struct for the arp entry
 type ArpEntry struct {
 	IPAddress string `json:"ip_address"`
 	HWType    string `json:"hw_type"`

@@ -20,6 +20,7 @@ const (
 	TLS_TYPE_SELF_SIGNED = "self-signed"
 )
 
+// NewTlsInfo creates a new instance of the TlsInfo struct
 func NewTlsInfo(router *gin.Engine, cfg *config.Configuration, log *zap.Logger) *TlsInfo {
 	tls := TlsInfo{
 		Enabled:      cfg.Listener.Https.Enabled,
@@ -44,6 +45,7 @@ type TlsInfo struct {
 	Logger       *zap.Logger
 }
 
+// Initialize initializes the TLS subsystem
 func (tls *TlsInfo) Initialize() {
 	if tls.Config.Listener.Https.Type == TLS_TYPE_SELF_SIGNED {
 		// Create default files if not specified and save to config
