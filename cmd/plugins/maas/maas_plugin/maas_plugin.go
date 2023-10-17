@@ -554,7 +554,7 @@ func (p *MAASPlugin) getMatchingMachines(args plugins.Args) (matches []*structs2
 func (p *MAASPlugin) findMachines(ids []string, hosts []string) []*structs2.Machine {
 	results := make([]*structs2.Machine, 0)
 
-	if ids != nil && len(ids) > 0 {
+	if len(ids) > 0 {
 		for _, id := range ids {
 			machine := p.getMachineById(id)
 			if machine != nil {
@@ -563,7 +563,7 @@ func (p *MAASPlugin) findMachines(ids []string, hosts []string) []*structs2.Mach
 		}
 	}
 
-	if hosts != nil && len(hosts) > 0 {
+	if len(hosts) > 0 {
 		for _, host := range hosts {
 			machine := p.getMachineByHost(host)
 			if machine != nil {

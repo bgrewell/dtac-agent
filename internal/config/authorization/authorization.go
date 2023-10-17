@@ -3,7 +3,6 @@ package authorization
 import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"go.uber.org/zap"
-	"io/ioutil"
 	"os"
 )
 
@@ -24,13 +23,12 @@ e = some(where (p.eft == allow))
 [matchers]
 m = r.sub == p.sub && r.obj == p.obj && r.act == p.act || r.sub == "admin"
 `
-		err := ioutil.WriteFile(c.Config.Auth.Model, []byte(defaultContents), 0600)
+		err := os.WriteFile(c.Config.Auth.Model, []byte(defaultContents), 0600)
 		if err != nil {
 			c.Logger.Error("failed to write authn model file", zap.Error(err))
 			return
 		}
 		c.Logger.Info("created authn model file", zap.String("file", c.Config.Auth.Model))
-	} else {
 	}
 }
 
@@ -40,12 +38,11 @@ func EnsureAuthzPolicy(c *controller.Controller) {
 		// File doesn't exist, create it with default contents
 		defaultContents := `
 `
-		err := ioutil.WriteFile(c.Config.Auth.Policy, []byte(defaultContents), 0600)
+		err := os.WriteFile(c.Config.Auth.Policy, []byte(defaultContents), 0600)
 		if err != nil {
 			c.Logger.Error("failed to write authn policy file", zap.Error(err))
 			return
 		}
 		c.Logger.Info("created authn policy file", zap.String("file", c.Config.Auth.Policy))
-	} else {
 	}
 }

@@ -246,7 +246,7 @@ func (as *AuthnSubsystem) verifyToken(tokenStr string) (*jwt.Token, error) {
 		return nil, err
 	}
 
-	if _, ok := token.Claims.(jwt.Claims); !ok && !token.Valid {
+	if !token.Valid {
 		return nil, fmt.Errorf("token is invalid")
 	}
 	return token, nil

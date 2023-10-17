@@ -3,7 +3,7 @@ package api
 import (
 	"fmt"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/maas/maas_plugin/structs"
-	"io/ioutil"
+	"io"
 	"math/rand"
 	"net"
 	"net/http"
@@ -35,7 +35,7 @@ func Get(endpoint string, settings *structs.MAASSettings) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}

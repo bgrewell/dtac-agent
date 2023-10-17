@@ -115,6 +115,9 @@ const (
 // GetRouteTable retrieves the full route table on the system
 func GetRouteTable() (routes []RouteTableRow, err error) {
 	internalRoutes, err := netlink.RouteList(nil, netlink.FAMILY_V4)
+	if err != nil {
+		return nil, err
+	}
 	routes = make([]RouteTableRow, len(internalRoutes))
 	for idx, route := range internalRoutes {
 		NewDst := ""

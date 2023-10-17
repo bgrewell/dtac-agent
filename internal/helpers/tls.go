@@ -10,7 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
 	"go.uber.org/zap"
-	"io/ioutil"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -115,7 +114,7 @@ func GenerateSelfSignedCertKey(cfg *config.Configuration) error {
 	}
 
 	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
-	err = ioutil.WriteFile(cfg.Listener.Https.CertFile, certPEM, 0600)
+	err = os.WriteFile(cfg.Listener.Https.CertFile, certPEM, 0600)
 	if err != nil {
 		return err
 	}
@@ -125,7 +124,7 @@ func GenerateSelfSignedCertKey(cfg *config.Configuration) error {
 		return err
 	}
 	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyDER})
-	err = ioutil.WriteFile(cfg.Listener.Https.KeyFile, keyPEM, 0600)
+	err = os.WriteFile(cfg.Listener.Https.KeyFile, keyPEM, 0600)
 	if err != nil {
 		return err
 	}

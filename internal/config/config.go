@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -220,7 +219,7 @@ func NewConfiguration(router *gin.Engine, log *zap.Logger) (config *Configuratio
 
 	var c Configuration
 	if err := viper.Unmarshal(&c); err != nil {
-		return nil, fmt.Errorf("Failed to unmarshal configuration: %v", err)
+		return nil, fmt.Errorf("failed to unmarshal configuration: %v", err)
 	}
 
 	// Setup routes
@@ -287,7 +286,7 @@ func ensureDir(dir string, create bool) bool {
 // CheckWriteAccess checks if we have write access to a directory.
 func checkWriteAccess(dir string) bool {
 	// Try to create a temporary file in the directory.
-	tempFile, err := ioutil.TempFile(dir, "write-check-")
+	tempFile, err := os.CreateTemp(dir, "write-check-")
 	if err != nil {
 		return false
 	}
