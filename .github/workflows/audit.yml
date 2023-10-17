@@ -9,7 +9,8 @@ on:
 jobs:
 
   audit:
-    runs-on: ubuntu-latest
+    runs-on:
+      group: "gasp-k8s"
     steps:
       - uses: actions/checkout@v2
 
