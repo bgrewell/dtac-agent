@@ -29,6 +29,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// RegisterParams is a struct that is used to pass the controller and subsystems to the Register function
 type RegisterParams struct {
 	fx.In
 	Controller *controller.Controller
@@ -86,6 +87,7 @@ func NewGinRouter() *gin.Engine {
 	return router
 }
 
+// NewController creates a new instance of the controller.Controller struct
 func NewController(router *gin.Engine, logger *zap.Logger, cfg *config.Configuration,
 	hrl *httpRoutes.HttpRouteList, db *authn_db.AuthDB) *controller.Controller {
 	// Create the SubsystemParams object
@@ -100,6 +102,7 @@ func NewController(router *gin.Engine, logger *zap.Logger, cfg *config.Configura
 	return &c
 }
 
+// Register is a function that is called by the Fx framework to register all of the subsystems
 func Register(params RegisterParams) {
 	// Find all authentication middleware and setup
 	for _, sub := range params.Subsystems {
@@ -127,6 +130,7 @@ func Register(params RegisterParams) {
 	}
 }
 
+// AsSubsystem is a helper function that is used to annotate a function as a subsystem
 func AsSubsystem(f any) any {
 	return fx.Annotate(
 		f,

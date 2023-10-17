@@ -1,5 +1,6 @@
 package structs
 
+// Machine is the struct for a machine
 type Machine struct {
 	AddressTtl                   string                   `json:"address_ttl" yaml:"address_ttl"`
 	Architecture                 string                   `json:"architecture" yaml:"architecture"`

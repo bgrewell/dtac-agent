@@ -21,6 +21,7 @@ import (
 	"time"
 )
 
+// NewAuthnSubsystem creates a new authn subsystem
 func NewAuthnSubsystem(c *controller.Controller) interfaces.Subsystem {
 	name := "auth"
 	as := AuthnSubsystem{
@@ -44,6 +45,7 @@ func NewAuthnSubsystem(c *controller.Controller) interfaces.Subsystem {
 	return &as
 }
 
+// AuthnSubsystem is the subsystem for authentication
 type AuthnSubsystem struct {
 	Controller *controller.Controller
 	Logger     *zap.Logger
@@ -53,6 +55,7 @@ type AuthnSubsystem struct {
 	guest      authn_db.User
 }
 
+// Register registers the authn subsystem
 func (as *AuthnSubsystem) Register() error {
 	if !as.Enabled() {
 		as.Logger.Info("subsystem is disabled", zap.String("subsystem", as.Name()))
@@ -73,10 +76,12 @@ func (as *AuthnSubsystem) Register() error {
 	return nil
 }
 
+// Enabled returns true if the subsystem is enabled
 func (as *AuthnSubsystem) Enabled() bool {
 	return as.enabled
 }
 
+// AuthenticationHandler is the middleware function that is called before every secure request
 func (as *AuthnSubsystem) AuthenticationHandler(c *gin.Context) {
 	// The AuthenticationHandler is a middleware function that is called before every secure request
 	// that is used to get the user_id from the JWT token and store it in the request context to be
@@ -100,6 +105,7 @@ func (as *AuthnSubsystem) AuthenticationHandler(c *gin.Context) {
 	c.Next()
 }
 
+// Name returns the name of the subsystem
 func (as *AuthnSubsystem) Name() string {
 	return as.name
 }

@@ -65,6 +65,7 @@ func (ds *DiagSubsystem) Enabled() bool {
 	return ds.enabled
 }
 
+// Name returns the name of the DiagSubsystem
 func (ds *DiagSubsystem) Name() string {
 	return ds.name
 }

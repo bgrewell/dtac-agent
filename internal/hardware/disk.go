@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// DiskDetails is the struct for the disk details
 type DiskDetails struct {
 	Name   string
 	Size   string
@@ -16,22 +17,26 @@ type DiskDetails struct {
 	Label  string
 }
 
+// DiskReport is the struct for the disk report
 type DiskReport struct {
 	Disks      []*DiskDetails       `json:"disks"`
 	Partitions []disk.PartitionStat `json:"partitions"`
 	Usage      []*disk.UsageStat    `json:"usage"`
 }
 
+// DiskInfo is the interface for the disk subsystem
 type DiskInfo interface {
 	Update()
 	Info() *DiskReport
 }
 
+// LiveDiskInfo is the struct for the disk subsystem
 type LiveDiskInfo struct {
 	Logger     *zap.Logger // All subsystems have a pointer to the logger
 	DiskReport *DiskReport
 }
 
+// Update updates the disk subsystem
 func (ni *LiveDiskInfo) Update() {
 	p, err := disk.Partitions(true)
 	if err != nil {
@@ -60,6 +65,7 @@ func (ni *LiveDiskInfo) Update() {
 	ni.DiskReport = &dr
 }
 
+// Info returns the disk subsystem info
 func (ni *LiveDiskInfo) Info() *DiskReport {
 	return ni.DiskReport
 }

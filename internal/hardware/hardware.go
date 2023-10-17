@@ -9,6 +9,7 @@ import (
 	"net/http"
 )
 
+// NewSubsystem creates a new instance of the HardwareSubsystem and if that subsystem is enabled it calls
 func NewSubsystem(c *controller.Controller) interfaces.Subsystem {
 	name := "hardware"
 	logger := c.Logger.With(zap.String("module", name))
@@ -25,6 +26,7 @@ func NewSubsystem(c *controller.Controller) interfaces.Subsystem {
 	return &hw
 }
 
+// HardwareSubsystem is the subsystem that contains routes related to internal dtac diagnostics
 type HardwareSubsystem struct {
 	Controller *controller.Controller
 	Logger     *zap.Logger

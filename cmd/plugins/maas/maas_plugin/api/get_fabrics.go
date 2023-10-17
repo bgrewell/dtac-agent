@@ -5,6 +5,7 @@ import (
 	structs2 "github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/maas/maas_plugin/structs"
 )
 
+// GetFabrics returns a list of fabrics from the MAAS server
 func GetFabrics(settings *structs2.MAASSettings) ([]*structs2.Fabric, error) {
 	endpoint := "fabrics/"
 

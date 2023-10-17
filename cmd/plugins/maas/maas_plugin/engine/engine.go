@@ -5,6 +5,7 @@ import (
 	structs2 "github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/maas/maas_plugin/structs"
 )
 
+// Engine is the main engine for the MAAS plugin
 type Engine struct {
 	Settings *structs2.MAASSettings
 	running  bool
@@ -14,26 +15,32 @@ type Engine struct {
 	fabrics  []*structs2.Fabric
 }
 
+// Machines returns a list of machines from the MAAS server
 func (e *Engine) Machines() []*structs2.Machine {
 	return e.machines
 }
 
+// Fabrics returns a list of fabrics from the MAAS server
 func (e *Engine) Fabrics() []*structs2.Fabric {
 	return e.fabrics
 }
 
+// Running returns true if the engine is running
 func (e *Engine) Running() bool {
 	return e.running
 }
 
+// Failed returns true if the engine has errored
 func (e *Engine) Failed() bool {
 	return e.errored
 }
 
+// ErrDetails returns the error details
 func (e *Engine) ErrDetails() error {
 	return e.err
 }
 
+// Start starts the engine
 func (e *Engine) Start() error {
 	e.running = true
 	go func() {
@@ -60,6 +67,7 @@ func (e *Engine) Start() error {
 	return nil
 }
 
+// Stop stops the engine
 func (e *Engine) Stop() error {
 	e.running = false
 	return nil

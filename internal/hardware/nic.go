@@ -10,16 +10,19 @@ import (
 	"time"
 )
 
+// NicInfo is the interface for the nic subsystem
 type NicInfo interface {
 	Update()
 	Info() []net.InterfaceStat
 }
 
+// LiveNicInfo is the struct for the nic subsystem
 type LiveNicInfo struct {
 	Logger         *zap.Logger // All subsystems have a pointer to the logger
 	InterfaceStats []net.InterfaceStat
 }
 
+// Update updates the nic subsystem
 func (ni *LiveNicInfo) Update() {
 	n, err := net.Interfaces()
 	if err != nil {
@@ -28,6 +31,7 @@ func (ni *LiveNicInfo) Update() {
 	ni.InterfaceStats = n
 }
 
+// Info returns the nic subsystem info
 func (ni *LiveNicInfo) Info() []net.InterfaceStat {
 	return ni.InterfaceStats
 }

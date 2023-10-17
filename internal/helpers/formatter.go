@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// OKResponse is the struct for the response
 type OKResponse struct {
 	Time    string      `json:"time"`
 	Status  string      `json:"status"`
@@ -15,11 +16,13 @@ type OKResponse struct {
 	Output  interface{} `json:"output"`
 }
 
+// ErrorResponse is the struct for the response
 type ErrorResponse struct {
 	Time string `json:"time"`
 	Err  string `json:"error"`
 }
 
+// WriteResponseJSON writes a response in JSON format
 func WriteResponseJSON(c *gin.Context, duration time.Duration, obj interface{}) {
 	response := OKResponse{
 		Time:    time.Now().Format(time.RFC3339Nano),
@@ -35,6 +38,7 @@ func WriteResponseJSON(c *gin.Context, duration time.Duration, obj interface{}) 
 	c.Data(http.StatusOK, gin.MIMEJSON, jout)
 }
 
+// WriteErrorResponseJSON writes an error response in JSON format
 func WriteErrorResponseJSON(c *gin.Context, err error) {
 	er := ErrorResponse{
 		Time: time.Now().Format(time.RFC3339Nano),
@@ -49,6 +53,7 @@ func WriteErrorResponseJSON(c *gin.Context, err error) {
 	c.Abort()
 }
 
+// WriteUnauthorizedResponseJSON writes an error response in JSON format
 func WriteUnauthorizedResponseJSON(c *gin.Context, err error) {
 	er := ErrorResponse{
 		Time: time.Now().Format(time.RFC3339Nano),
@@ -63,6 +68,7 @@ func WriteUnauthorizedResponseJSON(c *gin.Context, err error) {
 	c.Abort()
 }
 
+// WriteNotFoundResponseJSON writes an error response in JSON format
 func WriteNotFoundResponseJSON(c *gin.Context) {
 	er := ErrorResponse{
 		Time: time.Now().Format(time.RFC3339Nano),
@@ -73,6 +79,7 @@ func WriteNotFoundResponseJSON(c *gin.Context) {
 	c.Abort()
 }
 
+// WriteNotImplementedResponseJSON writes an error response in JSON format
 func WriteNotImplementedResponseJSON(c *gin.Context) {
 	er := ErrorResponse{
 		Time: time.Now().Format(time.RFC3339Nano),

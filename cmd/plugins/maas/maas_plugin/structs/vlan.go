@@ -1,5 +1,6 @@
 package structs
 
+// VlanStruct is the struct for a VLAN
 type VlanStruct struct {
 	Vid           int         `json:"vid" yaml:"vid"`
 	Mtu           int         `json:"mtu" yaml:"mtu"`

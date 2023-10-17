@@ -22,6 +22,7 @@ type InternalSettings struct {
 	FileName    string `json:"file_name" yaml:"file_name" mapstructure:"file_name"`
 }
 
+// BlockingEntry is the struct for a blocking entry
 type BlockingEntry struct {
 	Trigger       string `json:"trigger" yaml:"trigger" mapstructure:"trigger"`
 	Detect        string `json:"detect" yaml:"detect" mapstructure:"detect"`
@@ -29,11 +30,13 @@ type BlockingEntry struct {
 	TimeoutAction string `json:"timeout_action" yaml:"timeout_action" mapstructure:"timeout_action"`
 }
 
+// ListenerEntry is the struct for a listener entry
 type ListenerEntry struct {
 	Port  int                `json:"port" yaml:"port" mapstructure:"port"`
 	Https ListenerHttpsEntry `json:"https" yaml:"https" mapstructure:"https"`
 }
 
+// ListenerHttpsEntry is the struct for a listener https entry
 type ListenerHttpsEntry struct {
 	Enabled         bool     `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 	Type            string   `json:"type" yaml:"type" mapstructure:"type"`
@@ -43,11 +46,13 @@ type ListenerHttpsEntry struct {
 	KeyFile         string   `json:"key" yaml:"key" mapstructure:"key"`
 }
 
+// LockoutEntry is the struct for a lockout entry
 type LockoutEntry struct {
 	Enabled        bool   `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 	AutoUnlockTime string `json:"auto_unlock_time" yaml:"auto_unlock_time" mapstructure:"auto_unlock_time"`
 }
 
+// PluginEntry is the struct for a plugin entry
 type PluginEntry struct {
 	Enabled          bool                            `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 	PluginDir        string                          `json:"dir" yaml:"dir" mapstructure:"dir"`
@@ -56,6 +61,7 @@ type PluginEntry struct {
 	Entries          map[string]*loader.PluginConfig `json:"entries" yaml:"entries" mapstructure:"entries"`
 }
 
+// RouteEntry is the struct for a route entry
 type RouteEntry struct {
 	Name     string         `json:"name" yaml:"name" mapstructure:"name"`
 	Route    string         `json:"route" yaml:"route" mapstructure:"route"`
@@ -67,12 +73,14 @@ type RouteEntry struct {
 	Mode     string         `json:"mode" yaml:"mode" mapstructure:"mode"`
 }
 
+// SourceEntry is the struct for a source entry
 type SourceEntry struct {
 	Type  string `json:"type" yaml:"type" mapstructure:"type"`
 	Value string `json:"value" yaml:"value" mapstructure:"value"`
 	RunAs string `json:"run_as" yaml:"run_as" mapstructure:"run_as"`
 }
 
+// SubsystemEntry is the struct for a subsystem entry
 type SubsystemEntry struct {
 	Diag     bool `json:"diag" yaml:"diag" mapstructure:"diag"`
 	Hardware bool `json:"hardware" yaml:"hardware" mapstructure:"hardware"`
@@ -84,6 +92,7 @@ type SubsystemEntry struct {
 	UdpReflector bool `json:"udp_reflector" yaml:"udp_reflector" mapstructure:"udp_reflector"`
 }
 
+// UpdaterEntry is the struct for an updater entry
 type UpdaterEntry struct {
 	Enabled         bool   `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 	Token           string `json:"token" yaml:"token" mapstructure:"token"`
@@ -93,6 +102,7 @@ type UpdaterEntry struct {
 	RestartOnUpdate bool   `json:"restart_on_update" yaml:"restart_on_update" mapstructure:"restart_on_update"`
 }
 
+// WatchdogEntry is the struct for a watchdog entry
 type WatchdogEntry struct {
 	Enabled      bool   `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 	PollInterval string `json:"poll_interval" yaml:"poll_interval" mapstructure:"poll_interval"`
@@ -100,6 +110,7 @@ type WatchdogEntry struct {
 	BSSID        string `json:"bssid" yaml:"bssid" mapstructure:"bssid"`
 }
 
+// AuthEntry is the struct for an auth entry
 type AuthEntry struct {
 	User          string `json:"user" yaml:"user" mapstructure:"user"`
 	Pass          string `json:"pass" yaml:"pass" mapstructure:"pass"`
@@ -108,6 +119,7 @@ type AuthEntry struct {
 	Policy        string `json:"policy" yaml:"policy" mapstructure:"policy"`
 }
 
+// Configuration is the struct for the configuration
 type Configuration struct {
 	Auth         AuthEntry                `json:"authn" yaml:"authn" mapstructure:"authn"`
 	Internal     InternalSettings         `json:"internal" yaml:"internal" mapstructure:"internal"`
@@ -122,6 +134,7 @@ type Configuration struct {
 	logger       *zap.Logger
 }
 
+// NewConfiguration creates a new configuration
 func NewConfiguration(router *gin.Engine, log *zap.Logger) (config *Configuration, err error) {
 	// Setup configuration file location(s)
 	viper.SetConfigName("config")

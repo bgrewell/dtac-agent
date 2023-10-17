@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// NewDiskDetails creates a new DiskDetails struct
 func NewDiskDetails(name string, size string, model string) *DiskDetails {
 	dd := DiskDetails{
 		Name:   name,
@@ -17,6 +18,7 @@ func NewDiskDetails(name string, size string, model string) *DiskDetails {
 	return &dd
 }
 
+// GetPhysicalDisks returns the physical disks
 func GetPhysicalDisks() ([]*DiskDetails, error) {
 	ex := execute.NewExecutor(nil)
 	stdout, _, err := ex.ExecuteSeparate("lsblk -o NAME,TYPE,SIZE,MODEL")

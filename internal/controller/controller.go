@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Controller is the struct for the controller
 type Controller struct {
 	Router           *gin.Engine
 	Logger           *zap.Logger

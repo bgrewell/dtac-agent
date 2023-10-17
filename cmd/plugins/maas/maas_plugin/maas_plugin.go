@@ -16,6 +16,7 @@ import (
 // Ensure that our type meets the requirements for being a plugin
 var _ plugins.Plugin = &MAASPlugin{}
 
+// MAASPlugin is the main plugin type
 type MAASPlugin struct {
 	// PluginBase provides some helper functions
 	plugins.PluginBase
@@ -23,15 +24,18 @@ type MAASPlugin struct {
 	engine   *engine.Engine
 }
 
+// RouteRoot returns the root path for the plugin
 func (p MAASPlugin) RouteRoot() string {
 	return "maas"
 }
 
+// Name returns the name of the plugin
 func (p MAASPlugin) Name() string {
 	t := reflect.TypeOf(p)
 	return t.Name()
 }
 
+// Register registers the plugin with the plugin manager
 func (p *MAASPlugin) Register(args plugins.RegisterArgs, reply *plugins.RegisterReply) error {
 	routes := make([]*plugins.Route, 0)
 
@@ -111,6 +115,7 @@ func (p *MAASPlugin) Register(args plugins.RegisterArgs, reply *plugins.Register
 	return nil
 }
 
+// Start starts the plugin
 func (p *MAASPlugin) Start(args plugins.Args, c *string) error {
 
 	if p.engine == nil || !p.engine.Running() {
@@ -130,6 +135,7 @@ func (p *MAASPlugin) Start(args plugins.Args, c *string) error {
 	return nil
 }
 
+// Stop stops the plugin
 func (p *MAASPlugin) Stop(args plugins.Args, c *string) error {
 	// Clear creds and stop the engine
 	if p.engine.Running() {
@@ -143,6 +149,7 @@ func (p *MAASPlugin) Stop(args plugins.Args, c *string) error {
 	return fmt.Errorf("stopped ... but this function is hardcoded for testing and needs to be finished")
 }
 
+// Status returns the status of the plugin
 func (p *MAASPlugin) Status(args plugins.Args, c *string) error {
 	if p.engine != nil {
 		err := ""
@@ -176,6 +183,7 @@ func (p *MAASPlugin) Status(args plugins.Args, c *string) error {
 	return nil
 }
 
+// GetMachines returns a list of machines from the MAAS server
 func (p *MAASPlugin) GetMachines(args plugins.Args, c *string) error {
 	if err := p.verifyReady(args, nil, nil, nil); err != nil {
 		return err
@@ -198,6 +206,7 @@ func (p *MAASPlugin) GetMachines(args plugins.Args, c *string) error {
 	return nil
 }
 
+// GetMachinesIds returns a list of machine ids from the MAAS server
 func (p *MAASPlugin) GetMachinesIds(args plugins.Args, c *string) error {
 	if err := p.verifyReady(args, nil, nil, nil); err != nil {
 		return err
@@ -232,6 +241,7 @@ func (p *MAASPlugin) GetMachinesIds(args plugins.Args, c *string) error {
 	return nil
 }
 
+// GetMachinesPools returns a list of machine pools from the MAAS server
 func (p *MAASPlugin) GetMachinesPools(args plugins.Args, c *string) error {
 	if err := p.verifyReady(args, nil, nil, nil); err != nil {
 		return err
@@ -267,6 +277,7 @@ func (p *MAASPlugin) GetMachinesPools(args plugins.Args, c *string) error {
 	return nil
 }
 
+// GetMachinesStatuses returns a list of machine statuses from the MAAS server
 func (p *MAASPlugin) GetMachinesStatuses(args plugins.Args, c *string) error {
 	if err := p.verifyReady(args, nil, nil, nil); err != nil {
 		return err
@@ -302,6 +313,7 @@ func (p *MAASPlugin) GetMachinesStatuses(args plugins.Args, c *string) error {
 	return nil
 }
 
+// GetMachinesInterfaces returns a list of machine interfaces from the MAAS server
 func (p *MAASPlugin) GetMachinesInterfaces(args plugins.Args, c *string) error {
 	if err := p.verifyReady(args, nil, nil, nil); err != nil {
 		return err
@@ -337,6 +349,7 @@ func (p *MAASPlugin) GetMachinesInterfaces(args plugins.Args, c *string) error {
 	return nil
 }
 
+// GetMachine returns a machine from the MAAS server
 func (p *MAASPlugin) GetMachine(args plugins.Args, c *string) error {
 	if err := p.verifyReady(args, nil, nil, nil); err != nil {
 		return err
@@ -375,6 +388,7 @@ func (p *MAASPlugin) GetMachine(args plugins.Args, c *string) error {
 	return nil
 }
 
+// GetMachineId returns a machine id from the MAAS server
 func (p *MAASPlugin) GetMachineId(args plugins.Args, c *string) error {
 	if err := p.verifyReady(args, nil, nil, nil); err != nil {
 		return err
@@ -415,6 +429,7 @@ func (p *MAASPlugin) GetMachineId(args plugins.Args, c *string) error {
 	return nil
 }
 
+// GetMachinePool returns a machine pool from the MAAS server
 func (p *MAASPlugin) GetMachinePool(args plugins.Args, c *string) error {
 	if err := p.verifyReady(args, nil, nil, nil); err != nil {
 		return err
@@ -455,6 +470,7 @@ func (p *MAASPlugin) GetMachinePool(args plugins.Args, c *string) error {
 	return nil
 }
 
+// GetMachineStatus returns a machine status from the MAAS server
 func (p *MAASPlugin) GetMachineStatus(args plugins.Args, c *string) error {
 	if err := p.verifyReady(args, nil, nil, nil); err != nil {
 		return err
@@ -495,6 +511,7 @@ func (p *MAASPlugin) GetMachineStatus(args plugins.Args, c *string) error {
 	return nil
 }
 
+// GetMachineInterfaces returns a machine interfaces from the MAAS server
 func (p *MAASPlugin) GetMachineInterfaces(args plugins.Args, c *string) error {
 	if err := p.verifyReady(args, nil, nil, nil); err != nil {
 		return err
@@ -575,6 +592,7 @@ func (p *MAASPlugin) findMachines(ids []string, hosts []string) []*structs2.Mach
 	return results
 }
 
+// GetFabrics returns a list of fabrics from the MAAS server
 func (p *MAASPlugin) GetFabrics(args plugins.Args, c *string) error {
 	if err := p.verifyReady(args, nil, nil, nil); err != nil {
 		return err
@@ -597,6 +615,7 @@ func (p *MAASPlugin) GetFabrics(args plugins.Args, c *string) error {
 	return nil
 }
 
+// GetFabric returns a fabric from the MAAS server
 func (p *MAASPlugin) GetFabric(args plugins.Args, c *string) error {
 	if err := p.verifyReady(args, nil, nil, nil); err != nil {
 		return err

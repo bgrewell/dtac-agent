@@ -13,6 +13,7 @@ import (
 	"time"
 )
 
+// NewEchoSubsystem creates a new echo subsystem
 func NewEchoSubsystem(c *controller.Controller) interfaces.Subsystem {
 	name := "echo"
 	es := EchoSubsystem{
@@ -55,10 +56,12 @@ func (es *EchoSubsystem) Register() error {
 	return nil
 }
 
+// Enabled returns whether or not the echo subsystem is enabled
 func (es *EchoSubsystem) Enabled() bool {
 	return es.enabled
 }
 
+// Name returns the name of the echo subsystem
 func (es *EchoSubsystem) Name() string {
 	return es.name
 }

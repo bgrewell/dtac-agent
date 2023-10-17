@@ -8,16 +8,19 @@ import (
 	"time"
 )
 
+// MemoryInfo is the interface for the memory subsystem
 type MemoryInfo interface {
 	Update()
 	Info() *mem.VirtualMemoryStat
 }
 
+// LiveMemoryInfo is the struct for the memory subsystem
 type LiveMemoryInfo struct {
 	Logger   *zap.Logger
 	MemStats *mem.VirtualMemoryStat
 }
 
+// Update updates the memory subsystem
 func (i *LiveMemoryInfo) Update() {
 	n, err := mem.VirtualMemory()
 	if err != nil {
@@ -26,6 +29,7 @@ func (i *LiveMemoryInfo) Update() {
 	i.MemStats = n
 }
 
+// Info returns the memory subsystem info
 func (i *LiveMemoryInfo) Info() *mem.VirtualMemoryStat {
 	return i.MemStats
 }

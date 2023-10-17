@@ -11,6 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// NewAuthzSubsystem creates a new authz subsystem
 func NewAuthzSubsystem(c *controller.Controller) interfaces.Subsystem {
 	name := "authz"
 
@@ -24,6 +25,7 @@ func NewAuthzSubsystem(c *controller.Controller) interfaces.Subsystem {
 	return &az
 }
 
+// AuthzSubsystem is the subsystem for authorization
 type AuthzSubsystem struct {
 	Controller *controller.Controller
 	Logger     *zap.Logger
@@ -32,6 +34,7 @@ type AuthzSubsystem struct {
 	enforcer   *casbin.Enforcer
 }
 
+// Register registers the authz subsystem
 func (as *AuthzSubsystem) Register() error {
 	if !as.Enabled() {
 		as.Logger.Info("subsystem is disabled", zap.String("subsystem", as.Name()))
@@ -47,10 +50,12 @@ func (as *AuthzSubsystem) Register() error {
 	return nil
 }
 
+// Enabled returns whether or not the authz subsystem is enabled
 func (as *AuthzSubsystem) Enabled() bool {
 	return as.enabled
 }
 
+// AuthorizationHandler is the handler for authorization
 func (as *AuthzSubsystem) AuthorizationHandler(c *gin.Context) {
 	// This is just a extremely basic authorization function right now. Will need to be built out to have full
 	// RBAC or ACL access controls in place. This implementation just checks to see if the user can access the
@@ -68,6 +73,7 @@ func (as *AuthzSubsystem) AuthorizationHandler(c *gin.Context) {
 	}
 }
 
+// Name returns the name of the subsystem
 func (as *AuthzSubsystem) Name() string {
 	return as.name
 }

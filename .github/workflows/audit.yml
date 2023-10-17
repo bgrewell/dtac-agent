@@ -38,7 +38,11 @@ jobs:
         run: go install golang.org/x/lint/golint@latest
 
       - name: Run golint
-        run: golint ./...
+        run: |
+          if golint ./... | grep "."; then
+            echo "golint has suggestions, failing the job"
+            exit 1
+          fi 
 
       - name: Run tests
         run: go test -race -vet=off ./...

@@ -1,5 +1,6 @@
 package structs
 
+// Status is the struct for the status of the MAAS plugin
 type Status struct {
 	Running      bool   `json:"running"`
 	Failed       bool   `json:"failed"`

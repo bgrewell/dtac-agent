@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+// User is the struct for a user
 type User struct {
 	ID       uint64   `json:"id"`
 	Username string   `json:"username"`
@@ -16,6 +17,7 @@ type User struct {
 	Groups   []string `json:"groups"`
 }
 
+// TokenDetails is the struct for the token details
 type TokenDetails struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
@@ -25,11 +27,13 @@ type TokenDetails struct {
 	RtExpires    int64  `json:"rt_expires"`
 }
 
+// AccessDetails is the struct for the access details
 type AccessDetails struct {
 	AccessUuid string `json:"access_uuid"`
 	UserId     uint64 `json:"user_id"`
 }
 
+// NewAuthDB creates a new authn database
 func NewAuthDB(log *zap.Logger) *AuthDB {
 	name := "authn_db"
 	db := AuthDB{
@@ -44,12 +48,14 @@ func NewAuthDB(log *zap.Logger) *AuthDB {
 	return &db
 }
 
+// AuthDB is the struct for the authn database
 type AuthDB struct {
 	Logger *zap.Logger
 	DB     *bolt.DB
 	bucket string
 }
 
+// Initialize initializes the authn database
 func (db *AuthDB) Initialize() error {
 	// Ensure db directory exits
 	if _, err := os.Stat(config.GLOBAL_DB_LOCATION); os.IsNotExist(err) {
@@ -76,6 +82,7 @@ func (db *AuthDB) Initialize() error {
 	})
 }
 
+// UpdateDB updates the authn database
 func (db *AuthDB) UpdateDB(key string, value string) error {
 	return db.DB.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(db.bucket))
@@ -84,6 +91,7 @@ func (db *AuthDB) UpdateDB(key string, value string) error {
 	})
 }
 
+// ViewDB views the authn database
 func (db *AuthDB) ViewDB(key string) (value string, err error) {
 	err = db.DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(db.bucket))

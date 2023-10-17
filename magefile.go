@@ -319,7 +319,16 @@ func Test() error {
 }
 
 func Check() error {
+	if err := runWith(nil, goexe, "install", "honnef.co/go/tools/cmd/staticcheck@latest"); err != nil {
+		return err
+	}
+	if err := runWith(nil, goexe, "install", "golang.org/x/lint/golint@latest"); err != nil {
+		return err
+	}
 	if err := runWith(nil, "staticcheck", "./..."); err != nil {
+		return err
+	}
+	if err := runWith(nil, "golint", "./..."); err != nil {
 		return err
 	}
 	return nil

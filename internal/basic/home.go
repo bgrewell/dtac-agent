@@ -11,6 +11,7 @@ import (
 	"time"
 )
 
+// NewHomePageSubsystem creates a new homepage subsystem
 func NewHomePageSubsystem(c *controller.Controller) interfaces.Subsystem {
 	name := "homepage"
 	hps := HomePageSubsystem{
@@ -41,10 +42,12 @@ func (hps *HomePageSubsystem) Register() error {
 	return nil
 }
 
+// Enabled returns whether or not the homepage subsystem is enabled
 func (hps *HomePageSubsystem) Enabled() bool {
 	return true
 }
 
+// Name returns the name of the homepage subsystem
 func (hps *HomePageSubsystem) Name() string {
 	return hps.name
 }

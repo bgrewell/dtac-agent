@@ -1,5 +1,6 @@
 package structs
 
+// InterfaceStruct is the struct for an interface
 type InterfaceStruct struct {
 	Params          interface{}              `json:"params" yaml:"params"`
 	Vendor          string                   `json:"vendor" yaml:"vendor"`

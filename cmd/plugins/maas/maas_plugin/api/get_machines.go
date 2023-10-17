@@ -5,6 +5,7 @@ import (
 	structs2 "github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/maas/maas_plugin/structs"
 )
 
+// GetMachines returns a list of machines from the MAAS server
 func GetMachines(settings *structs2.MAASSettings) ([]*structs2.Machine, error) {
 	endpoint := "machines/"
 

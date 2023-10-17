@@ -11,6 +11,7 @@ import (
 	"time"
 )
 
+// Get returns the response body from a GET request to the MAAS server
 func Get(endpoint string, settings *structs.MAASSettings) ([]byte, error) {
 	ip, err := net.LookupIP(settings.Server)
 	if err != nil {
