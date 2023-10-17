@@ -317,3 +317,10 @@ func Clean() error {
 func Test() error {
 	return runWith(nil, goexe, "test", "-v", "./...")
 }
+
+func Check() error {
+	if err := runWith(nil, "staticcheck", "./..."); err != nil {
+		return err
+	}
+	return nil
+}
