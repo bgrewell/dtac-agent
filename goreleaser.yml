@@ -1,0 +1,65 @@
+# Goreleaser configuration
+before:
+  hooks:
+    - go mod download
+
+builds:
+  - main: ./cmd/agent/main.go
+    id: "dtac-agentd"
+    goos:
+      - linux
+      - windows
+    goarch:
+      - amd64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+
+# Define the .deb package
+nfpm:
+  - id: debian
+    builds:
+      - dtac-agentd
+    formats:
+      - deb
+    bindir: /usr/local/bin
+    vendor: Intel
+    homepage: https://software.labs.intel.com
+    maintainer: Benjamin Grewell <benjamin.grewell@intel.com>
+    description: The Distributed Telemetry and Advanced Control (DTAC) framework is a collection of projects designed to
+      reduce the time to completion of software projects and testbeds by providing a highly reusable and extensible 
+      framework for the collection of monitoring and manipulation of a wide variety of systems.
+    license: MIT
+
+  # Define the .rpm package
+  - id: rpm
+    builds:
+      - dtac-agentd
+    formats:
+      - rpm
+    bindir: /usr/local/bin
+    vendor: Intel
+    homepage: https://software.labs.intel.com
+    maintainer: Benjamin Grewell <benjamin.grewell@intel.com>
+    description: The Distributed Telemetry and Advanced Control (DTAC) framework is a collection of projects designed to
+      reduce the time to completion of software projects and testbeds by providing a highly reusable and extensible
+      framework for the collection of monitoring and manipulation of a wide variety of systems.
+    license: MIT
+
+# Windows NSIS
+nsis:
+  builds:
+    - dtac-agentd
+  license: ./LICENSE
+  one_click: false
+  language: English
+  maintainer: Benjamin Grewell <benjamin.grewell@intel.com>
+
+# Setup the GitHub release
+release:
+  github:
+    owner: github-owner
+    name: github-repo
+  draft: false
+  prerelease: auto

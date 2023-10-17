@@ -1,0 +1,55 @@
+listener:
+  https:
+    cert: /etc/dtac/certs/tls.crt
+    create_if_missing: true
+    domains:
+      - localhost
+      - 127.0.0.1
+    enabled: true
+    key: /etc/dtac/certs/tls.key
+    type: self-signed
+  port: 8180
+lockout:
+  auto_unlock_time: 30s
+  enabled: true
+plugins:
+  dir: /opt/dtac/plugins
+  enabled: true
+  load_unconfigured: false
+  entries:
+    hello:
+      config:
+        message: hello world plugin
+      cookie: this_is_not_a_security_feature
+      enabled: true
+      hash: c8ae5b255f9d264759b9014e2fd050ba7215fa15a5cf2de67dff79dcc153f646
+    maas:
+      enabled: true
+      cookie: "this_is_not_a_security_feature"
+      hash: 90df87919c3889b6452d240ea2f80362ec599945f8af1e593ee87bda2a032974
+      config:
+        logfile: /tmp/maas.log
+        auto_start: true
+        server: maas.edge.lan
+        consumer_token: ""
+        auth_token: ""
+        auth_signature: ""
+        poll_interval_secs: 30
+routes: []
+subsystems:
+  firewall: false
+  iperf: true
+  tcp_reflector: true
+  udp_reflector: true
+updater:
+  enabled: false
+  error_fallback: 1h
+  interval: 1m
+  mode: auto
+  restart_on_update: true
+  token: ""
+wifi_watchdog:
+  bssid: ""
+  enabled: false
+  poll_interval: 10s
+  profile: ""
