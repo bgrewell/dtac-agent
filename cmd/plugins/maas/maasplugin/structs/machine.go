@@ -2,23 +2,23 @@ package structs
 
 // Machine is the struct for a machine
 type Machine struct {
-	AddressTtl                   string                   `json:"address_ttl" yaml:"address_ttl"`
+	AddressTTL                   string                   `json:"address_ttl" yaml:"address_ttl"`
 	Architecture                 string                   `json:"architecture" yaml:"architecture"`
 	BiosBootMethod               string                   `json:"bios_boot_method" yaml:"bios_boot_method"`
-	CpuCount                     int                      `json:"cpu_count" yaml:"cpu_count"`
-	CpuSpeed                     int                      `json:"cpu_speed" yaml:"cpu_speed"`
-	CpuTestStatus                int                      `json:"cpu_test_status" yaml:"cpu_test_status"`
-	CpuTestStatusName            string                   `json:"cpu_test_status_name" yaml:"cpu_test_status_name"`
+	CPUCount                     int                      `json:"cpu_count" yaml:"cpu_count"`
+	CPUSpeed                     int                      `json:"cpu_speed" yaml:"cpu_speed"`
+	CPUTestStatus                int                      `json:"cpu_test_status" yaml:"cpu_test_status"`
+	CPUTestStatusName            string                   `json:"cpu_test_status_name" yaml:"cpu_test_status_name"`
 	CommissioningStatus          int                      `json:"commissioning_status" yaml:"commissioning_status"`
 	CommissioningStatusName      string                   `json:"commissioning_status_name" yaml:"commissioning_status_name"`
-	CurrentCommissioningResultId int                      `json:"current_commissioning_result_id" yaml:"current_commissioning_result_id"`
-	CurrentInstallationResultId  int                      `json:"current_installation_result_id" yaml:"current_installation_result_id"`
-	CurrentTestingResultId       int                      `json:"current_testing_result_id" yaml:"current_testing_result_id"`
+	CurrentCommissioningResultID int                      `json:"current_commissioning_result_id" yaml:"current_commissioning_result_id"`
+	CurrentInstallationResultID  int                      `json:"current_installation_result_id" yaml:"current_installation_result_id"`
+	CurrentTestingResultID       int                      `json:"current_testing_result_id" yaml:"current_testing_result_id"`
 	Description                  string                   `json:"description" yaml:"description"`
 	DistroSeries                 string                   `json:"distro_series" yaml:"distro_series"`
 	DisableIpv4                  bool                     `json:"disable_ipv4" yaml:"disable_ipv4"`
 	Fqdn                         string                   `json:"fqdn" yaml:"fqdn"`
-	HardwareUuid                 string                   `json:"hardware_uuid" yaml:"hardware_uuid"`
+	HardwareUUID                 string                   `json:"hardware_uuid" yaml:"hardware_uuid"`
 	Hostname                     string                   `json:"hostname" yaml:"hostname"`
 	HweKernel                    string                   `json:"hwe_kernel" yaml:"hwe_kernel"`
 	InterfaceTestStatus          int                      `json:"interface_test_status" yaml:"interface_test_status"`
@@ -42,7 +42,7 @@ type Machine struct {
 	Pod                          string                   `json:"pod" yaml:"pod"`
 	PowerState                   string                   `json:"power_state" yaml:"power_state"`
 	PowerType                    string                   `json:"power_type" yaml:"power_type"`
-	ResourceUri                  string                   `json:"resource_uri" yaml:"resource_uri"`
+	ResourceURI                  string                   `json:"resource_uri" yaml:"resource_uri"`
 	Status                       int                      `json:"status" yaml:"status"`
 	StatusAction                 string                   `json:"status_action" yaml:"status_action"`
 	StatusMessage                string                   `json:"status_message" yaml:"status_message"`
@@ -51,10 +51,10 @@ type Machine struct {
 	StorageTestStatus            int                      `json:"storage_test_status" yaml:"storage_test_status"`
 	SwapSize                     string                   `json:"swap_size" yaml:"swap_size"`
 	SyncInterval                 string                   `json:"sync_interval" yaml:"sync_interval"`
-	SystemId                     string                   `json:"system_id" yaml:"system_id"`
+	SystemID                     string                   `json:"system_id" yaml:"system_id"`
 	TestingStatus                int                      `json:"testing_status" yaml:"testing_status"`
 	TestingStatusName            string                   `json:"testing_status_name" yaml:"testing_status_name"`
-	VirtualmachineId             string                   `json:"virtualmachine_id" yaml:"virtualmachine_id"`
+	VirtualmachineID             string                   `json:"virtualmachine_id" yaml:"virtualmachine_id"`
 	InterfaceSet                 []InterfaceStruct        `json:"interface_set" yaml:"interface_set"`
 	DefaultGateways              DefaultGatewayStruct     `json:"default_gateways" yaml:"default_gateways"`
 	HardwareInfo                 map[string]interface{}   `json:"hardware_info" yaml:"hardware_info"`
@@ -72,7 +72,7 @@ type Machine struct {
 	VirtualblockdeviceSet        []map[string]interface{} `json:"virtualblockdevice_set" yaml:"virtualblockdevice_set"`
 	OwnerData                    map[string]interface{}   `json:"owner_data" yaml:"owner_data"`
 	PhysicalblockdeviceSet       []map[string]interface{} `json:"physicalblockdevice_set" yaml:"physicalblockdevice_set"`
-	IpAddresses                  []string                 `json:"ip_addresses" yaml:"ip_addresses"`
+	IPAddresses                  []string                 `json:"ip_addresses" yaml:"ip_addresses"`
 	VolumeGroups                 []map[string]interface{} `json:"volume_groups" yaml:"volume_groups"`
 	BootDisk                     map[string]interface{}   `json:"boot_disk" yaml:"boot_disk"`
 	TagNames                     []string                 `json:"tag_names" yaml:"tag_names"`

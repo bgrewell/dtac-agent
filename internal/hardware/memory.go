@@ -34,7 +34,7 @@ func (i *LiveMemoryInfo) Info() *mem.VirtualMemoryStat {
 	return i.MemStats
 }
 
-func (s *HardwareSubsystem) memInfoHandler(c *gin.Context) {
+func (s *Subsystem) memInfoHandler(c *gin.Context) {
 	start := time.Now()
 	s.mem.Update()
 	helpers.WriteResponseJSON(c, time.Since(start), s.mem.Info())

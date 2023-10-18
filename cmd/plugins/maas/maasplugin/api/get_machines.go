@@ -2,7 +2,7 @@ package api
 
 import (
 	"encoding/json"
-	structs2 "github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/maas/maas_plugin/structs"
+	structs2 "github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/maas/maasplugin/structs"
 )
 
 // GetMachines returns a list of machines from the MAAS server

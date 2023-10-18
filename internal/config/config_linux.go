@@ -3,20 +3,33 @@ package config
 import "path"
 
 const (
-	GLOBAL_CONFIG_LOCATION  = "/etc/dtac/"
-	LOCAL_CONFIG_LOCATION   = "$HOME/.dtac/"
-	DEFAULT_BINARY_LOCATION = "/opt/dtac/bin/"
-	DEFAULT_PLUGIN_LOCATION = "/opt/dtac/plugins/"
+	// GlobalConfigLocation System wide configuration location
+	GlobalConfigLocation = "/etc/dtac/"
+	// LocalConfigLocation User specific configuration location
+	LocalConfigLocation = "$HOME/.dtac/"
+	// DefaultBinaryLocation Default location of the dtac-agentd binary
+	DefaultBinaryLocation = "/opt/dtac/bin/"
+	// DefaultPluginLocation Default location of the dtac-agentd plugins
+	DefaultPluginLocation = "/opt/dtac/plugins/"
 )
 
 var (
-	GLOBAL_CERT_LOCATION     = path.Join(GLOBAL_CONFIG_LOCATION, "certs/")
-	LOCAL_CERT_LOCATION      = path.Join(LOCAL_CONFIG_LOCATION, "certs/")
-	GLOBAL_DB_LOCATION       = path.Join(GLOBAL_CONFIG_LOCATION, "db/")
-	BINARY_NAME              = path.Join(DEFAULT_BINARY_LOCATION, "dtac-agentd")
-	DB_NAME                  = path.Join(GLOBAL_DB_LOCATION, "authn.db")
-	DEFAULT_TLS_CERT_NAME    = path.Join(GLOBAL_CERT_LOCATION, "tls.crt")
-	DEFAULT_TLS_KEY_NAME     = path.Join(GLOBAL_CERT_LOCATION, "tls.key")
-	DEFAULT_AUTH_MODEL_NAME  = path.Join(GLOBAL_CONFIG_LOCATION, "auth_model.conf")
-	DEFAULT_AUTH_POLICY_NAME = path.Join(GLOBAL_CONFIG_LOCATION, "auth_policy.csv")
+	// GlobalCertLocation System wide certificate location
+	GlobalCertLocation = path.Join(GlobalConfigLocation, "certs/")
+	// LocalCertLocation User specific certificate location
+	LocalCertLocation = path.Join(LocalConfigLocation, "certs/")
+	// GlobalDBLocation System wide database location
+	GlobalDBLocation = path.Join(GlobalConfigLocation, "db/")
+	// BinaryName is the name of the binary
+	BinaryName = path.Join(DefaultBinaryLocation, "dtac-agentd")
+	// DBName is the name of the database
+	DBName = path.Join(GlobalDBLocation, "authn.db")
+	// DefaultTLSCertName Default TLS certificate name
+	DefaultTLSCertName = path.Join(GlobalCertLocation, "tls.crt")
+	// DefaultTLSKeyName Default TLS key name
+	DefaultTLSKeyName = path.Join(GlobalCertLocation, "tls.key")
+	// DefaultAuthModelName Default auth model name
+	DefaultAuthModelName = path.Join(GlobalConfigLocation, "auth_model.conf")
+	// DefaultAuthPolicyName Default auth policy name
+	DefaultAuthPolicyName = path.Join(GlobalConfigLocation, "auth_policy.csv")
 )

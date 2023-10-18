@@ -1,4 +1,4 @@
-package register
+package helpers
 
 import (
 	"github.com/gin-gonic/gin"
@@ -13,6 +13,6 @@ func RegisterRoutes(routes []types.RouteInfo, secureMw []gin.HandlerFunc) {
 			funcs = append(funcs, secureMw...)
 		}
 		funcs = append(funcs, route.Handler)
-		route.Group.Handle(route.HttpMethod, route.Path, funcs...)
+		route.Group.Handle(route.HTTPMethod, route.Path, funcs...)
 	}
 }

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/hello/hello_plugin"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/hello/helloplugin"
 	"log"
 
 	"github.com/bgrewell/gin-plugins/host"
@@ -9,7 +9,7 @@ import (
 
 func main() {
 
-	p := new(hello_plugin.HelloPlugin)
+	p := new(helloplugin.HelloPlugin)
 
 	h, err := host.NewPluginHost(p, "this_is_not_a_security_feature")
 	if err != nil {

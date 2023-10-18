@@ -6,7 +6,6 @@ import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/register"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
 	"go.uber.org/zap"
 	"net/http"
@@ -33,7 +32,7 @@ type EchoSubsystem struct {
 	name       string      // Subsystem name
 }
 
-// Register() registers the routes that this module handles
+// Register registers the routes that this module handles
 func (es *EchoSubsystem) Register() error {
 	if !es.Enabled() {
 		es.Logger.Info("subsystem is disabled", zap.String("subsystem", es.Name()))
@@ -46,11 +45,11 @@ func (es *EchoSubsystem) Register() error {
 	// Routes
 	secure := es.Controller.Config.Auth.DefaultSecure
 	routes := []types.RouteInfo{
-		{Group: base, HttpMethod: http.MethodGet, Path: "/", Handler: es.rootHandler, Protected: secure},
+		{Group: base, HTTPMethod: http.MethodGet, Path: "/", Handler: es.rootHandler, Protected: secure},
 	}
 
 	// Register routes
-	register.RegisterRoutes(routes, es.Controller.SecureMiddleware)
+	helpers.RegisterRoutes(routes, es.Controller.SecureMiddleware)
 	es.Logger.Info("registered routes", zap.Int("routes", len(routes)))
 
 	return nil

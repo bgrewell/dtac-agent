@@ -1,9 +1,9 @@
-package maas_plugin
+package maasplugin
 
 import (
 	"fmt"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/maas/maas_plugin/engine"
-	structs2 "github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/maas/maas_plugin/structs"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/maas/maasplugin/engine"
+	structs2 "github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/maas/maasplugin/structs"
 	"log"
 	"net/http"
 	"os"
@@ -85,12 +85,12 @@ func (p *MAASPlugin) Register(args plugins.RegisterArgs, reply *plugins.Register
 		{"stop", http.MethodGet, "Stop"},
 		{"status", http.MethodGet, "Status"},
 		{"machines", http.MethodGet, "GetMachines"},
-		{"machines/ids", http.MethodGet, "GetMachinesIds"},
+		{"machines/ids", http.MethodGet, "GetMachinesIDs"},
 		{"machines/pools", http.MethodGet, "GetMachinesPools"},
 		{"machines/status", http.MethodGet, "GetMachinesStatuses"},
 		{"machines/interfaces", http.MethodGet, "GetMachinesInterfaces"},
 		{"machine", http.MethodGet, "GetMachine"},
-		{"machine/id", http.MethodGet, "GetMachineId"},
+		{"machine/id", http.MethodGet, "GetMachineID"},
 		{"machine/pool", http.MethodGet, "GetMachinePool"},
 		{"machine/status", http.MethodGet, "GetMachineStatus"},
 		{"machine/interfaces", http.MethodGet, "GetMachineInterfaces"},
@@ -206,15 +206,15 @@ func (p *MAASPlugin) GetMachines(args plugins.Args, c *string) error {
 	return nil
 }
 
-// GetMachinesIds returns a list of machine ids from the MAAS server
-func (p *MAASPlugin) GetMachinesIds(args plugins.Args, c *string) error {
+// GetMachinesIDs returns a list of machine ids from the MAAS server
+func (p *MAASPlugin) GetMachinesIDs(args plugins.Args, c *string) error {
 	if err := p.verifyReady(args, nil, nil, nil); err != nil {
 		return err
 	}
 
 	type MachinePlug struct {
 		Hostname string `json:"hostname"`
-		SystemId string `json:"system_id"`
+		SystemID string `json:"system_id"`
 	}
 
 	machines := p.engine.Machines()
@@ -229,7 +229,7 @@ func (p *MAASPlugin) GetMachinesIds(args plugins.Args, c *string) error {
 		for _, machine := range machines {
 			ids = append(ids, MachinePlug{
 				Hostname: machine.Hostname,
-				SystemId: machine.SystemId,
+				SystemID: machine.SystemID,
 			})
 		}
 		v, e := p.Serialize(ids)
@@ -388,8 +388,8 @@ func (p *MAASPlugin) GetMachine(args plugins.Args, c *string) error {
 	return nil
 }
 
-// GetMachineId returns a machine id from the MAAS server
-func (p *MAASPlugin) GetMachineId(args plugins.Args, c *string) error {
+// GetMachineID returns a machine id from the MAAS server
+func (p *MAASPlugin) GetMachineID(args plugins.Args, c *string) error {
 	if err := p.verifyReady(args, nil, nil, nil); err != nil {
 		return err
 	}
@@ -401,14 +401,14 @@ func (p *MAASPlugin) GetMachineId(args plugins.Args, c *string) error {
 
 	type Result struct {
 		Machine string `json:"machine"`
-		Id      string `json:"id"`
+		ID      string `json:"id"`
 	}
 	results := make([]Result, 0)
 
 	for _, match := range matches {
 		r := Result{
 			Machine: match.Hostname,
-			Id:      match.SystemId,
+			ID:      match.SystemID,
 		}
 		results = append(results, r)
 	}
@@ -573,7 +573,7 @@ func (p *MAASPlugin) findMachines(ids []string, hosts []string) []*structs2.Mach
 
 	if len(ids) > 0 {
 		for _, id := range ids {
-			machine := p.getMachineById(id)
+			machine := p.getMachineByID(id)
 			if machine != nil {
 				results = append(results, machine)
 			}
@@ -637,7 +637,7 @@ func (p *MAASPlugin) GetFabric(args plugins.Args, c *string) error {
 				}
 			}
 			for _, id := range ids {
-				if strconv.Itoa(fabric.Id) == id {
+				if strconv.Itoa(fabric.ID) == id {
 					matches = append(matches, fabric)
 				}
 			}
@@ -664,10 +664,10 @@ func (p MAASPlugin) verifyReady(args plugins.Args, queryReqs, headerReqs, bodyRe
 	return nil
 }
 
-func (p *MAASPlugin) getMachineById(id string) *structs2.Machine {
+func (p *MAASPlugin) getMachineByID(id string) *structs2.Machine {
 	if p.engine != nil {
 		for _, machine := range p.engine.Machines() {
-			if machine.SystemId == id {
+			if machine.SystemID == id {
 				return machine
 			}
 		}

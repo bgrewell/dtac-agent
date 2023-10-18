@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/authn"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/authn_db"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/authndb"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/authz"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/basic"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config/authorization"
@@ -37,7 +37,7 @@ type RegisterParams struct {
 }
 
 // NewHTTPServer creates the webserver that handles the requests sent to the DTAC agent
-func NewHTTPServer(lc fx.Lifecycle, router *gin.Engine, log *zap.Logger, tls *helpers.TlsInfo) *http.Server {
+func NewHTTPServer(lc fx.Lifecycle, router *gin.Engine, log *zap.Logger, tls *basic.TLSInfo) *http.Server {
 
 	// Create a new http server
 	srv := &http.Server{Addr: ":8180", Handler: router}
@@ -89,13 +89,13 @@ func NewGinRouter() *gin.Engine {
 
 // NewController creates a new instance of the controller.Controller struct
 func NewController(router *gin.Engine, logger *zap.Logger, cfg *config.Configuration,
-	hrl *httpRoutes.HttpRouteList, db *authn_db.AuthDB) *controller.Controller {
+	hrl *httpRoutes.RouteList, db *authndb.AuthDB) *controller.Controller {
 	// Create the SubsystemParams object
 	c := controller.Controller{
 		Router:           router,
 		Logger:           logger,
 		Config:           cfg,
-		HttpRouteList:    hrl,
+		HTTPRouteList:    hrl,
 		SecureMiddleware: make([]gin.HandlerFunc, 0),
 		AuthDB:           db,
 	}
@@ -161,12 +161,12 @@ func main() {
 			NewGinRouter,                            // Web Request Router
 			config.NewConfiguration,                 // Configuration
 			zap.NewDevelopment,                      // Structured Logger
-			helpers.NewTlsInfo,                      // Tls Cert Handler
-			httpRoutes.NewHttpRouteList,             // Http Routing List
+			basic.NewTLSInfo,                        // Tls Cert Handler
+			httpRoutes.NewRouteList,                 // Http Routing List
 			NewController,                           // Wrapper around common subsystem input components
-			authn_db.NewAuthDB,                      // Authentication database
-			AsSubsystem(authn.NewAuthnSubsystem),    // Authentication Subsystem
-			AsSubsystem(authz.NewAuthzSubsystem),    // Authorization Subsystem
+			authndb.NewAuthDB,                       // Authentication database
+			AsSubsystem(authn.NewSubsystem),         // Authentication Subsystem
+			AsSubsystem(authz.NewSubsystem),         // Authorization Subsystem
 			AsSubsystem(basic.NewEchoSubsystem),     // Demo Subsystem
 			AsSubsystem(basic.NewHomePageSubsystem), // Homepage handler
 			AsSubsystem(plugin.NewSubsystem),        // Plugin Subsystem

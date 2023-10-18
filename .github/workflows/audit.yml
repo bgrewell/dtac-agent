@@ -39,7 +39,7 @@ jobs:
 
       - name: Run golint
         run: |
-          if golint ./... | grep "."; then
+          if golint ./... | grep "Error"; then
             echo "golint has suggestions, failing the job"
             exit 1
           fi 

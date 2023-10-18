@@ -71,25 +71,25 @@ func (ni *LiveDiskInfo) Info() *DiskReport {
 }
 
 // rootHandler handles requests for the root path for this subsystem
-func (s *HardwareSubsystem) diskRootHandler(c *gin.Context) {
+func (s *Subsystem) diskRootHandler(c *gin.Context) {
 	start := time.Now()
 	s.disk.Update()
 	helpers.WriteResponseJSON(c, time.Since(start), s.disk.Info())
 }
 
-func (s *HardwareSubsystem) diskPartitionHandler(c *gin.Context) {
+func (s *Subsystem) diskPartitionHandler(c *gin.Context) {
 	start := time.Now()
 	s.disk.Update()
 	helpers.WriteResponseJSON(c, time.Since(start), s.disk.Info().Partitions)
 }
 
-func (s *HardwareSubsystem) diskPhysicalDisksHandler(c *gin.Context) {
+func (s *Subsystem) diskPhysicalDisksHandler(c *gin.Context) {
 	start := time.Now()
 	s.disk.Update()
 	helpers.WriteResponseJSON(c, time.Since(start), s.disk.Info().Disks)
 }
 
-func (s *HardwareSubsystem) diskUsageHandler(c *gin.Context) {
+func (s *Subsystem) diskUsageHandler(c *gin.Context) {
 	start := time.Now()
 	path := c.Query("path")
 	du := make([]*disk.UsageStat, 0)

@@ -33,11 +33,11 @@ type BlockingEntry struct {
 // ListenerEntry is the struct for a listener entry
 type ListenerEntry struct {
 	Port  int                `json:"port" yaml:"port" mapstructure:"port"`
-	Https ListenerHttpsEntry `json:"https" yaml:"https" mapstructure:"https"`
+	HTTPS ListenerHTTPSEntry `json:"https" yaml:"https" mapstructure:"https"`
 }
 
-// ListenerHttpsEntry is the struct for a listener https entry
-type ListenerHttpsEntry struct {
+// ListenerHTTPSEntry is the struct for a listener https entry
+type ListenerHTTPSEntry struct {
 	Enabled         bool     `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 	Type            string   `json:"type" yaml:"type" mapstructure:"type"`
 	CreateIfMissing bool     `json:"create_if_missing" yaml:"create_if_missing" mapstructure:"create_if_missing"`
@@ -69,7 +69,7 @@ type RouteEntry struct {
 	Methods  []string       `json:"methods" yaml:"methods" mapstructure:"methods"`
 	Access   string         `json:"access" yaml:"access" mapstructure:"access"`
 	Blocking *BlockingEntry `json:"blocking" yaml:"blocking" mapstructure:"blocking"`
-	WrapJson bool           `json:"wrap_json" yaml:"wrap_json" mapstructure:"wrap_json"`
+	WrapJSON bool           `json:"wrap_json" yaml:"wrap_json" mapstructure:"wrap_json"`
 	Mode     string         `json:"mode" yaml:"mode" mapstructure:"mode"`
 }
 
@@ -88,8 +88,8 @@ type SubsystemEntry struct {
 	//TODO: Below this line are old and should be removed
 	Firewall     bool `json:"firewall" yaml:"firewall" mapstructure:"firewall"`
 	Iperf        bool `json:"iperf" yaml:"iperf" mapstructure:"iperf"`
-	TcpReflector bool `json:"tcp_reflector" yaml:"tcp_reflector" mapstructure:"tcp_reflector"`
-	UdpReflector bool `json:"udp_reflector" yaml:"udp_reflector" mapstructure:"udp_reflector"`
+	TCPReflector bool `json:"tcp_reflector" yaml:"tcp_reflector" mapstructure:"tcp_reflector"`
+	UDPReflector bool `json:"udp_reflector" yaml:"udp_reflector" mapstructure:"udp_reflector"`
 }
 
 // UpdaterEntry is the struct for an updater entry
@@ -139,8 +139,8 @@ func NewConfiguration(router *gin.Engine, log *zap.Logger) (config *Configuratio
 	// Setup configuration file location(s)
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath(GLOBAL_CONFIG_LOCATION)
-	viper.AddConfigPath(LOCAL_CONFIG_LOCATION)
+	viper.AddConfigPath(GlobalConfigLocation)
+	viper.AddConfigPath(LocalConfigLocation)
 	viper.AddConfigPath(".")
 
 	// Get the hostname and domain
@@ -151,8 +151,8 @@ func NewConfiguration(router *gin.Engine, log *zap.Logger) (config *Configuratio
 		"authn.user":                           "admin",
 		"authn.pass":                           "need_to_generate_a_random_password_on_install_or_first_run",
 		"authn.default_secure":                 true,
-		"authn.model":                          DEFAULT_AUTH_MODEL_NAME,
-		"authn.policy":                         DEFAULT_AUTH_POLICY_NAME,
+		"authn.model":                          DefaultAuthModelName,
+		"authn.policy":                         DefaultAuthPolicyName,
 		"internal.product_name":                "DTAC Agent",
 		"internal.short_name":                  "dtac",
 		"internal.file_name":                   "dtac-agentd",
@@ -161,8 +161,8 @@ func NewConfiguration(router *gin.Engine, log *zap.Logger) (config *Configuratio
 		"listener.https.type":                  "self-signed",
 		"listener.https.create_if_missing":     true,
 		"listener.https.domains":               []string{"localhost", "127.0.0.1", hostname},
-		"listener.https.cert":                  DEFAULT_TLS_CERT_NAME,
-		"listener.https.key":                   DEFAULT_TLS_KEY_NAME,
+		"listener.https.cert":                  DefaultTLSCertName,
+		"listener.https.key":                   DefaultTLSKeyName,
 		"lockout.enabled":                      true,
 		"lockout.auto_unlock_time":             "10s",
 		"wifi_watchdog.enabled":                false,
@@ -176,7 +176,7 @@ func NewConfiguration(router *gin.Engine, log *zap.Logger) (config *Configuratio
 		"updater.error_fallback":               "1h",
 		"updater.restart_on_update":            true,
 		"plugins.enabled":                      true,
-		"plugins.dir":                          DEFAULT_PLUGIN_LOCATION,
+		"plugins.dir":                          DefaultPluginLocation,
 		"plugins.group":                        "plugins",
 		"plugins.load_unconfigured":            false,
 		"plugins.entries.hello.enabled":        true,
@@ -203,18 +203,18 @@ func NewConfiguration(router *gin.Engine, log *zap.Logger) (config *Configuratio
 		// If the file is simply not found then create a default one and display a warning
 		// to the user
 		log.Warn("configuration file not found")
-		if ensureDir(GLOBAL_CONFIG_LOCATION, true) && checkWriteAccess(GLOBAL_CONFIG_LOCATION) {
-			log.Info("[creating configuration file", zap.String("location", GLOBAL_CONFIG_LOCATION))
-			if err := os.MkdirAll(GLOBAL_CONFIG_LOCATION, 0700); err != nil {
+		if ensureDir(GlobalConfigLocation, true) && checkWriteAccess(GlobalConfigLocation) {
+			log.Info("[creating configuration file", zap.String("location", GlobalConfigLocation))
+			if err := os.MkdirAll(GlobalConfigLocation, 0700); err != nil {
 				log.Error("error creating global config directory", zap.Error(err))
 			}
 
-			err := writeConfigWithoutInternalKeys(path.Join(GLOBAL_CONFIG_LOCATION, "config.yaml"))
+			err := writeConfigWithoutInternalKeys(path.Join(GlobalConfigLocation, "config.yaml"))
 			if err != nil {
 				return nil, fmt.Errorf("failed to write log file: %v", err)
 			}
 		} else {
-			location := strings.Replace(LOCAL_CONFIG_LOCATION, "$HOME", os.Getenv("HOME"), 1)
+			location := strings.Replace(LocalConfigLocation, "$HOME", os.Getenv("HOME"), 1)
 			if err := os.MkdirAll(location, 0700); err != nil {
 				log.Error("error creating user config directory", zap.Error(err))
 			}
@@ -249,19 +249,19 @@ func NewConfiguration(router *gin.Engine, log *zap.Logger) (config *Configuratio
 	return &c, nil
 }
 
-// Register() registers the routes that this module handles
+// Register registers the routes that this module handles
 func (c *Configuration) Register() error {
 	// Create a group for this subsystem
 	base := c.router.Group("config")
 
 	// Routes
 	routes := []types.RouteInfo{
-		{HttpMethod: http.MethodGet, Path: "/", Handler: c.rootHandler},
+		{HTTPMethod: http.MethodGet, Path: "/", Handler: c.rootHandler},
 	}
 
 	// Register routes
 	for _, route := range routes {
-		base.Handle(route.HttpMethod, route.Path, route.Handler)
+		base.Handle(route.HTTPMethod, route.Path, route.Handler)
 	}
 	c.logger.Info("registered routes", zap.Int("routes", len(routes)))
 

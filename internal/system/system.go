@@ -5,38 +5,37 @@ import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/register"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
 	"go.uber.org/zap"
 	"net/http"
 	"time"
 )
 
-// NewSubsystem creates a new instance of the SystemSubsystem struct
+// NewSubsystem creates a new instance of the Subsystem struct
 func NewSubsystem(c *controller.Controller) interfaces.Subsystem {
 	name := "system"
-	s := SystemSubsystem{
+	s := Subsystem{
 		Controller: c,
 		Logger:     c.Logger.With(zap.String("module", name)),
 		enabled:    true,
 		name:       name,
 	}
-	s.info = &SystemInfo{}
+	s.info = &Info{}
 	s.info.Initialize(s.Logger)
 	return &s
 }
 
-// SystemSubsystem is a simple example subsystem for showing how the pieces fit together
-type SystemSubsystem struct {
+// Subsystem is a simple example subsystem for showing how the pieces fit together
+type Subsystem struct {
 	Controller *controller.Controller
 	Logger     *zap.Logger // All subsystems have a pointer to the logger
 	enabled    bool        // Optional subsystems have a boolean to control if they are enabled
 	name       string      // Subsystem name
-	info       *SystemInfo // SystemInfo structure
+	info       *Info       // Info structure
 }
 
-// Register() registers the routes that this module handles
-func (s *SystemSubsystem) Register() error {
+// Register registers the routes that this module handles
+func (s *Subsystem) Register() error {
 	if !s.Enabled() {
 		s.Logger.Info("subsystem is disabled", zap.String("subsystem", s.Name()))
 		return nil
@@ -48,47 +47,47 @@ func (s *SystemSubsystem) Register() error {
 	// Routes
 	secure := s.Controller.Config.Auth.DefaultSecure
 	routes := []types.RouteInfo{
-		{Group: base, HttpMethod: http.MethodGet, Path: "/", Handler: s.rootHandler, Protected: secure},
-		{Group: base, HttpMethod: http.MethodGet, Path: "/uuid", Handler: s.uuidHandler, Protected: secure},
-		{Group: base, HttpMethod: http.MethodGet, Path: "/product", Handler: s.productHandler, Protected: secure},
-		{Group: base, HttpMethod: http.MethodGet, Path: "/os", Handler: s.osHandler, Protected: secure},
+		{Group: base, HTTPMethod: http.MethodGet, Path: "/", Handler: s.rootHandler, Protected: secure},
+		{Group: base, HTTPMethod: http.MethodGet, Path: "/uuid", Handler: s.uuidHandler, Protected: secure},
+		{Group: base, HTTPMethod: http.MethodGet, Path: "/product", Handler: s.productHandler, Protected: secure},
+		{Group: base, HTTPMethod: http.MethodGet, Path: "/os", Handler: s.osHandler, Protected: secure},
 	}
 
 	// Register routes
-	register.RegisterRoutes(routes, s.Controller.SecureMiddleware)
+	helpers.RegisterRoutes(routes, s.Controller.SecureMiddleware)
 	s.Logger.Info("registered routes", zap.Int("routes", len(routes)))
 
 	return nil
 }
 
 // Enabled returns true if the subsystem is enabled
-func (s *SystemSubsystem) Enabled() bool {
+func (s *Subsystem) Enabled() bool {
 	return s.enabled
 }
 
 // Name returns the name of the subsystem
-func (s *SystemSubsystem) Name() string {
+func (s *Subsystem) Name() string {
 	return s.name
 }
 
-func (s *SystemSubsystem) rootHandler(c *gin.Context) {
+func (s *Subsystem) rootHandler(c *gin.Context) {
 	start := time.Now()
 	helpers.WriteResponseJSON(c, time.Since(start), s.info)
 }
 
-func (s *SystemSubsystem) uuidHandler(c *gin.Context) {
+func (s *Subsystem) uuidHandler(c *gin.Context) {
 	start := time.Now()
-	uuid := s.info.Uuid
+	uuid := s.info.UUID
 	helpers.WriteResponseJSON(c, time.Since(start), uuid)
 }
 
-func (s *SystemSubsystem) productHandler(c *gin.Context) {
+func (s *Subsystem) productHandler(c *gin.Context) {
 	start := time.Now()
 	product := s.info.ProductName
 	helpers.WriteResponseJSON(c, time.Since(start), product)
 }
 
-func (s *SystemSubsystem) osHandler(c *gin.Context) {
+func (s *Subsystem) osHandler(c *gin.Context) {
 	start := time.Now()
 	os := s.info.serializeOs()
 	helpers.WriteResponseJSON(c, time.Since(start), os)

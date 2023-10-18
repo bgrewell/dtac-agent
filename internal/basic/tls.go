@@ -1,4 +1,4 @@
-package helpers
+package basic
 
 import (
 	"crypto/ecdsa"
@@ -17,15 +17,16 @@ import (
 )
 
 const (
-	TLS_TYPE_SELF_SIGNED = "self-signed"
+	// TLSTypeSelfSigned is the self-signed certificate type
+	TLSTypeSelfSigned = "self-signed"
 )
 
-// NewTlsInfo creates a new instance of the TlsInfo struct
-func NewTlsInfo(router *gin.Engine, cfg *config.Configuration, log *zap.Logger) *TlsInfo {
-	tls := TlsInfo{
-		Enabled:      cfg.Listener.Https.Enabled,
-		CertFilename: cfg.Listener.Https.CertFile,
-		KeyFilename:  cfg.Listener.Https.KeyFile,
+// NewTLSInfo creates a new instance of the TLSInfo struct
+func NewTLSInfo(router *gin.Engine, cfg *config.Configuration, log *zap.Logger) *TLSInfo {
+	tls := TLSInfo{
+		Enabled:      cfg.Listener.HTTPS.Enabled,
+		CertFilename: cfg.Listener.HTTPS.CertFile,
+		KeyFilename:  cfg.Listener.HTTPS.KeyFile,
 		Router:       router,
 		Config:       cfg,
 		Logger:       log.With(zap.String("module", "tls")),
@@ -36,7 +37,8 @@ func NewTlsInfo(router *gin.Engine, cfg *config.Configuration, log *zap.Logger) 
 	return &tls
 }
 
-type TlsInfo struct {
+// TLSInfo is the struct for the TLS subsystem
+type TLSInfo struct {
 	Enabled      bool
 	CertFilename string
 	KeyFilename  string
@@ -46,12 +48,12 @@ type TlsInfo struct {
 }
 
 // Initialize initializes the TLS subsystem
-func (tls *TlsInfo) Initialize() {
-	if tls.Config.Listener.Https.Type == TLS_TYPE_SELF_SIGNED {
+func (tls *TLSInfo) Initialize() {
+	if tls.Config.Listener.HTTPS.Type == TLSTypeSelfSigned {
 		// Create default files if not specified and save to config
 		if tls.CertFilename == "" || tls.KeyFilename == "" {
-			tls.CertFilename = config.DEFAULT_TLS_CERT_NAME
-			tls.KeyFilename = config.DEFAULT_TLS_KEY_NAME
+			tls.CertFilename = config.DefaultTLSCertName
+			tls.KeyFilename = config.DefaultTLSKeyName
 		}
 
 		// Ensure the directories exist and are secure
@@ -102,7 +104,7 @@ func GenerateSelfSignedCertKey(cfg *config.Configuration) error {
 		Subject: pkix.Name{
 			Organization: []string{"DTAC Agent Certificate Authority"},
 		},
-		DNSNames:              cfg.Listener.Https.Domains,
+		DNSNames:              cfg.Listener.HTTPS.Domains,
 		NotBefore:             notBefore,
 		NotAfter:              notAfter,
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
@@ -116,7 +118,7 @@ func GenerateSelfSignedCertKey(cfg *config.Configuration) error {
 	}
 
 	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
-	err = os.WriteFile(cfg.Listener.Https.CertFile, certPEM, 0600)
+	err = os.WriteFile(cfg.Listener.HTTPS.CertFile, certPEM, 0600)
 	if err != nil {
 		return err
 	}
@@ -126,7 +128,7 @@ func GenerateSelfSignedCertKey(cfg *config.Configuration) error {
 		return err
 	}
 	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyDER})
-	err = os.WriteFile(cfg.Listener.Https.KeyFile, keyPEM, 0600)
+	err = os.WriteFile(cfg.Listener.HTTPS.KeyFile, keyPEM, 0600)
 	if err != nil {
 		return err
 	}

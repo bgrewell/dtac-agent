@@ -2,7 +2,7 @@ package api
 
 import (
 	"fmt"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/maas/maas_plugin/structs"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/maas/maasplugin/structs"
 	"io"
 	"math/rand"
 	"net"

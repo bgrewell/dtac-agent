@@ -9,45 +9,45 @@ import (
 	"time"
 )
 
-// CpuInfo is the interface for the cpu subsystem
-type CpuInfo interface {
+// CPUInfo is the interface for the cpu subsystem
+type CPUInfo interface {
 	Update()
 	Info() []cpu.InfoStat
-	Percent(interval time.Duration, perCpu bool) ([]float64, error)
+	Percent(interval time.Duration, perCPU bool) ([]float64, error)
 }
 
-// LiveCpuInfo is the struct for the cpu subsystem
-type LiveCpuInfo struct {
+// LiveCPUInfo is the struct for the cpu subsystem
+type LiveCPUInfo struct {
 	Logger   *zap.Logger // All subsystems have a pointer to the logger
-	CpuStats []cpu.InfoStat
+	CPUStats []cpu.InfoStat
 }
 
 // Update updates the cpu subsystem
-func (i *LiveCpuInfo) Update() {
+func (i *LiveCPUInfo) Update() {
 	n, err := cpu.Info()
 	if err != nil {
 		i.Logger.Error("failed to get interface stats", zap.Error(err))
 	}
-	i.CpuStats = n
+	i.CPUStats = n
 }
 
 // Info returns the cpu subsystem info
-func (i *LiveCpuInfo) Info() []cpu.InfoStat {
-	return i.CpuStats
+func (i *LiveCPUInfo) Info() []cpu.InfoStat {
+	return i.CPUStats
 }
 
 // Percent returns the cpu subsystem percent
-func (i *LiveCpuInfo) Percent(interval time.Duration, perCpu bool) ([]float64, error) {
-	return cpu.Percent(interval, perCpu)
+func (i *LiveCPUInfo) Percent(interval time.Duration, perCPU bool) ([]float64, error) {
+	return cpu.Percent(interval, perCPU)
 }
 
-func (s *HardwareSubsystem) cpuInfoHandler(c *gin.Context) {
+func (s *Subsystem) cpuInfoHandler(c *gin.Context) {
 	start := time.Now()
 	s.cpu.Update()
 	helpers.WriteResponseJSON(c, time.Since(start), s.cpu.Info())
 }
 
-func (s *HardwareSubsystem) cpuUsageHandler(c *gin.Context) {
+func (s *Subsystem) cpuUsageHandler(c *gin.Context) {
 	perCore := true
 	perCoreStr := c.Param("per_core")
 	if perCoreStr != "" && strings.ToLower(perCoreStr) == "false" {

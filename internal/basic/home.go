@@ -29,7 +29,7 @@ type HomePageSubsystem struct {
 	name       string      // Subsystem name
 }
 
-// Register() registers the routes for the homepage
+// Register registers the routes for the homepage
 func (hps *HomePageSubsystem) Register() error {
 	if !hps.Enabled() {
 		hps.Logger.Info("subsystem is disabled", zap.String("subsystem", hps.Name()))
@@ -54,11 +54,11 @@ func (hps *HomePageSubsystem) Name() string {
 
 func (hps *HomePageSubsystem) homeHandler(c *gin.Context) {
 	start := time.Now()
-	hps.Controller.HttpRouteList.UpdateRoutes()
+	hps.Controller.HTTPRouteList.UpdateRoutes()
 	response := gin.H{
 		"message": fmt.Sprintf("welcome to the %s", hps.Controller.Config.Internal.ProductName),
 		"version": version.Current().String(),
-		"routes":  hps.Controller.HttpRouteList.Routes,
+		"routes":  hps.Controller.HTTPRouteList.Routes,
 	}
 	helpers.WriteResponseJSON(c, time.Since(start), response)
 }

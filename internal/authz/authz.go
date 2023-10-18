@@ -11,11 +11,11 @@ import (
 	"go.uber.org/zap"
 )
 
-// NewAuthzSubsystem creates a new authz subsystem
-func NewAuthzSubsystem(c *controller.Controller) interfaces.Subsystem {
+// NewSubsystem creates a new authz subsystem
+func NewSubsystem(c *controller.Controller) interfaces.Subsystem {
 	name := "authz"
 
-	az := AuthzSubsystem{
+	az := Subsystem{
 		Controller: c,
 		Logger:     c.Logger.With(zap.String("module", name)),
 		enabled:    true,
@@ -25,8 +25,8 @@ func NewAuthzSubsystem(c *controller.Controller) interfaces.Subsystem {
 	return &az
 }
 
-// AuthzSubsystem is the subsystem for authorization
-type AuthzSubsystem struct {
+// Subsystem is the subsystem for authorization
+type Subsystem struct {
 	Controller *controller.Controller
 	Logger     *zap.Logger
 	enabled    bool
@@ -35,33 +35,33 @@ type AuthzSubsystem struct {
 }
 
 // Register registers the authz subsystem
-func (as *AuthzSubsystem) Register() error {
-	if !as.Enabled() {
-		as.Logger.Info("subsystem is disabled", zap.String("subsystem", as.Name()))
+func (s *Subsystem) Register() error {
+	if !s.Enabled() {
+		s.Logger.Info("subsystem is disabled", zap.String("subsystem", s.Name()))
 		return nil
 	}
 
-	enforcer, err := casbin.NewEnforcer(config.DEFAULT_AUTH_MODEL_NAME, config.DEFAULT_AUTH_POLICY_NAME)
+	enforcer, err := casbin.NewEnforcer(config.DefaultAuthModelName, config.DefaultAuthPolicyName)
 	if err != nil {
-		as.Logger.Fatal("failed to create casbin enforcer", zap.Error(err))
+		s.Logger.Fatal("failed to create casbin enforcer", zap.Error(err))
 	}
-	as.enforcer = enforcer
+	s.enforcer = enforcer
 
 	return nil
 }
 
 // Enabled returns whether or not the authz subsystem is enabled
-func (as *AuthzSubsystem) Enabled() bool {
-	return as.enabled
+func (s *Subsystem) Enabled() bool {
+	return s.enabled
 }
 
 // AuthorizationHandler is the handler for authorization
-func (as *AuthzSubsystem) AuthorizationHandler(c *gin.Context) {
+func (s *Subsystem) AuthorizationHandler(c *gin.Context) {
 	// This is just a extremely basic authorization function right now. Will need to be built out to have full
 	// RBAC or ACL access controls in place. This implementation just checks to see if the user can access the
 	// resource and the default model says that "admin" can access anything.
 	if user, ok := c.Get("username"); ok {
-		if res, _ := as.enforcer.Enforce(user, c.Request.URL.Path, c.Request.Method); res {
+		if res, _ := s.enforcer.Enforce(user, c.Request.URL.Path, c.Request.Method); res {
 			c.Next()
 		} else {
 			helpers.WriteUnauthorizedResponseJSON(c, errors.New("user not authorized to access this resource"))
@@ -74,6 +74,6 @@ func (as *AuthzSubsystem) AuthorizationHandler(c *gin.Context) {
 }
 
 // Name returns the name of the subsystem
-func (as *AuthzSubsystem) Name() string {
-	return as.name
+func (s *Subsystem) Name() string {
+	return s.name
 }

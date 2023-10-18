@@ -1,4 +1,4 @@
-package authn_db
+package authndb
 
 import (
 	"fmt"
@@ -21,21 +21,21 @@ type User struct {
 type TokenDetails struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
-	AccessUuid   string `json:"access_uuid"`
-	RefreshUuid  string `json:"refresh_uuid"`
+	AccessUUID   string `json:"access_uuid"`
+	RefreshUUID  string `json:"refresh_uuid"`
 	AtExpires    int64  `json:"at_expires"`
 	RtExpires    int64  `json:"rt_expires"`
 }
 
 // AccessDetails is the struct for the access details
 type AccessDetails struct {
-	AccessUuid string `json:"access_uuid"`
-	UserId     uint64 `json:"user_id"`
+	AccessUUID string `json:"access_uuid"`
+	UserID     uint64 `json:"user_id"`
 }
 
 // NewAuthDB creates a new authn database
 func NewAuthDB(log *zap.Logger) *AuthDB {
-	name := "authn_db"
+	name := "authndb"
 	db := AuthDB{
 		Logger: log.With(zap.String("module", name)),
 		bucket: name,
@@ -58,8 +58,8 @@ type AuthDB struct {
 // Initialize initializes the authn database
 func (db *AuthDB) Initialize() error {
 	// Ensure db directory exits
-	if _, err := os.Stat(config.GLOBAL_DB_LOCATION); os.IsNotExist(err) {
-		err = os.MkdirAll(config.GLOBAL_DB_LOCATION, os.ModePerm)
+	if _, err := os.Stat(config.GlobalDBLocation); os.IsNotExist(err) {
+		err = os.MkdirAll(config.GlobalDBLocation, os.ModePerm)
 		if err != nil {
 			return fmt.Errorf("failed to create authentication database directory: %v", err)
 		}
@@ -67,7 +67,7 @@ func (db *AuthDB) Initialize() error {
 
 	// Initialize Database
 	var err error
-	db.DB, err = bolt.Open(config.DB_NAME, 0600, &bolt.Options{Timeout: 1 * time.Second})
+	db.DB, err = bolt.Open(config.DBName, 0600, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		return fmt.Errorf("failed to open authentication database: %v", err)
 	}

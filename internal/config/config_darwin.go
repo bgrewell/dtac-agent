@@ -3,20 +3,20 @@ package config
 import "path"
 
 const (
-	GLOBAL_CONFIG_LOCATION  = "/etc/dtac/"
-	LOCAL_CONFIG_LOCATION   = "$HOME/.dtac/"
-	DEFAULT_BINARY_LOCATION = "/opt/dtac/bin/"
-	DEFAULT_PLUGIN_LOCATION = "/opt/dtac/plugins/"
+	GlobalConfigLocation  = "/etc/dtac/"
+	LocalConfigLocation   = "$HOME/.dtac/"
+	DefaultBinaryLocation = "/opt/dtac/bin/"
+	DefaultPluginLocation = "/opt/dtac/plugins/"
 )
 
 var (
-	GLOBAL_CERT_LOCATION     = path.Join(GLOBAL_CONFIG_LOCATION, "certs/")
-	LOCAL_CERT_LOCATION      = path.Join(LOCAL_CONFIG_LOCATION, "certs/")
-	BINARY_NAME              = path.Join(DEFAULT_BINARY_LOCATION, "dtac-agentd")
-	GLOBAL_DB_LOCATION       = path.Join(GLOBAL_CONFIG_LOCATION, "db/")
-	DB_NAME                  = path.Join(GLOBAL_DB_LOCATION, "authn.db")
-	DEFAULT_TLS_CERT_NAME    = path.Join(GLOBAL_CERT_LOCATION, "tls.crt")
-	DEFAULT_TLS_KEY_NAME     = path.Join(GLOBAL_CERT_LOCATION, "tls.key")
-	DEFAULT_AUTH_MODEL_NAME  = path.Join(GLOBAL_CONFIG_LOCATION, "auth_model.conf")
-	DEFAULT_AUTH_POLICY_NAME = path.Join(GLOBAL_CONFIG_LOCATION, "auth_policy.csv")
+	GlobalCertLocation    = path.Join(GlobalConfigLocation, "certs/")
+	LocalCertLocation     = path.Join(LocalConfigLocation, "certs/")
+	GlobalDBLocation      = path.Join(GlobalConfigLocation, "db/")
+	BinaryName            = path.Join(DefaultBinaryLocation, "dtac-agentd")
+	DBName                = path.Join(GlobalDBLocation, "authn.db")
+	DefaultTLSCertName    = path.Join(GlobalCertLocation, "tls.crt")
+	DefaultTLSKeyName     = path.Join(GlobalCertLocation, "tls.key")
+	DefaultAuthModelName  = path.Join(GlobalConfigLocation, "auth_model.conf")
+	DefaultAuthPolicyName = path.Join(GlobalConfigLocation, "auth_policy.csv")
 )

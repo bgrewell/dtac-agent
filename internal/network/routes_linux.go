@@ -48,17 +48,17 @@ func (rtr RouteTableRow) JSON() string {
 
 // Create creates the route on the system
 func (rtr RouteTableRow) Create() error {
-	return rtr.modifyRoute(Route_Create)
+	return rtr.modifyRoute(RouteCreate)
 }
 
 // Update updates the route on the system
 func (rtr RouteTableRow) Update() error {
-	return rtr.modifyRoute(Route_Update)
+	return rtr.modifyRoute(RouteUpdate)
 }
 
 // Remove removes the route from the system
 func (rtr RouteTableRow) Remove() error {
-	return rtr.modifyRoute(Route_Delete)
+	return rtr.modifyRoute(RouteDelete)
 }
 
 // Applied returns true if the route is applied to the system
@@ -100,11 +100,11 @@ func (rtr RouteTableRow) modifyRoute(action RouteAction) (err error) {
 		Hoplimit:   rtr.Hoplimit,
 	}
 	switch action {
-	case Route_Create:
+	case RouteCreate:
 		return netlink.RouteAdd(&internalRoute)
-	case Route_Update:
+	case RouteUpdate:
 		return netlink.RouteReplace(&internalRoute)
-	case Route_Delete:
+	case RouteDelete:
 		return netlink.RouteDel(&internalRoute)
 	default:
 		return fmt.Errorf("unknown route action")
@@ -115,9 +115,12 @@ func (rtr RouteTableRow) modifyRoute(action RouteAction) (err error) {
 type RouteAction int
 
 const (
-	Route_Create RouteAction = 1
-	Route_Update RouteAction = 2
-	Route_Delete RouteAction = 3
+	// RouteCreate is the action for creating a route
+	RouteCreate RouteAction = 1
+	// RouteUpdate is the action for updating a route
+	RouteUpdate RouteAction = 2
+	// RouteDelete is the action for deleting a route
+	RouteDelete RouteAction = 3
 )
 
 // GetRouteTable retrieves the full route table on the system

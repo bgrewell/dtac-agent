@@ -37,14 +37,14 @@ func (ni *LiveNicInfo) Info() []net.InterfaceStat {
 }
 
 // rootHandler handles requests for the root path for this subsystem
-func (s *HardwareSubsystem) nicRootHandler(c *gin.Context) {
+func (s *Subsystem) nicRootHandler(c *gin.Context) {
 	start := time.Now()
 	s.nic.Update()
 	helpers.WriteResponseJSON(c, time.Since(start), s.nic.Info())
 }
 
 // nicInterfaceHandler handles requests for the root path for this subsystem
-func (s *HardwareSubsystem) nicInterfaceHandler(c *gin.Context) {
+func (s *Subsystem) nicInterfaceHandler(c *gin.Context) {
 	start := time.Now()
 	name := c.Param("name")
 	if name == "" {

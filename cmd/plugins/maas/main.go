@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/maas/maas_plugin"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/maas/maasplugin"
 	"log"
 
 	"github.com/bgrewell/gin-plugins/host"
@@ -9,7 +9,7 @@ import (
 
 func main() {
 
-	p := new(maas_plugin.MAASPlugin)
+	p := new(maasplugin.MAASPlugin)
 
 	h, err := host.NewPluginHost(p, "this_is_not_a_security_feature")
 	if err != nil {

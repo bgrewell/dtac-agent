@@ -6,6 +6,7 @@ import (
 	"os"
 )
 
+// EnsureAuthzModel ensures the authz subsystem has a default model
 func EnsureAuthzModel(c *controller.Controller) {
 	// Check if file exists
 	if _, err := os.Stat(c.Config.Auth.Model); os.IsNotExist(err) {
@@ -32,6 +33,7 @@ m = r.sub == p.sub && r.obj == p.obj && r.act == p.act || r.sub == "admin"
 	}
 }
 
+// EnsureAuthzPolicy ensures the authz subsystem has a default policy
 func EnsureAuthzPolicy(c *controller.Controller) {
 	// Check if file exists
 	if _, err := os.Stat(c.Config.Auth.Policy); os.IsNotExist(err) {

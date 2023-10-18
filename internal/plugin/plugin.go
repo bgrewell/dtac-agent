@@ -14,10 +14,10 @@ import (
 	"path"
 )
 
-// NewSubsystem creates a new instance of the PluginSubsystem struct
+// NewSubsystem creates a new instance of the Subsystem struct
 func NewSubsystem(router *gin.Engine, log *zap.Logger, cfg *config.Configuration) interfaces.Subsystem {
 	name := "plugin"
-	ps := PluginSubsystem{
+	ps := Subsystem{
 		Router:  router,
 		Logger:  log.With(zap.String("module", name)),
 		Config:  cfg,
@@ -27,8 +27,8 @@ func NewSubsystem(router *gin.Engine, log *zap.Logger, cfg *config.Configuration
 	return &ps
 }
 
-// PluginSubsystem handles plugin related functionalities
-type PluginSubsystem struct {
+// Subsystem handles plugin related functionalities
+type Subsystem struct {
 	Router  *gin.Engine
 	Logger  *zap.Logger
 	Config  *config.Configuration
@@ -37,29 +37,29 @@ type PluginSubsystem struct {
 }
 
 // Register registers the routes that this module handles.
-func (ps *PluginSubsystem) Register() (err error) {
-	if !ps.Enabled() {
-		ps.Logger.Info("subsystem is disabled", zap.String("subsystem", ps.Name()))
+func (s *Subsystem) Register() (err error) {
+	if !s.Enabled() {
+		s.Logger.Info("subsystem is disabled", zap.String("subsystem", s.Name()))
 		return nil
 	}
 
-	group := &ps.Router.RouterGroup
-	if ps.Config.Plugins.PluginGroup != "" {
-		group = ps.Router.Group(ps.Config.Plugins.PluginGroup)
+	group := &s.Router.RouterGroup
+	if s.Config.Plugins.PluginGroup != "" {
+		group = s.Router.Group(s.Config.Plugins.PluginGroup)
 	}
 
 	// Remap the plugin configs to use full path for key
 	cm := make(map[string]*loader.PluginConfig)
-	for k, v := range ps.Config.Plugins.Entries {
+	for k, v := range s.Config.Plugins.Entries {
 
 		// Deal with any poorly formed entries
 		if v == nil {
-			ps.Logger.Error("bad plugin entry", zap.String("name", k))
+			s.Logger.Error("bad plugin entry", zap.String("name", k))
 			continue
 		}
-		full := path.Join(ps.Config.Plugins.PluginDir, fmt.Sprintf("%s.plugin", k))
+		full := path.Join(s.Config.Plugins.PluginDir, fmt.Sprintf("%s.plugin", k))
 		v.PluginPath = full
-		ps.Logger.Info("loaded configuration",
+		s.Logger.Info("loaded configuration",
 			zap.String("name", v.Name()),
 			zap.Bool("enabled", v.Enabled),
 			zap.String("path", v.PluginPath),
@@ -69,13 +69,13 @@ func (ps *PluginSubsystem) Register() (err error) {
 		if v.Hash != "" {
 			ph, err := ComputeSHA256(v.PluginPath)
 			if err != nil {
-				ps.Logger.Error("failed to compute plugin hash",
+				s.Logger.Error("failed to compute plugin hash",
 					zap.Error(err),
 					zap.String("name", v.Name()),
 					zap.String("path", v.PluginPath))
 			}
 			if ph != v.Hash {
-				ps.Logger.Warn("plugin not loaded hash check failed",
+				s.Logger.Warn("plugin not loaded hash check failed",
 					zap.String("name", v.Name()),
 					zap.String("path", v.PluginPath),
 					zap.String("expected", v.Hash),
@@ -86,15 +86,15 @@ func (ps *PluginSubsystem) Register() (err error) {
 		cm[full] = v
 	}
 
-	l := loader.NewPluginLoader(ps.Config.Plugins.PluginDir, cm, group, ps.Config.Plugins.LoadUnconfigured)
+	l := loader.NewPluginLoader(s.Config.Plugins.PluginDir, cm, group, s.Config.Plugins.LoadUnconfigured)
 	active, err := l.Initialize()
 	if err != nil {
 		return err
 	}
 
-	ps.Logger.Info("loaded plugins", zap.Int("count", len(active)))
+	s.Logger.Info("loaded plugins", zap.Int("count", len(active)))
 	for idx, plug := range active {
-		ps.Logger.Info("plugin activated",
+		s.Logger.Info("plugin activated",
 			zap.Int("index", idx),
 			zap.String("name", plug.Name),
 			zap.String("path", plug.Path))
@@ -104,13 +104,13 @@ func (ps *PluginSubsystem) Register() (err error) {
 }
 
 // Enabled returns true if the subsystem is enabled
-func (ps *PluginSubsystem) Enabled() bool {
-	return ps.enabled
+func (s *Subsystem) Enabled() bool {
+	return s.enabled
 }
 
 // Name returns the name of the subsystem
-func (ps *PluginSubsystem) Name() string {
-	return ps.name
+func (s *Subsystem) Name() string {
+	return s.name
 }
 
 // ComputeSHA256 computes the SHA-256 hash of a file specified by its path.

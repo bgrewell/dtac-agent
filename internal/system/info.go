@@ -4,16 +4,16 @@ import (
 	"go.uber.org/zap"
 )
 
-// SystemInfo is the struct for the system information
-type SystemInfo struct {
-	Uuid                   string `json:"uuid"`
+// Info is the struct for the system information
+type Info struct {
+	UUID                   string `json:"uuid"`
 	ProductName            string `json:"product_name"`
 	OperatingSystemName    string `json:"operating_system_name"`
 	OperatingSystemVersion string `json:"operating_system_version"`
 }
 
 // Initialize initializes the system info
-func (si *SystemInfo) Initialize(log *zap.Logger) {
+func (si *Info) Initialize(log *zap.Logger) {
 	pn, err := GetSystemProductName()
 	if err != nil {
 		log.Error("failed to get product name", zap.Error(err))
@@ -25,9 +25,9 @@ func (si *SystemInfo) Initialize(log *zap.Logger) {
 	id, err := GetSystemUUID()
 	if err != nil {
 		log.Error("failed to get system uuid", zap.Error(err))
-		si.Uuid = "unknown"
+		si.UUID = "unknown"
 	} else {
-		si.Uuid = id
+		si.UUID = id
 	}
 
 	os, err := GetOSName()
@@ -47,7 +47,7 @@ func (si *SystemInfo) Initialize(log *zap.Logger) {
 	}
 }
 
-func (si *SystemInfo) serializeOs() (os interface{}) {
+func (si *Info) serializeOs() (os interface{}) {
 	type OsOnlyInfo struct {
 		Name    string `json:"name"`
 		Version string `json:"version"`

@@ -1,4 +1,4 @@
-package hello_plugin
+package helloplugin
 
 import (
 	"net/http"
