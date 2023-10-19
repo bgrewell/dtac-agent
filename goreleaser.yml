@@ -14,10 +14,23 @@ builds:
     flags:
       - -trimpath
     ldflags:
-      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+      - -s -w -X github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version.version={{.Version}} -X github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version.rev={{.ShortCommit}} -X github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version.date={{.Date}} -X github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version.branch={{.Branch}}
+
+# Set up the GitHub release
+release:
+  github:
+    owner: intel-innersource
+    name: frameworks.automation.dtac.agent
+  # If set to true, will not auto-publish the release.
+  draft: false
+  # If set to auto, will mark the release as not ready for production
+  # in case there is an indicator for this in the tag e.g. v1.0.0-rc1
+  # If set to true, will mark the release as not ready for production.
+  # Default is false.
+  prerelease: auto
 
 # Define the .deb package
-nfpm:
+nfpms:
   - id: debian
     builds:
       - dtac-agentd
@@ -47,19 +60,15 @@ nfpm:
       framework for the collection of monitoring and manipulation of a wide variety of systems.
     license: MIT
 
-# Windows NSIS
-nsis:
-  builds:
-    - dtac-agentd
-  license: ./LICENSE
-  one_click: false
-  language: English
-  maintainer: Benjamin Grewell <benjamin.grewell@intel.com>
-
-# Setup the GitHub release
-release:
-  github:
-    owner: github-owner
-    name: github-repo
-  draft: false
-  prerelease: auto
+#chocolateys:
+#  -
+#    name: dtac-agentd
+#    ids: []
+#    title: DTAC Agent
+#    authors: Benjamin Grewell <benjamin.grewell@intel.com>
+#    description: >-
+#      The Distributed Telemetry and Advanced Control (DTAC) framework is a collection of projects designed to
+#      reduce the time to completion of software projects and testbeds by providing a highly reusable and extensible
+#      framework for the collection of monitoring and manipulation of a wide variety of systems.
+#    project_url: https://software.labs.intel.com
+#    dependencies: []
