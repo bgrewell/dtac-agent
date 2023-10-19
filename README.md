@@ -30,6 +30,14 @@ through a multitude of methodologies described in more detail in the [extensibil
 
 ## Development
 
+This guide will walk you through preparing your system for DTAC Agent development. We'll cover:
+
+- How to ensure commit messages are consistently formatted. 
+- Maintaining standardized versioning for your contributions.
+- Installing the compiler and essential tools required to build the project.
+
+Follow the steps below to ensure a smooth and consistent development experience with DTAC Agent.
+
 ### System Setup
 
 Development Prerequisites for the DTAC Agent
@@ -38,11 +46,12 @@ To efficiently develop and build the DTAC Agent, certain tools are indispensable
 development process, ensuring high code quality, adherence to coding conventions, and efficient release management. 
 The necessary tools are:
 
-    go: The Go programming language, which forms the backbone of the DTAC Agent.
-    goreleaser: Simplifies the release process by automating the creation of binaries, packaging, and distribution.
-    golint: A linter for Go source code that flags potential style issues to maintain code consistency.
-    staticcheck: A state-of-the-art linter for Go that checks for bugs, performance issues, and more.
-    commitizen: Assists in creating consistent commit messages, following the "conventional commits" format.
+- go: The Go programming language, which forms the backbone of the DTAC Agent.
+- goreleaser: Simplifies the release process by automating the creation of binaries, packaging, and distribution.
+- golint: A linter for Go source code that flags potential style issues to maintain code consistency.
+- staticcheck: A state-of-the-art linter for Go that checks for bugs, performance issues, and more.
+- commitizen: Assists in creating consistent commit messages, following the "conventional commits" format.
+- mage: Mage is a make/rake-like build tool using Go.
 
 For developers using a Linux-based system, specifically Ubuntu 22.04, the aforementioned tools can be installed using 
 the commands provided below. It's important to note that while the Go-related tools will be installed using the Go 
@@ -104,6 +113,21 @@ leverage `commitizen`:
 Using `commitizen` helps maintain a coherent commit history, which can be particularly beneficial when generating 
 changelogs, understanding project history, or navigating through changes.
 
+### Using Mage for Building
+
+`mage` is a build tool that simplifies the process of building the DTAC Agent. It is a make/rake-like tool that uses Go
+code to define tasks. For convinence a zero-install option has been included in this repository which allows you to run
+mage without installation. To build the DTAC Agent, simply run:
+
+```bash
+go run tools/mage/mage.go <target>
+```
+
+Where `<target>` is the name of the target you wish to execute. For example, to build the DTAC Agent, run:
+
+```bash
+go run tools/mage/mage.go build
+```
 
 ## Extensibility
 

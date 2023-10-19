@@ -46,9 +46,10 @@ nfpms:
   - id: debian
     builds:
       - dtac-agentd
+      - hello
     formats:
       - deb
-    bindir: /usr/local/bin
+    bindir: /opt/dtac/bin
     vendor: Intel
     homepage: https://software.labs.intel.com
     maintainer: Benjamin Grewell <benjamin.grewell@intel.com>
@@ -56,6 +57,16 @@ nfpms:
       reduce the time to completion of software projects and testbeds by providing a highly reusable and extensible 
       framework for the collection of monitoring and manipulation of a wide variety of systems.
     license: MIT
+    scripts:
+      postinstall: ./scripts/debian/postinstall.sh
+    contents:
+      # Systemd service file
+      - src: ./service/systemd/dtac-agentd.service
+        dst: /lib/systemd/system/dtac-agentd.service
+        file_info:
+          mode: 0644
+          owner: root
+          group: root
 
   # Define the .rpm package
   - id: rpm
@@ -71,6 +82,16 @@ nfpms:
       reduce the time to completion of software projects and testbeds by providing a highly reusable and extensible
       framework for the collection of monitoring and manipulation of a wide variety of systems.
     license: MIT
+    scripts:
+      postinstall: ./scripts/rhel/postinstall.sh
+    contents:
+      # Systemd service file
+      - src: ./service/systemd/dtac-agentd.service
+        dst: /lib/systemd/system/dtac-agentd.service
+        file_info:
+          mode: 0644
+          owner: root
+          group: root
 
 #chocolateys:
 #  -
