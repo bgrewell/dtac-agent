@@ -50,6 +50,7 @@ func (s *Subsystem) Register() error {
 		{Group: base, HTTPMethod: http.MethodGet, Path: "/", Handler: s.rootHandler, Protected: secure},
 		{Group: base, HTTPMethod: http.MethodGet, Path: "/jwt", Handler: s.jwtTestHandler, Protected: true},
 		{Group: base, HTTPMethod: http.MethodGet, Path: "/routes", Handler: s.httpRoutePrintHandler, Protected: secure},
+		{Group: base, HTTPMethod: http.MethodGet, Path: "/runningas", Handler: s.runningAsHandler, Protected: false},
 	}
 
 	// Register routes
@@ -101,6 +102,19 @@ func (s *Subsystem) jwtTestHandler(c *gin.Context) {
 	start := time.Now()
 	response := gin.H{
 		"message": "jwt test page",
+	}
+	helpers.WriteResponseJSON(c, time.Since(start), response)
+}
+
+func (s *Subsystem) runningAsHandler(c *gin.Context) {
+	start := time.Now()
+	ug, err := AgentRunningAsUser()
+	if err != nil {
+		helpers.WriteErrorResponseJSON(c, err)
+		return
+	}
+	response := gin.H{
+		"runningAs": ug,
 	}
 	helpers.WriteResponseJSON(c, time.Since(start), response)
 }
