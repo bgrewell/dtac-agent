@@ -4,7 +4,9 @@ before:
     - go mod download
 
 builds:
-  - main: ./cmd/agent/main.go
+  -
+    binary: dtac-agentd
+    main: ./cmd/agent/main.go
     id: "dtac-agentd"
     goos:
       - linux
@@ -15,6 +17,16 @@ builds:
       - -trimpath
     ldflags:
       - -s -w -X github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version.version={{.Version}} -X github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version.rev={{.ShortCommit}} -X github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version.date={{.Date}} -X github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version.branch={{.Branch}}
+
+  -
+    binary: hello.{{.Target}}.plugin
+    main: ./cmd/plugins/hello/main.go
+    id: "hello"
+    goos:
+      - linux
+      - windows
+    goarch:
+        - amd64
 
 # Set up the GitHub release
 release:
