@@ -1,0 +1,14 @@
+[Unit]
+Description=DTAC Agent Service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/dtac/bin/dtac-agentd
+Restart=on-failure
+User=root
+Group=root
+WorkingDirectory=/opt/dtac/bin/
+
+[Install]
+WantedBy=multi-user.target
