@@ -28,6 +28,23 @@ through a multitude of methodologies described in more detail in the [extensibil
 
 ### Basic Requests
 
+## Development
+
+### System Setup
+
+The following tools are needed in order to develop and build the DTAC Agent
+- go
+- goreleaser
+- golint
+- staticcheck
+- commitizen
+
+On a Linux based system the required tools can be installed with the following commands
+
+```bash
+...need commands here...use go to install the linting, release and static check tools and pip to install commitizen
+```
+
 ## Extensibility
 
 ### Plugin Development
