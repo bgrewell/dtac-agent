@@ -85,7 +85,7 @@ func TestNewConfigViewCmd(t *testing.T) {
 	if err != nil {
 		t.Errorf("Expected no error, but got %v", err)
 	}
-	expectedOutput = "Error: Key not found: key.doesnt.exist"
+	expectedOutput = "Error: key not found: key.doesnt.exist"
 	if actual.String() != expectedOutput {
 		t.Errorf("Expected output to be '%s', but got '%s'", expectedOutput, actual.String())
 	}
