@@ -10,8 +10,17 @@ import (
 	"os"
 )
 
+type CliKey string
+
+const (
+	KeyConfig CliKey = "config"
+)
+
 func loadConfig() (cfg *config.Configuration, err error) {
 	logger, err := zap.NewProduction()
+	if err != nil {
+		return nil, err
+	}
 	return config.NewConfiguration(nil, logger)
 }
 
@@ -29,7 +38,7 @@ func NewCommandLineInterface() *CommandLineInterface {
 			Short: "dtac is a tool to configure the dtac-agent",
 			Long:  `dtac is a command-line application tool to configure the dtac-agent on systems.`,
 			PersistentPreRun: func(cmd *cobra.Command, args []string) {
-				ctx := context.WithValue(cmd.Context(), "config", cfg)
+				ctx := context.WithValue(cmd.Context(), KeyConfig, cfg)
 				cmd.SetContext(ctx)
 			},
 			Run: func(cmd *cobra.Command, args []string) {
@@ -52,9 +61,8 @@ func NewCommandLineInterface() *CommandLineInterface {
 }
 
 type CommandLineInterface struct {
-	rootCmd        *cobra.Command
-	configFilename string
-	config         *config.Configuration
+	rootCmd *cobra.Command
+	config  *config.Configuration
 }
 
 func (cli *CommandLineInterface) Run() error {

@@ -42,12 +42,7 @@ func CheckUser(url string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-
-		}
-	}(resp.Body)
+	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -79,12 +74,7 @@ func CanRead(path string) bool {
 		// unable to open the file for reading -> return false
 		return false
 	}
-	defer func(file *os.File) {
-		err := file.Close()
-		if err != nil {
-
-		}
-	}(file) // remember to close the file
+	defer file.Close()
 
 	return true
 }
