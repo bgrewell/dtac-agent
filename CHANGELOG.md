@@ -1,3 +1,19 @@
+## v2.1.0 (2023-10-23)
+
+### Feat
+
+- add random password gen
+- add endpoint to expose user/group service is running under
+
+### Fix
+
+- fix incorrect permissions
+
+### Refactor
+
+- fix typo
+- refactor config
+
 ## v2.0.0 (2023-10-19)
 
 ## v2.0.0-dev1 (2023-10-19)
