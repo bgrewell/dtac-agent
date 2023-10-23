@@ -142,6 +142,7 @@ func NewConfiguration(router *gin.Engine, log *zap.Logger) (config *Configuratio
 	viper.AddConfigPath(GlobalConfigLocation)
 	viper.AddConfigPath(LocalConfigLocation)
 	viper.AddConfigPath(".")
+	viper.SetConfigPermissions(0600)
 
 	// Get the hostname and domain
 	hostname, _ := os.Hostname()
