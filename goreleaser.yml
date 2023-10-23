@@ -3,6 +3,7 @@ before:
   hooks:
     - go mod download
 
+project_name: dtac-agentd
 builds:
   -
     binary: dtac-agentd
