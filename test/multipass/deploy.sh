@@ -8,4 +8,4 @@ multipass purge
 multipass launch -n dtac-test
 
 # Copy the files
-multipass transfer dist/*.deb dtac-test:/home/ubuntu
+multipass transfer ../../dist/*.deb dtac-test:/home/ubuntu
