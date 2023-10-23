@@ -10,20 +10,6 @@ import (
 	"os"
 )
 
-// TODO : --- DELETE BELOW ---
-
-var setupCmd = &cobra.Command{
-	Use:   "setup",
-	Short: "Setup the dtac-agent",
-	Long:  `This command is used to set up the dtac-agent on the system.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Setting up dtac-agent...")
-		// Add your setup logic here
-	},
-}
-
-//TODO : --- DELETE ABOVE ---
-
 func loadConfig() (cfg *config.Configuration, err error) {
 	logger, err := zap.NewProduction()
 	return config.NewConfiguration(nil, logger)
