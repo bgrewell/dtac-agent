@@ -41,6 +41,7 @@ func NewCommandLineInterface() *CommandLineInterface {
 
 	// Setup root commands
 	cli.rootCmd.AddCommand(cfgCmd)
+	cli.rootCmd.AddCommand(commands.NewTokenCmd())
 
 	return cli
 }
