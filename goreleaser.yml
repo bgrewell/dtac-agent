@@ -28,6 +28,16 @@ builds:
     goarch:
         - amd64
 
+  -
+    binary: dtac
+    main: ./cmd/cli/main.go
+    id: "dtac"
+    goos:
+      - linux
+      - windows
+    goarch:
+      - amd64
+
 # Set up the GitHub release
 release:
   github:
@@ -47,6 +57,7 @@ nfpms:
     builds:
       - dtac-agentd
       - hello
+      - dtac
     formats:
       - deb
     bindir: /opt/dtac/bin
@@ -72,6 +83,8 @@ nfpms:
   - id: rpm
     builds:
       - dtac-agentd
+      - hello
+      - dtac
     formats:
       - rpm
     bindir: /usr/local/bin

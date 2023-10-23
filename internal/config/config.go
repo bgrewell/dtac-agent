@@ -142,6 +142,7 @@ func NewConfiguration(router *gin.Engine, log *zap.Logger) (config *Configuratio
 	viper.AddConfigPath(GlobalConfigLocation)
 	viper.AddConfigPath(LocalConfigLocation)
 	viper.AddConfigPath(".")
+	viper.SetConfigPermissions(0600)
 
 	// Get the hostname and domain
 	hostname, _ := os.Hostname()
@@ -238,9 +239,6 @@ func NewConfiguration(router *gin.Engine, log *zap.Logger) (config *Configuratio
 	// Setup routes
 	c.router = router
 	c.logger = log
-	if err := c.Register(); err != nil {
-		log.Error("failed to register config routes", zap.Error(err))
-	}
 
 	viper.OnConfigChange(func(e fsnotify.Event) {
 		log.Info("config file changed", zap.String("filename", e.Name))
