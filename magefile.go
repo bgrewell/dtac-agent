@@ -196,6 +196,26 @@ func buildMac64() error {
 	return build("darwin", "amd64")
 }
 
+func buildCliLin64() error {
+	fmt.Println("  Compiling Linux amd64")
+	return buildCli("linux", "amd64")
+}
+
+func buildCliLinArm() error {
+	fmt.Println("  Compiling Linux Arm")
+	return buildCli("linux", "arm")
+}
+
+func buildCliWin64() error {
+	fmt.Println("  Compiling Windows amd64")
+	return buildCli("windows", "amd64")
+}
+
+func buildCliMac64() error {
+	fmt.Println("  Compiling MacOS amd64")
+	return buildCli("darwin", "amd64")
+}
+
 func build(os string, arch string) error {
 	extension := ""
 	if os == "windows" {
@@ -210,9 +230,34 @@ func build(os string, arch string) error {
 	return runWith(env, goexe, "build", "-ldflags", ldflags, buildFlags(), "-tags", buildTags(), "-o", output, "cmd/agent/main.go")
 }
 
+func buildCli(os string, arch string) error {
+	extension := ""
+	if os == "windows" {
+		extension = ".exe"
+	} else if os == "darwin" {
+		extension = ".app"
+	}
+	env := flagEnv()
+	env["GOOS"] = os
+	env["GOARCH"] = arch
+	output := fmt.Sprintf("bin/%s%s%s", "dtac", fmt.Sprintf("-%s", arch), extension)
+	return runWith(env, goexe, "build", "-ldflags", ldflags, buildFlags(), "-tags", buildTags(), "-o", output, "cmd/cli/main.go")
+}
+
 func Build() error {
 	fmt.Println("Building agent")
 	funcs := []func() error{buildLin64, buildLinArm, buildWin64, buildMac64}
+	for _, f := range funcs {
+		if err := f(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func BuildCli() error {
+	fmt.Println("Building cli")
+	funcs := []func() error{buildCliLin64, buildCliLinArm, buildCliWin64, buildCliMac64}
 	for _, f := range funcs {
 		if err := f(); err != nil {
 			return err

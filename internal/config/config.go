@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"reflect"
 	"strings"
 
 	"github.com/bgrewell/gin-plugins/loader"
@@ -144,52 +145,8 @@ func NewConfiguration(router *gin.Engine, log *zap.Logger) (config *Configuratio
 	viper.AddConfigPath(".")
 	viper.SetConfigPermissions(0600)
 
-	// Get the hostname and domain
-	hostname, _ := os.Hostname()
-
 	// Setup default values
-	kvp := map[string]interface{}{
-		"authn.user":                           "admin",
-		"authn.pass":                           "need_to_generate_a_random_password_on_install_or_first_run",
-		"authn.default_secure":                 true,
-		"authn.model":                          DefaultAuthModelName,
-		"authn.policy":                         DefaultAuthPolicyName,
-		"internal.product_name":                "DTAC Agent",
-		"internal.short_name":                  "dtac",
-		"internal.file_name":                   "dtac-agentd",
-		"listener.port":                        8180,
-		"listener.https.enabled":               true,
-		"listener.https.type":                  "self-signed",
-		"listener.https.create_if_missing":     true,
-		"listener.https.domains":               []string{"localhost", "127.0.0.1", hostname},
-		"listener.https.cert":                  DefaultTLSCertName,
-		"listener.https.key":                   DefaultTLSKeyName,
-		"lockout.enabled":                      true,
-		"lockout.auto_unlock_time":             "10s",
-		"wifi_watchdog.enabled":                false,
-		"wifi_watchdog.poll_interval":          "10s",
-		"wifi_watchdog.profile":                "",
-		"wifi_watchdog.bssid":                  "",
-		"updater.enabled":                      false,
-		"updater.token":                        "",
-		"updater.mode":                         "auto",
-		"updater.interval":                     "1m",
-		"updater.error_fallback":               "1h",
-		"updater.restart_on_update":            true,
-		"plugins.enabled":                      true,
-		"plugins.dir":                          DefaultPluginLocation,
-		"plugins.group":                        "plugins",
-		"plugins.load_unconfigured":            false,
-		"plugins.entries.hello.enabled":        true,
-		"plugins.entries.hello.cookie":         "this_is_not_a_security_feature",
-		"plugins.entries.hello.hash":           "",
-		"plugins.entries.hello.user":           "",
-		"plugins.entries.hello.config.message": "hello world plugin",
-		"subsystems.diag":                      true,
-		"subsystems.network":                   true,
-		"subsystems.hardware":                  true,
-		"routes":                               []map[string]*RouteEntry{},
-	}
+	kvp := DefaultConfig()
 	for k, v := range kvp {
 		viper.SetDefault(k, v)
 	}
@@ -245,6 +202,54 @@ func NewConfiguration(router *gin.Engine, log *zap.Logger) (config *Configuratio
 	})
 	viper.WatchConfig()
 	return &c, nil
+}
+
+func DefaultConfig() map[string]interface{} {
+	// Get the hostname and domain
+	hostname, _ := os.Hostname()
+
+	return map[string]interface{}{
+		"authn.user":                           "admin",
+		"authn.pass":                           "need_to_generate_a_random_password_on_install_or_first_run",
+		"authn.default_secure":                 true,
+		"authn.model":                          DefaultAuthModelName,
+		"authn.policy":                         DefaultAuthPolicyName,
+		"internal.product_name":                "DTAC Agent",
+		"internal.short_name":                  "dtac",
+		"internal.file_name":                   "dtac-agentd",
+		"listener.port":                        8180,
+		"listener.https.enabled":               true,
+		"listener.https.type":                  "self-signed",
+		"listener.https.create_if_missing":     true,
+		"listener.https.domains":               []string{"localhost", "127.0.0.1", hostname},
+		"listener.https.cert":                  DefaultTLSCertName,
+		"listener.https.key":                   DefaultTLSKeyName,
+		"lockout.enabled":                      true,
+		"lockout.auto_unlock_time":             "10s",
+		"wifi_watchdog.enabled":                false,
+		"wifi_watchdog.poll_interval":          "10s",
+		"wifi_watchdog.profile":                "",
+		"wifi_watchdog.bssid":                  "",
+		"updater.enabled":                      false,
+		"updater.token":                        "",
+		"updater.mode":                         "auto",
+		"updater.interval":                     "1m",
+		"updater.error_fallback":               "1h",
+		"updater.restart_on_update":            true,
+		"plugins.enabled":                      true,
+		"plugins.dir":                          DefaultPluginLocation,
+		"plugins.group":                        "plugins",
+		"plugins.load_unconfigured":            false,
+		"plugins.entries.hello.enabled":        true,
+		"plugins.entries.hello.cookie":         "this_is_not_a_security_feature",
+		"plugins.entries.hello.hash":           "",
+		"plugins.entries.hello.user":           "",
+		"plugins.entries.hello.config.message": "hello world plugin",
+		"subsystems.diag":                      true,
+		"subsystems.network":                   true,
+		"subsystems.hardware":                  true,
+		"routes":                               []map[string]*RouteEntry{},
+	}
 }
 
 // Register registers the routes that this module handles
@@ -330,4 +335,46 @@ func writeConfigWithoutInternalKeys(filename string) error {
 	}
 
 	return nil
+}
+
+// GetConfigValue gets a value from the configuration.
+func GetConfigValue(cfg *Configuration, key string) (interface{}, error) {
+	keys := strings.Split(key, ".")
+	var current interface{} = cfg
+
+	for _, k := range keys {
+		value, found := findField(current, k)
+		if !found {
+			return nil, fmt.Errorf("Key not found: %s", key)
+		}
+
+		current = value
+	}
+
+	return current, nil
+}
+
+// findField finds a field in a struct by its JSON or YAML tag.
+func findField(v interface{}, key string) (interface{}, bool) {
+	value := reflect.ValueOf(v)
+	if value.Kind() == reflect.Ptr {
+		value = value.Elem()
+	}
+
+	if value.Kind() == reflect.Struct {
+		// Look up the field using the struct tags
+		field := value.FieldByNameFunc(func(fieldName string) bool {
+			field, _ := value.Type().FieldByName(fieldName)
+			tag := field.Tag
+			jsonTag := tag.Get("json")
+			yamlTag := tag.Get("yaml")
+			return jsonTag == key || yamlTag == key
+		})
+
+		if field.IsValid() {
+			return field.Interface(), true
+		}
+	}
+
+	return nil, false
 }

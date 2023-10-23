@@ -4,16 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/cli/commands"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/cli/consts"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 	"os"
-)
-
-type CliKey string
-
-const (
-	KeyConfig CliKey = "config"
 )
 
 func loadConfig() (cfg *config.Configuration, err error) {
@@ -38,7 +33,7 @@ func NewCommandLineInterface() *CommandLineInterface {
 			Short: "dtac is a tool to configure the dtac-agent",
 			Long:  `dtac is a command-line application tool to configure the dtac-agent on systems.`,
 			PersistentPreRun: func(cmd *cobra.Command, args []string) {
-				ctx := context.WithValue(cmd.Context(), KeyConfig, cfg)
+				ctx := context.WithValue(cmd.Context(), consts.KeyConfig, cfg)
 				cmd.SetContext(ctx)
 			},
 			Run: func(cmd *cobra.Command, args []string) {

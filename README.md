@@ -14,6 +14,19 @@ through a multitude of methodologies described in more detail in the [extensibil
 
 ## Installation
 
+### Install from package
+
+after the install is complete you will need to get the api password for the administrative user that has been generated. 
+You can do this by running the following command:
+
+```bash
+sudo dtac config view authn.pass
+````
+
+### Install from source
+
+
+
 ### Windows
 
 ### Linux
