@@ -3,7 +3,7 @@ package helpers
 import (
 	"encoding/json"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"os/user"
@@ -42,9 +42,14 @@ func CheckUser(url string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
 
-	body, err := ioutil.ReadAll(resp.Body)
+		}
+	}(resp.Body)
+
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return false, err
 	}
@@ -74,7 +79,12 @@ func CanRead(path string) bool {
 		// unable to open the file for reading -> return false
 		return false
 	}
-	defer file.Close() // remember to close the file
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+
+		}
+	}(file) // remember to close the file
 
 	return true
 }
