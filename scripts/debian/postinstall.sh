@@ -21,5 +21,8 @@ password=$(openssl rand -base64 32)
 # Updates the password in the YAML file
 yq eval -i '.authn.pass = "'"$password"'"' /etc/dtac/config.yaml
 
+# Generate a link between the dtac config utility and /usr/bin
+ln -s /opt/dtac/bin/dtac /usr/bin/dtac
+
 # Restart the service
 systemctl restart dtac-agentd.service

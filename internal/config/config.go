@@ -238,9 +238,6 @@ func NewConfiguration(router *gin.Engine, log *zap.Logger) (config *Configuratio
 	// Setup routes
 	c.router = router
 	c.logger = log
-	if err := c.Register(); err != nil {
-		log.Error("failed to register config routes", zap.Error(err))
-	}
 
 	viper.OnConfigChange(func(e fsnotify.Event) {
 		log.Info("config file changed", zap.String("filename", e.Name))
