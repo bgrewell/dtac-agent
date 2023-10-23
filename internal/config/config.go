@@ -2,13 +2,14 @@ package config
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
 	"net/http"
 	"os"
 	"path"
 	"reflect"
 	"strings"
+
+	"github.com/gin-gonic/gin"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
 
 	"github.com/bgrewell/gin-plugins/loader"
 	"github.com/fsnotify/fsnotify"
@@ -204,6 +205,7 @@ func NewConfiguration(router *gin.Engine, log *zap.Logger) (config *Configuratio
 	return &c, nil
 }
 
+// DefaultConfig returns the default configuration
 func DefaultConfig() map[string]interface{} {
 	// Get the hostname and domain
 	hostname, _ := os.Hostname()
@@ -345,7 +347,7 @@ func GetConfigValue(cfg *Configuration, key string) (interface{}, error) {
 	for _, k := range keys {
 		value, found := findField(current, k)
 		if !found {
-			return nil, fmt.Errorf("Key not found: %s", key)
+			return nil, fmt.Errorf("key not found: %s", key)
 		}
 
 		current = value

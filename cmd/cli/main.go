@@ -1,14 +1,13 @@
 package main
 
 import (
-	"context"
 	"fmt"
+	"os"
+
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/cli/commands"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/cli/consts"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
-	"os"
 )
 
 func loadConfig() (cfg *config.Configuration, err error) {
@@ -19,6 +18,7 @@ func loadConfig() (cfg *config.Configuration, err error) {
 	return config.NewConfiguration(nil, logger)
 }
 
+// NewCommandLineInterface returns a new instance of the CommandLineInterface struct.
 func NewCommandLineInterface() *CommandLineInterface {
 
 	cfg, err := loadConfig()
@@ -28,38 +28,30 @@ func NewCommandLineInterface() *CommandLineInterface {
 	}
 
 	cli := &CommandLineInterface{
-		rootCmd: &cobra.Command{
-			Use:   "dtac",
-			Short: "dtac is a tool to configure the dtac-agent",
-			Long:  `dtac is a command-line application tool to configure the dtac-agent on systems.`,
-			PersistentPreRun: func(cmd *cobra.Command, args []string) {
-				ctx := context.WithValue(cmd.Context(), consts.KeyConfig, cfg)
-				cmd.SetContext(ctx)
-			},
-			Run: func(cmd *cobra.Command, args []string) {
-				// Do nothing here
-			},
-		},
-		config: cfg,
+		rootCmd: commands.NewRootCmd(cfg),
+		config:  cfg,
 	}
 
 	// Setup config commands
-	commands.ConfigCmd.AddCommand(commands.ConfigViewCmd)
-	commands.ConfigCmd.AddCommand(commands.ConfigEditCmd)
-
-	// Setup setup commands
+	cfgCmd := commands.NewConfigCmd()
+	cfgViewCmd := commands.NewConfigViewCmd()
+	cfgEditCmd := commands.NewConfigEditCmd()
+	cfgCmd.AddCommand(cfgViewCmd)
+	cfgCmd.AddCommand(cfgEditCmd)
 
 	// Setup root commands
-	cli.rootCmd.AddCommand(commands.ConfigCmd)
+	cli.rootCmd.AddCommand(cfgCmd)
 
 	return cli
 }
 
+// CommandLineInterface is a struct that contains the root command and the configuration.
 type CommandLineInterface struct {
 	rootCmd *cobra.Command
 	config  *config.Configuration
 }
 
+// Run executes the root command.
 func (cli *CommandLineInterface) Run() error {
 	return cli.rootCmd.Execute()
 }
