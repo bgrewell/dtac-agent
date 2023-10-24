@@ -14,6 +14,8 @@ Windows, Linux and MacOS (Darwin). It provides access to a wide variety of telem
 the ability to control many of the system parameters out of the box. It has been designed to be highly extensible 
 through a multitude of methodologies described in more detail in the [extensibility](#extensibility) section below.
 
+It is important to note that this project is under active development and as such it may have incomplete or missing documentation as well as incomplete implementations of some functionality. While we will do our best to not change the public APIs it is possible that they will have breaking changes prior to the first production release.
+
 ## Installation
 
 ### Install from package
