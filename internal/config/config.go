@@ -224,7 +224,7 @@ func DefaultConfig() map[string]interface{} {
 		"listener.https.enabled":               true,
 		"listener.https.type":                  "self-signed",
 		"listener.https.create_if_missing":     true,
-		"listener.https.domains":               []string{"localhost", "127.0.0.1", hostname},
+		"listener.https.domains":               []string{"localhost", hostname},
 		"listener.https.cert":                  DefaultTLSCertName,
 		"listener.https.key":                   DefaultTLSKeyName,
 		"listener.https.ca":                    DefaultTLSCACertName,

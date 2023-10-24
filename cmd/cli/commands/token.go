@@ -3,6 +3,7 @@ package commands
 import (
 	"bytes"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/cli/consts"
@@ -10,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"io"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -57,12 +59,22 @@ func getTokens(cmd *cobra.Command, cfg *config.Configuration) ([]byte, bool) {
 		cert, err := tls.LoadX509KeyPair(cfg.Listener.HTTPS.CertFile, cfg.Listener.HTTPS.KeyFile)
 		if err != nil {
 			cmd.ErrOrStderr().Write([]byte("Error: " + err.Error()))
-			return nil, true
+			return nil, false
+		}
+
+		caCert, err := os.ReadFile(cfg.Listener.HTTPS.CAFile)
+		if err != nil {
+			return nil, false
+		}
+
+		caCertPool := x509.NewCertPool()
+		if ok := caCertPool.AppendCertsFromPEM(caCert); !ok {
+			return nil, false
 		}
 
 		tlsConfig := &tls.Config{
-			Certificates:       []tls.Certificate{cert},
-			InsecureSkipVerify: true,
+			Certificates: []tls.Certificate{cert},
+			RootCAs:      caCertPool,
 		}
 
 		transport = &http.Transport{
@@ -79,13 +91,13 @@ func getTokens(cmd *cobra.Command, cfg *config.Configuration) ([]byte, bool) {
 	payload, err := json.Marshal(data)
 	if err != nil {
 		cmd.ErrOrStderr().Write([]byte("Error: " + err.Error()))
-		return nil, true
+		return nil, false
 	}
 
 	req, err := http.NewRequest("POST", apiEndpoint, bytes.NewBuffer(payload))
 	if err != nil {
 		cmd.ErrOrStderr().Write([]byte("Error: " + err.Error()))
-		return nil, true
+		return nil, false
 	}
 	req.Header.Set("Content-Type", "application/json")
 
@@ -97,14 +109,14 @@ func getTokens(cmd *cobra.Command, cfg *config.Configuration) ([]byte, bool) {
 	resp, err := client.Do(req)
 	if err != nil {
 		cmd.ErrOrStderr().Write([]byte("Error: " + err.Error()))
-		return nil, true
+		return nil, false
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		cmd.ErrOrStderr().Write([]byte("Error: " + err.Error()))
-		return nil, true
+		return nil, false
 	}
 	return body, false
 }
