@@ -2,7 +2,6 @@ package network
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
 	"time"
 )
@@ -17,11 +16,11 @@ type ArpEntry struct {
 	Iface     string `json:"device"`
 }
 
-func arpTableHandler(c *gin.Context) {
+func (s *Subsystem) arpTableHandler(c *gin.Context) {
 	start := time.Now()
 	arpData, err := GetArpTable()
 	if err != nil {
-		helpers.WriteErrorResponseJSON(c, err)
+		s.Controller.Formatter.WriteError(c, err)
 		return
 	}
 	response := gin.H{
@@ -30,5 +29,5 @@ func arpTableHandler(c *gin.Context) {
 			Value:       arpData,
 		},
 	}
-	helpers.WriteResponseJSON(c, time.Since(start), response)
+	s.Controller.Formatter.WriteResponse(c, time.Since(start), response)
 }

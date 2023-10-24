@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/cli/consts"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/spf13/cobra"
 	"io"
 	"net/http"
@@ -20,7 +21,7 @@ type tokenDetails struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-// NewConfigCmd returns a new instance of the config command for the dtac tool.
+// NewTokenCmd returns a new instance of the token command.
 func NewTokenCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "token",
@@ -38,8 +39,15 @@ func NewTokenCmd() *cobra.Command {
 				return
 			}
 
+			var response helpers.ResponseWrapper
+			err := json.Unmarshal(body, &response)
+			if err != nil {
+				cmd.ErrOrStderr().Write([]byte("Failed to unmarshal response: " + err.Error()))
+				return
+			}
+
 			var tokens tokenDetails
-			err := json.Unmarshal(body, &tokens)
+			err = json.Unmarshal(response.Response, &tokens)
 			if err != nil {
 				cmd.ErrOrStderr().Write([]byte("Failed to unmarshal access token: " + err.Error()))
 				return

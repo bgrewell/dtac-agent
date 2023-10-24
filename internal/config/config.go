@@ -122,6 +122,12 @@ type AuthEntry struct {
 	Policy        string `json:"policy" yaml:"policy" mapstructure:"policy"`
 }
 
+// OutputEntry is the struct for an output entry
+type OutputEntry struct {
+	LogLevel      string `json:"log_level" yaml:"log_level" mapstructure:"log_level"`
+	WrapResponses bool   `json:"wrap_responses" yaml:"wrap_responses" mapstructure:"wrap_responses"`
+}
+
 // Configuration is the struct for the configuration
 type Configuration struct {
 	Auth         AuthEntry                `json:"authn" yaml:"authn" mapstructure:"authn"`
@@ -133,6 +139,7 @@ type Configuration struct {
 	WifiWatchdog WatchdogEntry            `json:"wifi_watchdog" yaml:"wifi_watchdog" mapstructure:"wifi_watchdog"`
 	Plugins      PluginEntry              `json:"plugins" yaml:"plugins" mapstructure:"plugins"`
 	Custom       []map[string]*RouteEntry `json:"routes" yaml:"routes" mapstructure:"routes"`
+	Output       OutputEntry              `json:"output" yaml:"output" mapstructure:"output"`
 	router       *gin.Engine
 	logger       *zap.Logger
 }
@@ -253,6 +260,8 @@ func DefaultConfig() map[string]interface{} {
 		"subsystems.network":                   true,
 		"subsystems.hardware":                  true,
 		"routes":                               []map[string]*RouteEntry{},
+		"output.log_level":                     "debug",
+		"output.wrap_responses":                false,
 	}
 }
 

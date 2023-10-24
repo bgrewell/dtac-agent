@@ -2,7 +2,6 @@ package hardware
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/shirou/gopsutil/cpu"
 	"go.uber.org/zap"
 	"strings"
@@ -44,7 +43,7 @@ func (i *LiveCPUInfo) Percent(interval time.Duration, perCPU bool) ([]float64, e
 func (s *Subsystem) cpuInfoHandler(c *gin.Context) {
 	start := time.Now()
 	s.cpu.Update()
-	helpers.WriteResponseJSON(c, time.Since(start), s.cpu.Info())
+	s.Controller.Formatter.WriteResponse(c, time.Since(start), s.cpu.Info())
 }
 
 func (s *Subsystem) cpuUsageHandler(c *gin.Context) {
@@ -56,9 +55,9 @@ func (s *Subsystem) cpuUsageHandler(c *gin.Context) {
 	start := time.Now()
 	stats, err := cpu.Percent(time.Millisecond*100, perCore)
 	if err != nil {
-		helpers.WriteErrorResponseJSON(c, err)
+		s.Controller.Formatter.WriteError(c, err)
 	}
-	helpers.WriteResponseJSON(c, time.Since(start), gin.H{
+	s.Controller.Formatter.WriteResponse(c, time.Since(start), gin.H{
 		"cpu_usage": stats,
 	})
 }

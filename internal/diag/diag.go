@@ -83,7 +83,7 @@ func (s *Subsystem) rootHandler(c *gin.Context) {
 			Value:       CurrentMemoryStats(),
 		},
 	}
-	helpers.WriteResponseJSON(c, time.Since(start), response)
+	s.Controller.Formatter.WriteResponse(c, time.Since(start), response)
 }
 
 func (s *Subsystem) httpRoutePrintHandler(c *gin.Context) {
@@ -95,7 +95,7 @@ func (s *Subsystem) httpRoutePrintHandler(c *gin.Context) {
 			Value:       s.Controller.HTTPRouteList.Routes,
 		},
 	}
-	helpers.WriteResponseJSON(c, time.Since(start), response)
+	s.Controller.Formatter.WriteResponse(c, time.Since(start), response)
 }
 
 func (s *Subsystem) jwtTestHandler(c *gin.Context) {
@@ -103,18 +103,18 @@ func (s *Subsystem) jwtTestHandler(c *gin.Context) {
 	response := gin.H{
 		"message": "jwt test page",
 	}
-	helpers.WriteResponseJSON(c, time.Since(start), response)
+	s.Controller.Formatter.WriteResponse(c, time.Since(start), response)
 }
 
 func (s *Subsystem) runningAsHandler(c *gin.Context) {
 	start := time.Now()
 	ug, err := AgentRunningAsUser()
 	if err != nil {
-		helpers.WriteErrorResponseJSON(c, err)
+		s.Controller.Formatter.WriteError(c, err)
 		return
 	}
 	response := gin.H{
 		"runningAs": ug,
 	}
-	helpers.WriteResponseJSON(c, time.Since(start), response)
+	s.Controller.Formatter.WriteResponse(c, time.Since(start), response)
 }

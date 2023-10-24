@@ -88,7 +88,7 @@ func (s *Subsystem) AuthenticationHandler(c *gin.Context) {
 	user, err := s.authorizeUser(c.Request)
 	if err != nil {
 		c.Header("X-DTAC-AUTHENTICATION", "INCOMPLETE")
-		helpers.WriteUnauthorizedResponseJSON(c, err)
+		s.Controller.Formatter.WriteUnauthorizedError(c, err)
 		c.Abort()
 		return
 	}
@@ -147,7 +147,7 @@ func (s *Subsystem) loginHandler(c *gin.Context) {
 		"access_token":  token.AccessToken,
 		"refresh_token": token.RefreshToken,
 	}
-	helpers.WriteResponseJSON(c, time.Since(start), tokens)
+	s.Controller.Formatter.WriteResponse(c, time.Since(start), tokens)
 }
 
 func (s *Subsystem) extractToken(r *http.Request) string {

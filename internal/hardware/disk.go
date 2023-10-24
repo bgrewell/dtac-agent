@@ -2,7 +2,6 @@ package hardware
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/shirou/gopsutil/disk"
 	"go.uber.org/zap"
 	"time"
@@ -74,19 +73,19 @@ func (ni *LiveDiskInfo) Info() *DiskReport {
 func (s *Subsystem) diskRootHandler(c *gin.Context) {
 	start := time.Now()
 	s.disk.Update()
-	helpers.WriteResponseJSON(c, time.Since(start), s.disk.Info())
+	s.Controller.Formatter.WriteResponse(c, time.Since(start), s.disk.Info())
 }
 
 func (s *Subsystem) diskPartitionHandler(c *gin.Context) {
 	start := time.Now()
 	s.disk.Update()
-	helpers.WriteResponseJSON(c, time.Since(start), s.disk.Info().Partitions)
+	s.Controller.Formatter.WriteResponse(c, time.Since(start), s.disk.Info().Partitions)
 }
 
 func (s *Subsystem) diskPhysicalDisksHandler(c *gin.Context) {
 	start := time.Now()
 	s.disk.Update()
-	helpers.WriteResponseJSON(c, time.Since(start), s.disk.Info().Disks)
+	s.Controller.Formatter.WriteResponse(c, time.Since(start), s.disk.Info().Disks)
 }
 
 func (s *Subsystem) diskUsageHandler(c *gin.Context) {
@@ -103,5 +102,5 @@ func (s *Subsystem) diskUsageHandler(c *gin.Context) {
 			}
 		}
 	}
-	helpers.WriteResponseJSON(c, time.Since(start), du)
+	s.Controller.Formatter.WriteResponse(c, time.Since(start), du)
 }

@@ -89,7 +89,7 @@ func NewGinRouter() *gin.Engine {
 
 // NewController creates a new instance of the controller.Controller struct
 func NewController(router *gin.Engine, logger *zap.Logger, cfg *config.Configuration,
-	hrl *httpRoutes.RouteList, db *authndb.AuthDB) *controller.Controller {
+	hrl *httpRoutes.RouteList, db *authndb.AuthDB, formatter helpers.ResponseFormatter) *controller.Controller {
 	// Create the SubsystemParams object
 	c := controller.Controller{
 		Router:           router,
@@ -98,6 +98,7 @@ func NewController(router *gin.Engine, logger *zap.Logger, cfg *config.Configura
 		HTTPRouteList:    hrl,
 		SecureMiddleware: make([]gin.HandlerFunc, 0),
 		AuthDB:           db,
+		Formatter:        formatter,
 	}
 	return &c
 }
@@ -162,6 +163,7 @@ func main() {
 			config.NewConfiguration,                 // Configuration
 			zap.NewDevelopment,                      // Structured Logger
 			basic.NewTLSInfo,                        // Tls Cert Handler
+			helpers.NewJSONResponseFormatter,        // Response Formatter
 			httpRoutes.NewRouteList,                 // Http Routing List
 			NewController,                           // Wrapper around common subsystem input components
 			authndb.NewAuthDB,                       // Authentication database

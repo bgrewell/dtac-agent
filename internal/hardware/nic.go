@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/shirou/gopsutil/net"
 	"go.uber.org/zap"
 	"time"
@@ -40,7 +39,7 @@ func (ni *LiveNicInfo) Info() []net.InterfaceStat {
 func (s *Subsystem) nicRootHandler(c *gin.Context) {
 	start := time.Now()
 	s.nic.Update()
-	helpers.WriteResponseJSON(c, time.Since(start), s.nic.Info())
+	s.Controller.Formatter.WriteResponse(c, time.Since(start), s.nic.Info())
 }
 
 // nicInterfaceHandler handles requests for the root path for this subsystem
@@ -48,15 +47,15 @@ func (s *Subsystem) nicInterfaceHandler(c *gin.Context) {
 	start := time.Now()
 	name := c.Param("name")
 	if name == "" {
-		helpers.WriteErrorResponseJSON(c, errors.New("required path parameter 'name' not found. Ex: .../interface/<name>"))
+		s.Controller.Formatter.WriteError(c, errors.New("required path parameter 'name' not found. Ex: .../interface/<name>"))
 		return
 	}
 	s.nic.Update()
 	for _, info := range s.nic.Info() {
 		if info.Name == name {
-			helpers.WriteResponseJSON(c, time.Since(start), info)
+			s.Controller.Formatter.WriteResponse(c, time.Since(start), info)
 			return
 		}
 	}
-	helpers.WriteErrorResponseJSON(c, fmt.Errorf("no interface found by name: %s", name))
+	s.Controller.Formatter.WriteError(c, fmt.Errorf("no interface found by name: %s", name))
 }

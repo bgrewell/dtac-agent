@@ -2,7 +2,6 @@ package hardware
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/shirou/gopsutil/mem"
 	"go.uber.org/zap"
 	"time"
@@ -37,5 +36,5 @@ func (i *LiveMemoryInfo) Info() *mem.VirtualMemoryStat {
 func (s *Subsystem) memInfoHandler(c *gin.Context) {
 	start := time.Now()
 	s.mem.Update()
-	helpers.WriteResponseJSON(c, time.Since(start), s.mem.Info())
+	s.Controller.Formatter.WriteResponse(c, time.Since(start), s.mem.Info())
 }

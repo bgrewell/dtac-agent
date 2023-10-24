@@ -72,23 +72,23 @@ func (s *Subsystem) Name() string {
 
 func (s *Subsystem) rootHandler(c *gin.Context) {
 	start := time.Now()
-	helpers.WriteResponseJSON(c, time.Since(start), s.info)
+	s.Controller.Formatter.WriteResponse(c, time.Since(start), s.info)
 }
 
 func (s *Subsystem) uuidHandler(c *gin.Context) {
 	start := time.Now()
 	uuid := s.info.UUID
-	helpers.WriteResponseJSON(c, time.Since(start), uuid)
+	s.Controller.Formatter.WriteResponse(c, time.Since(start), uuid)
 }
 
 func (s *Subsystem) productHandler(c *gin.Context) {
 	start := time.Now()
 	product := s.info.ProductName
-	helpers.WriteResponseJSON(c, time.Since(start), product)
+	s.Controller.Formatter.WriteResponse(c, time.Since(start), product)
 }
 
 func (s *Subsystem) osHandler(c *gin.Context) {
 	start := time.Now()
 	os := s.info.serializeOs()
-	helpers.WriteResponseJSON(c, time.Since(start), os)
+	s.Controller.Formatter.WriteResponse(c, time.Since(start), os)
 }

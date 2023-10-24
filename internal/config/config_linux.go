@@ -24,7 +24,7 @@ var (
 	BinaryName = path.Join(DefaultBinaryLocation, "dtac-agentd")
 	// DBName is the name of the database
 	DBName = path.Join(GlobalDBLocation, "authn.db")
-	// DefaultTLSCACertNAme Default TLS CA certificate name
+	// DefaultTLSCACertName Default TLS CA certificate name
 	DefaultTLSCACertName = path.Join(GlobalCertLocation, "ca.crt")
 	// DefaultTLSCertName Default TLS certificate name
 	DefaultTLSCertName = path.Join(GlobalCertLocation, "tls.crt")

@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
 	"go.uber.org/zap"
 )
@@ -64,11 +63,11 @@ func (s *Subsystem) AuthorizationHandler(c *gin.Context) {
 		if res, _ := s.enforcer.Enforce(user, c.Request.URL.Path, c.Request.Method); res {
 			c.Next()
 		} else {
-			helpers.WriteUnauthorizedResponseJSON(c, errors.New("user not authorized to access this resource"))
+			s.Controller.Formatter.WriteUnauthorizedError(c, errors.New("user not authorized to access this resource"))
 			return
 		}
 	} else {
-		helpers.WriteUnauthorizedResponseJSON(c, errors.New("user is not logged in"))
+		s.Controller.Formatter.WriteUnauthorizedError(c, errors.New("user is not logged in"))
 		return
 	}
 }

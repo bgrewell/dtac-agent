@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version"
 	"go.uber.org/zap"
@@ -60,5 +59,5 @@ func (hps *HomePageSubsystem) homeHandler(c *gin.Context) {
 		"version": version.Current().String(),
 		"routes":  hps.Controller.HTTPRouteList.Routes,
 	}
-	helpers.WriteResponseJSON(c, time.Since(start), response)
+	hps.Controller.Formatter.WriteResponse(c, time.Since(start), response)
 }

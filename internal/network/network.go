@@ -49,17 +49,17 @@ func (s *Subsystem) Register() error {
 	secure := s.Controller.Config.Auth.DefaultSecure
 	routes := []types.RouteInfo{
 		{Group: base, HTTPMethod: http.MethodGet, Path: "/", Handler: s.networkInfoHandler, Protected: secure},
-		{Group: base, HTTPMethod: http.MethodGet, Path: "/arp", Handler: arpTableHandler, Protected: secure},
-		{Group: base, HTTPMethod: http.MethodGet, Path: "/routes", Handler: getRoutesHandler, Protected: secure},
-		{Group: base, HTTPMethod: http.MethodGet, Path: "/route", Handler: getRouteHandler, Protected: secure},
-		{Group: base, HTTPMethod: http.MethodPut, Path: "/route", Handler: updateRouteHandler, Protected: secure},
-		{Group: base, HTTPMethod: http.MethodPost, Path: "/route", Handler: createRouteHandler, Protected: secure},
-		{Group: base, HTTPMethod: http.MethodDelete, Path: "/route", Handler: deleteRouteHandler, Protected: secure},
-		{Group: unified, HTTPMethod: http.MethodGet, Path: "/routes", Handler: getRoutesUnifiedHandler, Protected: secure},
-		{Group: unified, HTTPMethod: http.MethodGet, Path: "/route", Handler: getRouteUnifiedHandler, Protected: secure},
-		{Group: unified, HTTPMethod: http.MethodPut, Path: "/route", Handler: updateRouteUnifiedHandler, Protected: secure},
-		{Group: unified, HTTPMethod: http.MethodPost, Path: "/route", Handler: createRouteUnifiedHandler, Protected: secure},
-		{Group: unified, HTTPMethod: http.MethodDelete, Path: "/route", Handler: deleteRouteUnifiedHandler, Protected: secure},
+		{Group: base, HTTPMethod: http.MethodGet, Path: "/arp", Handler: s.arpTableHandler, Protected: secure},
+		{Group: base, HTTPMethod: http.MethodGet, Path: "/routes", Handler: s.getRoutesHandler, Protected: secure},
+		{Group: base, HTTPMethod: http.MethodGet, Path: "/route", Handler: s.getRouteHandler, Protected: secure},
+		{Group: base, HTTPMethod: http.MethodPut, Path: "/route", Handler: s.updateRouteHandler, Protected: secure},
+		{Group: base, HTTPMethod: http.MethodPost, Path: "/route", Handler: s.createRouteHandler, Protected: secure},
+		{Group: base, HTTPMethod: http.MethodDelete, Path: "/route", Handler: s.deleteRouteHandler, Protected: secure},
+		{Group: unified, HTTPMethod: http.MethodGet, Path: "/routes", Handler: s.getRoutesUnifiedHandler, Protected: secure},
+		{Group: unified, HTTPMethod: http.MethodGet, Path: "/route", Handler: s.getRouteUnifiedHandler, Protected: secure},
+		{Group: unified, HTTPMethod: http.MethodPut, Path: "/route", Handler: s.updateRouteUnifiedHandler, Protected: secure},
+		{Group: unified, HTTPMethod: http.MethodPost, Path: "/route", Handler: s.createRouteUnifiedHandler, Protected: secure},
+		{Group: unified, HTTPMethod: http.MethodDelete, Path: "/route", Handler: s.deleteRouteUnifiedHandler, Protected: secure},
 	}
 
 	// Register routes
@@ -88,5 +88,5 @@ func (s *Subsystem) networkInfoHandler(c *gin.Context) {
 			Value:       s.NicInfo.Info(),
 		},
 	}
-	helpers.WriteResponseJSON(c, time.Since(start), response)
+	s.Controller.Formatter.WriteResponse(c, time.Since(start), response)
 }

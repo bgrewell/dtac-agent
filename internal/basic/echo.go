@@ -74,6 +74,6 @@ func (es *EchoSubsystem) rootHandler(c *gin.Context) {
 	response := gin.H{
 		"message": msg,
 	}
-	helpers.WriteResponseJSON(c, time.Since(start), response)
+	es.Controller.Formatter.WriteResponse(c, time.Since(start), response)
 
 }

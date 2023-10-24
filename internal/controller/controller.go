@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/authndb"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/http"
 	"go.uber.org/zap"
 )
@@ -16,4 +17,5 @@ type Controller struct {
 	HTTPRouteList    *http.RouteList
 	SecureMiddleware []gin.HandlerFunc
 	AuthDB           *authndb.AuthDB
+	Formatter        helpers.ResponseFormatter
 }
