@@ -49,6 +49,10 @@ through a multitude of methodologies described in more detail in the [extensibil
    ```
    *Replace `<dependency-name>`` with the actual name of the missing dependency.*
 
+#### Windows systems (.msi)
+
+*These instructions are not yet available*
+
 ### Install from source
 
 #### Prerequisites
@@ -136,20 +140,40 @@ Before proceeding with the installation, make sure you have the following prereq
       sudo systemctl restart dtac-agentd.service  
       ```
 
-### Windows
-
-### Linux
-
-### MacOS (Darwin)
-
 ## Usage
 
-after the install is complete you will need to get the api password for the administrative user that has been generated. 
-You can do this by running the following command:
+The DTAC Agent is implemented as a REST API and can be consumed by any client that can query REST APIs, including using tools such as curl, Postman, or your browser.
+
+By default, most of the API endpoints are secured and require authentication. To access these endpoints, you will need to provide an authentication token in the Authorization header of your HTTP requests.
+
+You can obtain an authentication token by sending a POST request to the /api/authn/login endpoint with a valid username and password. The response will contain an access_token field that you can use to authenticate subsequent requests.
+
+To retrieve the administrative password you can use the following command:
 
 ```bash
 sudo dtac config view authn.pass
-````
+```
+
+Once this is done you can use a tool like curl to request an access token with a request like shown below:
+
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"username": "<username>", "password": "<password>"}' https://localhost:8180/api/authn/login
+```
+
+*Replace `<username>` and `<password>` with your actual username and password.*
+
+
+Alternatively you can get an access token using the dtac command which will get the credentials from the configuration file directly. An example of this command is shown below
+
+```bash
+TOKEN=`sudo dtac token`
+```
+
+Once you have a token you can query the API using curl with a command similar to the one below which shows how to retreive the systems uuid:
+
+```bash
+curl -ks -H "Authorization: Bearer $TOKEN" https://localhost:8180/system/uuid
+```
 
 ### Configuration
 
