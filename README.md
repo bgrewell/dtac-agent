@@ -3,6 +3,8 @@
 [![Audit](https://github.com/intel-innersource/frameworks.automation.dtac.agent/actions/workflows/audit.yml/badge.svg)](https://github.com/intel-innersource/frameworks.automation.dtac.agent/actions/workflows/audit.yml)
 [![Goreleaser](https://github.com/intel-innersource/frameworks.automation.dtac.agent/actions/workflows/release.yml/badge.svg)](https://github.com/intel-innersource/frameworks.automation.dtac.agent/actions/workflows/release.yml)
 
+![dtac logo](https://github.com/intel-innersource/frameworks.automation.dtac.agent/blob/main/assets/logo/DTAC.png?raw=true)
+
 The Distributed Telemetry and Advanced Control (DTAC) framework is a collection of projects designed to reduce the time
 to completion of software projects and testbeds by providing a highly reusable and extensible framework for the
 collection of monitoring and manipulation of a wide variety of systems. 
