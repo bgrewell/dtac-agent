@@ -18,16 +18,123 @@ through a multitude of methodologies described in more detail in the [extensibil
 
 ### Install from package
 
-after the install is complete you will need to get the api password for the administrative user that has been generated. 
-You can do this by running the following command:
+#### Debian-based systems (.deb)
 
-```bash
-sudo dtac config view authn.pass
-````
+1. Download the latest .deb package from the releases section of the GitHub repo.
+2. Open a terminal and navigate to the directory where the .deb package was downloaded.
+3. Run the following command to install the package:
+   ```bash
+   sudo dpkg -i <package-name>.deb  
+   ```
+   *Replace `<package-name>` with the actual name of the package you downloaded.*
+
+4. If there are any missing dependencies, run the following command to install them:
+   ```bash
+   sudo apt-get install -f  
+   ```
+
+#### Red Hat-based systems (.rpm)
+
+1. Download the latest .rpm package from the releases section of the GitHub repo.
+2. Open a terminal and navigate to the directory where the .rpm package was downloaded.
+3. Run the following command to install the package:
+   ```bash
+   sudo rpm -i <package-name>.rpm  
+   ```
+   *Replace `<package-name>` with the actual name of the package you downloaded.*
+
+4. If there are any missing dependencies, run the following command to install them:
+   ```bash
+   sudo yum install -y <dependency-name>  
+   ```
+   *Replace `<dependency-name>`` with the actual name of the missing dependency.*
 
 ### Install from source
 
+#### Prerequisites
+ 
+Before proceeding with the installation, make sure you have the following prerequisites:
+- Git
+- Go
+- Mage
+- yq (optional)
 
+#### Clone the repository
+
+1. Open a terminal and clone the repository by running the following command:
+   ```bash
+   git clone https://github.com/intel-innersource/frameworks.automation.dtac.agent.git 
+   ```
+2. Navigate to the cloned repository:
+   ```bash
+   cd frameworks.automation.dtac.agent  
+   ```
+
+3. Build the agent, plugins and tools
+   ```bash
+   go run tools/mage/mage.go build plugins buildCli
+   ```
+
+4. Create directories
+   ```bash
+   sudo mkdir -p /opt/dtac/{bin,plugins} /etc/dtac
+   ```
+
+5. Copy files
+   
+   1. Copy bin/dtac-agentd-<architecture> to /opt/dtac/bin/    dtac-agentd:
+      ```bash
+      sudo cp bin/dtac-agentd-<architecture> /opt/dtac/bin/dtac-agentd
+      ```
+      *Replace <architecture> with the actual architecture of your system (e.g., amd64, arm64).*
+   
+   2. Copy bin/dtac-<architecture> to /opt/dtac/bin/dtac:
+      ```bash
+      sudo cp bin/dtac-<architecture> /opt/dtac/bin/dtac  
+      ```
+      *Replace <architecture> with the actual architecture of your system (e.g., amd64, arm64).*
+   
+   3. Copy any files from bin/plugins/ to /opt/dtac/plugins:
+      ```bash
+      sudo cp bin/plugins/* /opt/dtac/plugins/
+      ```
+
+   4. Create a symlink for the dtac commandline tool:
+      ```bash
+      sudo ln -s /opt/dtac/bin/dtac /usr/bin/dtac
+      ```
+
+6. Create service
+
+   1. Copy the dtac-agentd.service file to /lib/systemd/system/dtac-agentd.service:
+      ```bash
+      sudo cp service/systemd/dtac-agentd.service /lib/systemd/system/dtac-agentd.service  
+      ```
+
+   2. Enable the service:
+      ```bash
+      sudo systemctl enable dtac-agentd.service  
+      ```
+
+   3. Start the service:
+      ```bash
+      sudo systemctl start dtac-agentd.service  
+      ```
+
+7. Update admin password (optional, highly recommended)
+
+   1. If you have yq installed, run the following command to update the password in the /etc/dtac/config.yaml file:
+      ```bash
+      password=$(openssl rand -base64 32)
+      yq eval -i '.authn.pass = "'"$password"'"' /etc/dtac/config.yaml  
+      ```
+
+      This will generate a random password and update the authn.pass field in the config.yaml file.
+
+   2. Restart the dtac-agentd service:
+      ```bash
+      sudo systemctl restart dtac-agentd.service  
+      ```
 
 ### Windows
 
@@ -36,6 +143,13 @@ sudo dtac config view authn.pass
 ### MacOS (Darwin)
 
 ## Usage
+
+after the install is complete you will need to get the api password for the administrative user that has been generated. 
+You can do this by running the following command:
+
+```bash
+sudo dtac config view authn.pass
+````
 
 ### Configuration
 
