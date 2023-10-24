@@ -15,6 +15,7 @@ type OKResponse struct {
 	ResponseWrapper
 }
 
+// ResponseWrapper is a struct to ensure that all output always is properly formatted as machine-readable input
 type ResponseWrapper struct {
 	Response json.RawMessage `json:"response" yaml:"response" xml:"response"`
 }
