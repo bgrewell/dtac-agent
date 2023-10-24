@@ -46,6 +46,7 @@ type ListenerHTTPSEntry struct {
 	Domains         []string `json:"domains" yaml:"domains" mapstructure:"domains"`
 	CertFile        string   `json:"cert" yaml:"cert" mapstructure:"cert"`
 	KeyFile         string   `json:"key" yaml:"key" mapstructure:"key"`
+	CAFile          string   `json:"ca" yaml:"ca" mapstructure:"ca"`
 }
 
 // LockoutEntry is the struct for a lockout entry
@@ -226,6 +227,7 @@ func DefaultConfig() map[string]interface{} {
 		"listener.https.domains":               []string{"localhost", "127.0.0.1", hostname},
 		"listener.https.cert":                  DefaultTLSCertName,
 		"listener.https.key":                   DefaultTLSKeyName,
+		"listener.https.ca":                    DefaultTLSCACertName,
 		"lockout.enabled":                      true,
 		"lockout.auto_unlock_time":             "10s",
 		"wifi_watchdog.enabled":                false,

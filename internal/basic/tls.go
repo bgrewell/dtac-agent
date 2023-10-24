@@ -86,11 +86,19 @@ func (tls *TLSInfo) Initialize() {
 // GenerateSelfSignedCertKey generates a self-signed certificate and key.
 // The certificate and key are written to certPath and keyPath respectively.
 func GenerateSelfSignedCertKey(cfg *config.Configuration) error {
+	// Generate a ecdsa private key
 	priv, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
 	if err != nil {
 		return err
 	}
 
+	// Generate a ecdsa private key for CA
+	caPriv, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
+	if err != nil {
+		return err
+	}
+
+	// Create a certificate template(s)
 	notBefore := time.Now()
 	notAfter := notBefore.Add(time.Duration(365) * 24 * time.Hour)
 
@@ -99,7 +107,16 @@ func GenerateSelfSignedCertKey(cfg *config.Configuration) error {
 		return err
 	}
 
-	template := x509.Certificate{
+	caTemplate := x509.Certificate{
+		SerialNumber: serialNumber,
+		Subject:      pkix.Name{CommonName: "DTAC Agent Certificate Authority"},
+		NotBefore:    notBefore,
+		NotAfter:     notAfter,
+		KeyUsage:     x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
+		IsCA:         true,
+	}
+
+	certTemplate := x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
 			Organization: []string{"DTAC Agent Certificate Authority"},
@@ -112,7 +129,18 @@ func GenerateSelfSignedCertKey(cfg *config.Configuration) error {
 		BasicConstraintsValid: true,
 	}
 
-	certDER, err := x509.CreateCertificate(rand.Reader, &template, &template, &priv.PublicKey, priv)
+	caDER, err := x509.CreateCertificate(rand.Reader, &caTemplate, &caTemplate, &caPriv.PublicKey, caPriv)
+	if err != nil {
+		return err
+	}
+
+	caPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: caDER})
+	err = os.WriteFile(cfg.Listener.HTTPS.CAFile, caPEM, 0600)
+	if err != nil {
+		return err
+	}
+
+	certDER, err := x509.CreateCertificate(rand.Reader, &certTemplate, &certTemplate, &priv.PublicKey, priv)
 	if err != nil {
 		return err
 	}

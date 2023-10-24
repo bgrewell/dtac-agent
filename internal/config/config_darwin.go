@@ -15,6 +15,7 @@ var (
 	GlobalDBLocation      = path.Join(GlobalConfigLocation, "db/")
 	BinaryName            = path.Join(DefaultBinaryLocation, "dtac-agentd")
 	DBName                = path.Join(GlobalDBLocation, "authn.db")
+	DefaultTLSCACertName  = path.Join(GlobalCertLocation, "ca.crt")
 	DefaultTLSCertName    = path.Join(GlobalCertLocation, "tls.crt")
 	DefaultTLSKeyName     = path.Join(GlobalCertLocation, "tls.key")
 	DefaultAuthModelName  = path.Join(GlobalConfigLocation, "auth_model.conf")
