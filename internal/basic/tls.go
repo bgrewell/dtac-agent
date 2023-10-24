@@ -129,6 +129,7 @@ func GenerateSelfSignedCertKey(cfg *config.Configuration) error {
 	}
 
 	// Generate an ecdsa key for CA
+	// Note: this key is intentionally not stored so that the CA can not sign any more certificates in the future
 	caPriv, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
 	if err != nil {
 		return err
@@ -178,6 +179,15 @@ func GenerateSelfSignedCertKey(cfg *config.Configuration) error {
 	if err != nil {
 		return err
 	}
+
+	// Try to mangle the CA private key to help prevent in-memory retrieval
+	clearValue, err := rand.Int(rand.Reader, priv.Y)
+	if err != nil {
+		return err
+	}
+	priv.Y.Set(clearValue)
+	priv.X.Set(clearValue)
+	priv.D.Set(clearValue)
 
 	return nil
 }
