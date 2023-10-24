@@ -35,7 +35,15 @@ func NewTokenCmd() *cobra.Command {
 			if done {
 				return
 			}
-			cmd.OutOrStdout().Write([]byte("Token: " + string(body)))
+
+			var tokens tokenDetails
+			err := json.Unmarshal(body, &tokens)
+			if err != nil {
+				cmd.ErrOrStderr().Write([]byte("Failed to unmarshal access token: " + err.Error()))
+				return
+			}
+
+			cmd.OutOrStdout().Write([]byte(tokens.AccessToken))
 		},
 	}
 }

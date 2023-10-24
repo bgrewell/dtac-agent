@@ -110,6 +110,7 @@ func (s *Subsystem) Name() string {
 }
 
 func (s *Subsystem) loginHandler(c *gin.Context) {
+	start := time.Now()
 	var u authndb.User
 	if err := c.ShouldBindJSON(&u); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, "invalid json provided")
@@ -146,7 +147,7 @@ func (s *Subsystem) loginHandler(c *gin.Context) {
 		"access_token":  token.AccessToken,
 		"refresh_token": token.RefreshToken,
 	}
-	c.JSON(http.StatusOK, tokens)
+	helpers.WriteResponseJSON(c, time.Since(start), tokens)
 }
 
 func (s *Subsystem) extractToken(r *http.Request) string {

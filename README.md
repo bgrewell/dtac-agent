@@ -37,9 +37,61 @@ sudo dtac config view authn.pass
 
 ### Configuration
 
+The configuration file for the `dtac-agent` is found by default in `/etc/dtac/config.yaml` and contains all of the
+settings for the agent. The configuration file is in YAML format and can be edited with any text editor. It is important
+to note that currently edits made to the configuration are not automatically reloaded by the agent. To reload the agent
+after a change you need to run `sudo systemctl restart dtac-agentd`. Due to the sensitive nature of this configuration
+file the default permissions only allow read/write access to the root user. This means that you will need to use `sudo`
+when editing the file and be careful not to inadvertently change the permissions on the file which could result in the
+credentials being exposed to other users on the system.
+
+The configuration can also be viewed and edited using the `dtac` cli tool located on the system after install. This tool
+is designed to make it easier to perform common tasks such as viewing and editing the configuration file. For example
+if you want to view the default administrative credentials after install you can do so with the following command:
+
+```bash
+sudo dtac config view authn.pass
+```
+
+The format for viewing configuration elements is `dtac config view <path>` where `<path>` is the path to the element you
+wish to view. The path is a dot separated list of keys to the element you wish to view. For example if you wanted to
+view the entire authentication section of the configuration you could do so with the following command:
+
+```bash
+sudo dtac config view authn
+```
+
 ### Authentication
 
+The `dtac` command line configuration tool has been designed to assist with authentication which can be helpful for when
+you wish to perform manual operations from the command line. Below is an example of how to get an authentication token
+using the `dtac` command line tool which can then be used to perform queries against the API.
+
+```bash
+TOKEN=`sudo dtac token`
+```
+
+The `dtac` tool will get the certificate and credential information from the configuration file and use that to request
+a token from the API. The token will be stored in the `TOKEN` environment variable and can be used in subsequent API 
+calls as shown in `Basic Requests` below.
+
+Calls made to secure API endpoints without proper authentication will result in a `401 Unauthorized` response such as 
+the one shown below.
+
+```bash
+curl -ks -w " | status_code: %{http_code}"  https://localhost:8180/system/uuid
+{"time":"2023-10-24T06:39:46.251154486-07:00","error":"invalid authorization header"} | status_code: 401
+```
+
 ### Basic Requests
+
+The following is an example request to show how to use an API access token to perform a request against the API. The
+request will return a uuid identifying the system. The `-ks` options make curl ignore the self signed certificate used
+and not show the progress meter or error messages in the output.
+
+```bash
+curl -ks -H "Authorization: Bearer $TOKEN" https://localhost:8180/system/uuid
+```
 
 ## Development
 

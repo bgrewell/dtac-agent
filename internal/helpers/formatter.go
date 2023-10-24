@@ -8,6 +8,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var (
+	MOVE_ME_TO_CONFIG_SHOW_WRAPPED_OUTPUT = false
+)
+
 // OKResponse is the struct for the response
 type OKResponse struct {
 	Time    string      `json:"time"`
@@ -24,11 +28,14 @@ type ErrorResponse struct {
 
 // WriteResponseJSON writes a response in JSON format
 func WriteResponseJSON(c *gin.Context, duration time.Duration, obj interface{}) {
-	response := OKResponse{
-		Time:    time.Now().Format(time.RFC3339Nano),
-		Status:  "success",
-		Elapsed: duration.String(),
-		Output:  obj,
+	response := obj
+	if MOVE_ME_TO_CONFIG_SHOW_WRAPPED_OUTPUT {
+		response = OKResponse{
+			Time:    time.Now().Format(time.RFC3339Nano),
+			Status:  "success",
+			Elapsed: duration.String(),
+			Output:  obj,
+		}
 	}
 	jout, err := json.Marshal(response)
 	if err != nil {
