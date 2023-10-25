@@ -8,11 +8,9 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/gin-gonic/gin"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
-
 	"github.com/bgrewell/gin-plugins/loader"
 	"github.com/fsnotify/fsnotify"
+	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
@@ -86,6 +84,7 @@ type SourceEntry struct {
 // SubsystemEntry is the struct for a subsystem entry
 type SubsystemEntry struct {
 	Diag     bool `json:"diag" yaml:"diag" mapstructure:"diag"`
+	Echo     bool `json:"echo" yaml:"echo" mapstructure:"echo"`
 	Hardware bool `json:"hardware" yaml:"hardware" mapstructure:"hardware"`
 	Network  bool `json:"network" yaml:"network" mapstructure:"network"`
 	//TODO: Below this line are old and should be removed
@@ -140,12 +139,11 @@ type Configuration struct {
 	Plugins      PluginEntry              `json:"plugins" yaml:"plugins" mapstructure:"plugins"`
 	Custom       []map[string]*RouteEntry `json:"routes" yaml:"routes" mapstructure:"routes"`
 	Output       OutputEntry              `json:"output" yaml:"output" mapstructure:"output"`
-	router       *gin.Engine
 	logger       *zap.Logger
 }
 
 // NewConfiguration creates a new configuration
-func NewConfiguration(router *gin.Engine, log *zap.Logger) (config *Configuration, err error) {
+func NewConfiguration(log *zap.Logger) (config *Configuration, err error) {
 	// Setup configuration file location(s)
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
@@ -202,8 +200,7 @@ func NewConfiguration(router *gin.Engine, log *zap.Logger) (config *Configuratio
 		return nil, fmt.Errorf("failed to unmarshal configuration: %v", err)
 	}
 
-	// Setup routes
-	c.router = router
+	// Setup logger
 	c.logger = log
 
 	viper.OnConfigChange(func(e fsnotify.Event) {
@@ -257,6 +254,7 @@ func DefaultConfig() map[string]interface{} {
 		"plugins.entries.hello.user":           "",
 		"plugins.entries.hello.config.message": "hello world plugin",
 		"subsystems.diag":                      true,
+		"subsystems.echo":                      true,
 		"subsystems.network":                   true,
 		"subsystems.hardware":                  true,
 		"routes":                               []map[string]*RouteEntry{},
@@ -267,19 +265,19 @@ func DefaultConfig() map[string]interface{} {
 
 // Register registers the routes that this module handles
 func (c *Configuration) Register() error {
-	// Create a group for this subsystem
-	base := c.router.Group("config")
-
-	// Routes
-	routes := []types.RouteInfo{
-		{HTTPMethod: http.MethodGet, Path: "/", Handler: c.rootHandler},
-	}
-
-	// Register routes
-	for _, route := range routes {
-		base.Handle(route.HTTPMethod, route.Path, route.Handler)
-	}
-	c.logger.Info("registered routes", zap.Int("routes", len(routes)))
+	//// Create a group for this subsystem
+	//base := c.router.Group("config")
+	//
+	//// Routes
+	//routes := []types.RouteInfo{
+	//	{HTTPMethod: http.MethodGet, Path: "/", Handler: c.rootHandler},
+	//}
+	//
+	//// Register routes
+	//for _, route := range routes {
+	//	base.Handle(route.HTTPMethod, route.Path, route.Handler)
+	//}
+	//c.logger.Info("registered routes", zap.Int("routes", len(routes)))
 
 	return nil
 }

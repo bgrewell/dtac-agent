@@ -7,7 +7,6 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
-	"github.com/gin-gonic/gin"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
 	"go.uber.org/zap"
 	"math/big"
@@ -23,12 +22,11 @@ const (
 )
 
 // NewTLSInfo creates a new instance of the TLSInfo struct
-func NewTLSInfo(router *gin.Engine, cfg *config.Configuration, log *zap.Logger) *TLSInfo {
+func NewTLSInfo(cfg *config.Configuration, log *zap.Logger) *TLSInfo {
 	tls := TLSInfo{
 		Enabled:      cfg.Listener.HTTPS.Enabled,
 		CertFilename: cfg.Listener.HTTPS.CertFile,
 		KeyFilename:  cfg.Listener.HTTPS.KeyFile,
-		Router:       router,
 		Config:       cfg,
 		Logger:       log.With(zap.String("module", "tls")),
 	}
@@ -43,7 +41,6 @@ type TLSInfo struct {
 	Enabled      bool
 	CertFilename string
 	KeyFilename  string
-	Router       *gin.Engine
 	Config       *config.Configuration
 	Logger       *zap.Logger
 }

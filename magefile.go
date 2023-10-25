@@ -378,3 +378,36 @@ func Check() error {
 	}
 	return nil
 }
+
+func FindTODOs() error {
+	// Run `git grep` to find all files that contain TODO comments
+	grepCmd := exec.Command("git", "grep", "-l", "TODO")
+	grepOutput, err := grepCmd.Output()
+	if err != nil {
+		return fmt.Errorf("error running `git grep`: %v", err)
+	}
+
+	// Split the output into separate file names
+	fileNames := strings.Split(string(grepOutput), "\n")
+
+	// Loop over the file names and run `git blame` on each file
+	for _, fileName := range fileNames {
+		if fileName == "" {
+			continue
+		}
+		blameCmd := exec.Command("git", "blame", fileName)
+		blameOutput, err := blameCmd.Output()
+		if err != nil {
+			return fmt.Errorf("error running `git blame` on %s: %v", fileName, err)
+		}
+
+		// Search the output of `git blame` for TODO comments
+		for _, line := range strings.Split(string(blameOutput), "\n") {
+			if strings.Contains(line, "TODO") {
+				fmt.Printf("%s: %s\n", fileName, line)
+			}
+		}
+	}
+
+	return nil
+}

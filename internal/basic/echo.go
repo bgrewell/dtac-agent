@@ -1,16 +1,19 @@
 package basic
 
 import (
+	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types/endpoint"
 	"go.uber.org/zap"
-	"net/http"
-	"time"
 )
+
+// EchoArgs is a struct to assist with validating the input arguments
+type EchoArgs struct {
+	Message string `json:"msg"`
+}
 
 // NewEchoSubsystem creates a new echo subsystem
 func NewEchoSubsystem(c *controller.Controller) interfaces.Subsystem {
@@ -18,9 +21,10 @@ func NewEchoSubsystem(c *controller.Controller) interfaces.Subsystem {
 	es := EchoSubsystem{
 		Controller: c,
 		Logger:     c.Logger.With(zap.String("module", name)),
-		enabled:    false, // should be added to configuration, hardcoded to false to disable
+		enabled:    c.Config.Subsystems.Echo,
 		name:       name,
 	}
+	es.register()
 	return &es
 }
 
@@ -30,32 +34,27 @@ type EchoSubsystem struct {
 	Logger     *zap.Logger // All subsystems have a pointer to the logger
 	enabled    bool        // Optional subsystems have a boolean to control if they are enabled
 	name       string      // Subsystem name
+	endpoints  []endpoint.Endpoint
 }
 
-// Register registers the routes that this module handles
-func (es *EchoSubsystem) Register() error {
+// register registers the routes that this module handles
+func (es *EchoSubsystem) register() {
 	if !es.Enabled() {
 		es.Logger.Info("subsystem is disabled", zap.String("subsystem", es.Name()))
-		return nil
+		return
 	}
 
 	// Create a group for this subsystem
-	base := es.Controller.Router.Group(es.name)
+	base := es.name
 
 	// Routes
 	secure := es.Controller.Config.Auth.DefaultSecure
-	routes := []types.RouteInfo{
-		{Group: base, HTTPMethod: http.MethodGet, Path: "/", Handler: es.rootHandler, Protected: secure},
+	es.endpoints = []endpoint.Endpoint{
+		{fmt.Sprintf("%s/", base), endpoint.ActionRead, es.rootHandler, secure, EchoArgs{}, nil},
 	}
-
-	// Register routes
-	helpers.RegisterRoutes(routes, es.Controller.SecureMiddleware)
-	es.Logger.Info("registered routes", zap.Int("routes", len(routes)))
-
-	return nil
 }
 
-// Enabled returns whether or not the echo subsystem is enabled
+// Enabled returns whether the echo subsystem is enabled
 func (es *EchoSubsystem) Enabled() bool {
 	return es.enabled
 }
@@ -65,15 +64,19 @@ func (es *EchoSubsystem) Name() string {
 	return es.name
 }
 
-func (es *EchoSubsystem) rootHandler(c *gin.Context) {
-	start := time.Now()
-	msg := "you must pass a name using ?name=<name>"
-	if name := c.Query("name"); name != "" {
-		msg = fmt.Sprintf("hello and welcome %s!", name)
-	}
-	response := gin.H{
-		"message": msg,
-	}
-	es.Controller.Formatter.WriteResponse(c, time.Since(start), response)
+// Endpoints returns an array of endpoints that this Subsystem handles
+func (es *EchoSubsystem) Endpoints() []endpoint.Endpoint {
+	return es.endpoints
+}
 
+func (es *EchoSubsystem) rootHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		if m := in.Params["msg"]; m != "" {
+			msg := m.(string)
+			return msg, nil
+		}
+
+		return nil, errors.New("missing parameter 'msg'")
+
+	}, "diagnostic information")
 }
