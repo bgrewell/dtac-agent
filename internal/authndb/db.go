@@ -9,6 +9,12 @@ import (
 	"time"
 )
 
+// UserArgs is the struct for the user arguments validation
+type UserArgs struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 // User is the struct for a user
 type User struct {
 	ID       uint64   `json:"id"`

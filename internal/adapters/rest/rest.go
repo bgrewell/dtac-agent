@@ -168,6 +168,13 @@ func (a *Adapter) shim(method string, ep endpoint.Endpoint) {
 			return
 		}
 
+		// Set headers from out.Headers into gin.Context
+		for headerKey, headerValues := range out.Headers {
+			for _, headerValue := range headerValues {
+				c.Header(headerKey, headerValue)
+			}
+		}
+
 		et := out.Context.Value(types.ContextExecDuration).(time.Duration)
 		a.formatter.WriteResponse(c, et, out.Value)
 	})
@@ -176,18 +183,19 @@ func (a *Adapter) shim(method string, ep endpoint.Endpoint) {
 func (a *Adapter) createInputArgs(ctx *gin.Context) (*endpoint.InputArgs, error) {
 	input := &endpoint.InputArgs{
 		Context: ctx.Request.Context(),
-		Params:  make(map[string]interface{}),
+		Headers: make(map[string][]string),
+		Params:  make(map[string][]string),
 		Body:    nil,
 	}
 
 	// Populate headers
 	for k, v := range ctx.Request.Header {
-		input.Context = context.WithValue(input.Context, k, v[0])
+		input.Headers[k] = v
 	}
 
 	// Populate query parameters
 	for k, v := range ctx.Request.URL.Query() {
-		input.Params[k] = v[0]
+		input.Params[k] = v
 	}
 
 	// Read request body

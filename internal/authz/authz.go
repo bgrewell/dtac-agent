@@ -1,12 +1,12 @@
 package authz
 
 import (
-	"errors"
 	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types/endpoint"
 	"go.uber.org/zap"
 )
 
@@ -21,6 +21,7 @@ func NewSubsystem(c *controller.Controller) interfaces.Subsystem {
 		name:       name,
 		enforcer:   nil,
 	}
+	az.register()
 	return &az
 }
 
@@ -31,13 +32,14 @@ type Subsystem struct {
 	enabled    bool
 	name       string
 	enforcer   *casbin.Enforcer
+	endpoints  []endpoint.Endpoint
 }
 
-// Register registers the authz subsystem
-func (s *Subsystem) Register() error {
+// register registers the authz subsystem
+func (s *Subsystem) register() {
 	if !s.Enabled() {
 		s.Logger.Info("subsystem is disabled", zap.String("subsystem", s.Name()))
-		return nil
+		return
 	}
 
 	enforcer, err := casbin.NewEnforcer(config.DefaultAuthModelName, config.DefaultAuthPolicyName)
@@ -45,13 +47,21 @@ func (s *Subsystem) Register() error {
 		s.Logger.Fatal("failed to create casbin enforcer", zap.Error(err))
 	}
 	s.enforcer = enforcer
-
-	return nil
 }
 
 // Enabled returns whether or not the authz subsystem is enabled
 func (s *Subsystem) Enabled() bool {
 	return s.enabled
+}
+
+// Name returns the name of the subsystem
+func (s *Subsystem) Name() string {
+	return s.name
+}
+
+// Endpoints returns an array of endpoints that this Subsystem handles
+func (s *Subsystem) Endpoints() []endpoint.Endpoint {
+	return s.endpoints
 }
 
 // AuthorizationHandler is the handler for authorization
@@ -63,16 +73,13 @@ func (s *Subsystem) AuthorizationHandler(c *gin.Context) {
 		if res, _ := s.enforcer.Enforce(user, c.Request.URL.Path, c.Request.Method); res {
 			c.Next()
 		} else {
-			s.Controller.Formatter.WriteUnauthorizedError(c, errors.New("user not authorized to access this resource"))
+			//TODO: Update
+			//s.Controller.Formatter.WriteUnauthorizedError(c, errors.New("user not authorized to access this resource"))
 			return
 		}
 	} else {
-		s.Controller.Formatter.WriteUnauthorizedError(c, errors.New("user is not logged in"))
+		// TODO: Update
+		//s.Controller.Formatter.WriteUnauthorizedError(c, errors.New("user is not logged in"))
 		return
 	}
-}
-
-// Name returns the name of the subsystem
-func (s *Subsystem) Name() string {
-	return s.name
 }

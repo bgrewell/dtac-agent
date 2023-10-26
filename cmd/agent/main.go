@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/adapters/rest"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/authn"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/authndb"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/basic"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
@@ -138,7 +139,7 @@ func main() {
 			AsSubsystem(basic.NewHomePageSubsystem), // Homepage handler
 			AsSubsystem(basic.NewEchoSubsystem),     // Demo Subsystem
 			AsSubsystem(diag.NewSubsystem),          // Diagnostic Subsystem
-			//AsSubsystem(authn.NewSubsystem),         // Authentication Subsystem
+			AsSubsystem(authn.NewSubsystem),         // Authentication Subsystem
 			//AsSubsystem(authz.NewSubsystem),         // Authorization Subsystem
 			//AsSubsystem(plugin.NewSubsystem),        // Plugin Subsystem
 			AsSubsystem(network.NewSubsystem),  // Network Subsystem

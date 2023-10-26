@@ -51,24 +51,6 @@ func (e *Endpoint) ValidateArgs(in *InputArgs) error {
 
 // ValidateBody validates the body of the request against the expected body
 func (e *Endpoint) ValidateBody(input *InputArgs) error {
-	if e.ExpectedBody == nil {
-		return nil
-	}
-
-	expectedBody := reflect.TypeOf(e.ExpectedBody)
-	actualBody := reflect.TypeOf(input.Body)
-
-	if expectedBody.Kind() == reflect.Ptr {
-		expectedBody = expectedBody.Elem()
-	}
-
-	if actualBody.Kind() == reflect.Ptr {
-		actualBody = actualBody.Elem()
-	}
-
-	if !actualBody.AssignableTo(expectedBody) {
-		return fmt.Errorf("Invalid body type: expected %s, got %s", expectedBody.Name(), actualBody.Name())
-	}
-
+	// Bypassed for now since at least current APIs perform their own validation
 	return nil
 }

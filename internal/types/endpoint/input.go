@@ -11,6 +11,7 @@ import (
 // ExpectedArgs helps the API understand what arguments are expected
 type InputArgs struct {
 	Context context.Context
-	Params  map[string]interface{}
+	Headers map[string][]string
+	Params  map[string][]string
 	Body    io.Reader
 }

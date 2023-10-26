@@ -72,8 +72,8 @@ func (es *EchoSubsystem) Endpoints() []endpoint.Endpoint {
 
 func (es *EchoSubsystem) rootHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
 	return helpers.HandleWrapper(in, func() (interface{}, error) {
-		if m := in.Params["msg"]; m != "" {
-			msg := m.(string)
+		if m := in.Params["msg"]; m[0] != "" {
+			msg := m[0]
 			return msg, nil
 		}
 

@@ -44,7 +44,7 @@ func (s *Subsystem) nicRootHandler(in *endpoint.InputArgs) (out *endpoint.Return
 	return helpers.HandleWrapper(in, func() (interface{}, error) {
 		name := ""
 		if v, ok := in.Params["name"]; ok {
-			name = v.(string)
+			name = v[0]
 		}
 
 		s.nic.Update()

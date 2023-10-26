@@ -9,11 +9,7 @@ import (
 
 func (s *Subsystem) getRoutesHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
 	return helpers.HandleWrapper(in, func() (interface{}, error) {
-		routes, err := GetRouteTable()
-		if err != nil {
-			return nil, err
-		}
-		return routes, nil
+		return GetRouteTable()
 	}, "route table entries")
 }
 

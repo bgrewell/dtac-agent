@@ -6,6 +6,10 @@ import (
 	"net"
 )
 
+type RouteTableRowArgs struct {
+	ForceFail bool `json:"force_fail"`
+}
+
 // RouteTableRow is the struct for the route table entry
 type RouteTableRow struct {
 	LinkIndex  int                    `json:"link_index"`
