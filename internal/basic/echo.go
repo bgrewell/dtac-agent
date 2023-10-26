@@ -3,6 +3,7 @@ package basic
 import (
 	"errors"
 	"fmt"
+
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
@@ -50,7 +51,7 @@ func (es *EchoSubsystem) register() {
 	// Routes
 	secure := es.Controller.Config.Auth.DefaultSecure
 	es.endpoints = []endpoint.Endpoint{
-		{fmt.Sprintf("%s/", base), endpoint.ActionRead, es.rootHandler, secure, EchoArgs{}, nil},
+		{Path: fmt.Sprintf("%s/", base), Action: endpoint.ActionRead, Function: es.rootHandler, UsesAuth: secure, ExpectedArgs: EchoArgs{}, ExpectedBody: nil},
 	}
 }
 

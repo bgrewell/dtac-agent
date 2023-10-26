@@ -6,14 +6,15 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/cli/consts"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
-	"github.com/spf13/cobra"
 	"io"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/cli/consts"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
+	"github.com/spf13/cobra"
 )
 
 type tokenDetails struct {
@@ -61,16 +62,25 @@ func NewTokenCmd() *cobra.Command {
 func getTokens(cmd *cobra.Command, cfg *config.Configuration) ([]byte, bool) {
 	scheme := "http"
 	var transport *http.Transport
-	if cfg.Listener.HTTPS.Enabled {
+	if cfg.APIs.REST.TLS.Enabled {
 		scheme = "https"
 
-		cert, err := tls.LoadX509KeyPair(cfg.Listener.HTTPS.CertFile, cfg.Listener.HTTPS.KeyFile)
+		profile := cfg.APIs.REST.TLS.Profile
+		var ok bool
+		var tlsCfg config.TLSConfigurationEntry
+
+		if tlsCfg, ok = cfg.TLS[profile]; !ok {
+			cmd.ErrOrStderr().Write([]byte("Error: TLS profile not found"))
+			return nil, false
+		}
+
+		cert, err := tls.LoadX509KeyPair(tlsCfg.CertFile, tlsCfg.KeyFile)
 		if err != nil {
 			cmd.ErrOrStderr().Write([]byte("Error: " + err.Error()))
 			return nil, false
 		}
 
-		caCert, err := os.ReadFile(cfg.Listener.HTTPS.CAFile)
+		caCert, err := os.ReadFile(tlsCfg.CAFile)
 		if err != nil {
 			return nil, false
 		}
@@ -90,7 +100,7 @@ func getTokens(cmd *cobra.Command, cfg *config.Configuration) ([]byte, bool) {
 		}
 	}
 
-	port := cfg.Listener.Port
+	port := cfg.APIs.REST.Port
 	apiEndpoint := fmt.Sprintf("%s://localhost:%d/auth/login", scheme, port)
 	data := map[string]string{
 		"username": cfg.Auth.User,

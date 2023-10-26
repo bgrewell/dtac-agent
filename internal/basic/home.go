@@ -2,6 +2,7 @@ package basic
 
 import (
 	"fmt"
+
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
@@ -41,7 +42,7 @@ func (hps *HomePageSubsystem) register() {
 	base := ""
 	secure := hps.Controller.Config.Auth.DefaultSecure
 	hps.endpoints = []endpoint.Endpoint{
-		{fmt.Sprintf("%s/", base), endpoint.ActionRead, hps.homeHandler, secure, nil, nil},
+		{Path: fmt.Sprintf("%s/", base), Action: endpoint.ActionRead, Function: hps.homeHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
 	}
 }
 

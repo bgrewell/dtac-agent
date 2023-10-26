@@ -2,6 +2,7 @@ package diag
 
 import (
 	"fmt"
+
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
@@ -46,10 +47,10 @@ func (s *Subsystem) register() {
 	// Endpoints
 	secure := s.Controller.Config.Auth.DefaultSecure
 	s.endpoints = []endpoint.Endpoint{
-		{fmt.Sprintf("%s/", base), endpoint.ActionRead, s.rootHandler, secure, nil, nil},
-		{fmt.Sprintf("%s/jwt", base), endpoint.ActionRead, s.jwtTestHandler, secure, nil, nil},
-		{fmt.Sprintf("%s/endpoints", base), endpoint.ActionRead, s.endpointListPrintHandler, secure, nil, nil},
-		{fmt.Sprintf("%s/runningas", base), endpoint.ActionRead, s.runningAsHandler, secure, nil, nil},
+		{Path: fmt.Sprintf("%s/", base), Action: endpoint.ActionRead, Function: s.rootHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
+		{Path: fmt.Sprintf("%s/jwt", base), Action: endpoint.ActionRead, Function: s.jwtTestHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
+		{Path: fmt.Sprintf("%s/endpoints", base), Action: endpoint.ActionRead, Function: s.endpointListPrintHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
+		{Path: fmt.Sprintf("%s/runningas", base), Action: endpoint.ActionRead, Function: s.runningAsHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
 	}
 }
 

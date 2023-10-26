@@ -8,6 +8,24 @@ import (
 	"net"
 )
 
+// TODO: Need different versions of these for different functions, i.e. most fields are optional on an update but required on a create
+// RouteTableRowArgs is the struct for the route table entry arguments
+type RouteTableRowArgs struct {
+	Dst      string `json:"dst"`
+	DstMask  string `json:"dst_mask"`
+	Src      net.IP `json:"src"`
+	Gw       net.IP `json:"gw"`
+	Protocol int    `json:"protocol"`
+	Priority int    `json:"priority"`
+	Table    int    `json:"table"`
+	Type     int    `json:"type"`
+	Tos      int    `json:"tos"`
+	Flags    int    `json:"flags"`
+	NewDst   string `json:"new_dst"`
+	MTU      int    `json:"mtu"`
+	Hoplimit int    `json:"hoplimit"`
+}
+
 // RouteTableRow is the struct for the route table entry
 type RouteTableRow struct {
 	LinkIndex  int                    `json:"link_index"`

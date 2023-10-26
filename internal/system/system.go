@@ -2,6 +2,7 @@ package system
 
 import (
 	"fmt"
+
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
@@ -47,10 +48,10 @@ func (s *Subsystem) register() {
 	// Endpoints
 	secure := s.Controller.Config.Auth.DefaultSecure
 	s.endpoints = []endpoint.Endpoint{
-		{fmt.Sprintf("%s/", base), endpoint.ActionRead, s.rootHandler, secure, nil, nil},
-		{fmt.Sprintf("%s/uuid", base), endpoint.ActionRead, s.uuidHandler, secure, nil, nil},
-		{fmt.Sprintf("%s/product", base), endpoint.ActionRead, s.productHandler, secure, nil, nil},
-		{fmt.Sprintf("%s/os", base), endpoint.ActionRead, s.osHandler, secure, nil, nil},
+		{Path: fmt.Sprintf("%s/", base), Action: endpoint.ActionRead, Function: s.rootHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
+		{Path: fmt.Sprintf("%s/uuid", base), Action: endpoint.ActionRead, Function: s.uuidHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
+		{Path: fmt.Sprintf("%s/product", base), Action: endpoint.ActionRead, Function: s.productHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
+		{Path: fmt.Sprintf("%s/os", base), Action: endpoint.ActionRead, Function: s.osHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
 	}
 }
 
