@@ -8,9 +8,8 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/authndb"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types/endpoint"
 	"github.com/twinj/uuid"
 	"go.uber.org/zap"
 	"net/http"
@@ -41,6 +40,7 @@ func NewSubsystem(c *controller.Controller) interfaces.Subsystem {
 			Groups:   []string{"guest"},
 		},
 	}
+	as.register()
 	return &as
 }
 
@@ -52,27 +52,24 @@ type Subsystem struct {
 	name       string
 	admin      authndb.User
 	guest      authndb.User
+	endpoints  []endpoint.Endpoint
 }
 
-// Register registers the authn subsystem
-func (s *Subsystem) Register() error {
+// register registers the authn subsystem
+func (s *Subsystem) register() {
 	if !s.Enabled() {
 		s.Logger.Info("subsystem is disabled", zap.String("subsystem", s.Name()))
-		return nil
+		return
 	}
+
 	// Create a group for this subsystem
 	base := s.Controller.Router.Group(s.name)
 
-	// Routes
-	routes := []types.RouteInfo{
-		{Group: base, HTTPMethod: http.MethodPost, Path: "/login", Handler: s.loginHandler, Protected: false},
+	// Endpoints
+	secure := s.Controller.Config.Auth.DefaultSecure
+	s.endpoints = []endpoint.Endpoint{
+		{fmt.Sprintf("%s/login", base), endpoint.ActionRead, s.loginHandler, secure},
 	}
-
-	// Register routes
-	helpers.RegisterRoutes(routes, s.Controller.SecureMiddleware)
-	s.Logger.Info("registered routes", zap.Int("routes", len(routes)))
-
-	return nil
 }
 
 // Enabled returns true if the subsystem is enabled
@@ -80,6 +77,17 @@ func (s *Subsystem) Enabled() bool {
 	return s.enabled
 }
 
+// Name returns the name of the subsystem
+func (s *Subsystem) Name() string {
+	return s.name
+}
+
+// Endpoints returns an array of endpoints that this Subsystem handles
+func (s *Subsystem) Endpoints() []endpoint.Endpoint {
+	return s.endpoints
+}
+
+// TODO: Will need to figure out how this fits into the new decoupled API frontend architecture
 // AuthenticationHandler is the middleware function that is called before every secure request
 func (s *Subsystem) AuthenticationHandler(c *gin.Context) {
 	// The AuthenticationHandler is a middleware function that is called before every secure request
@@ -98,18 +106,16 @@ func (s *Subsystem) AuthenticationHandler(c *gin.Context) {
 	//	zap.Any("groups", user.Groups))
 	c.Header("X-DTAC-AUTHENTICATION", user.Username)
 
+	// tODO: In the REST API set the Bearer token in the header
+
 	c.Set("user_id", user.ID)
 	c.Set("username", user.Username)
 	c.Set("groups", user.Groups)
 	c.Next()
 }
 
-// Name returns the name of the subsystem
-func (s *Subsystem) Name() string {
-	return s.name
-}
-
-func (s *Subsystem) loginHandler(c *gin.Context) {
+// TODO: Need to make sure this function can access the context used for logging in
+func (s *Subsystem) loginHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
 	start := time.Now()
 	var u authndb.User
 	if err := c.ShouldBindJSON(&u); err != nil {

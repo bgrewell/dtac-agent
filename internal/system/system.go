@@ -1,14 +1,13 @@
 package system
 
 import (
-	"github.com/gin-gonic/gin"
+	"fmt"
+
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types/endpoint"
 	"go.uber.org/zap"
-	"net/http"
-	"time"
 )
 
 // NewSubsystem creates a new instance of the Subsystem struct
@@ -22,6 +21,7 @@ func NewSubsystem(c *controller.Controller) interfaces.Subsystem {
 	}
 	s.info = &Info{}
 	s.info.Initialize(s.Logger)
+	s.register()
 	return &s
 }
 
@@ -32,32 +32,27 @@ type Subsystem struct {
 	enabled    bool        // Optional subsystems have a boolean to control if they are enabled
 	name       string      // Subsystem name
 	info       *Info       // Info structure
+	endpoints  []endpoint.Endpoint
 }
 
-// Register registers the routes that this module handles
-func (s *Subsystem) Register() error {
+// register registers the routes that this module handles
+func (s *Subsystem) register() {
 	if !s.Enabled() {
 		s.Logger.Info("subsystem is disabled", zap.String("subsystem", s.Name()))
-		return nil
+		return
 	}
 
 	// Create a group for this subsystem
-	base := s.Controller.Router.Group(s.name)
+	base := s.name
 
-	// Routes
+	// Endpoints
 	secure := s.Controller.Config.Auth.DefaultSecure
-	routes := []types.RouteInfo{
-		{Group: base, HTTPMethod: http.MethodGet, Path: "/", Handler: s.rootHandler, Protected: secure},
-		{Group: base, HTTPMethod: http.MethodGet, Path: "/uuid", Handler: s.uuidHandler, Protected: secure},
-		{Group: base, HTTPMethod: http.MethodGet, Path: "/product", Handler: s.productHandler, Protected: secure},
-		{Group: base, HTTPMethod: http.MethodGet, Path: "/os", Handler: s.osHandler, Protected: secure},
+	s.endpoints = []endpoint.Endpoint{
+		{Path: fmt.Sprintf("%s/", base), Action: endpoint.ActionRead, Function: s.rootHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
+		{Path: fmt.Sprintf("%s/uuid", base), Action: endpoint.ActionRead, Function: s.uuidHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
+		{Path: fmt.Sprintf("%s/product", base), Action: endpoint.ActionRead, Function: s.productHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
+		{Path: fmt.Sprintf("%s/os", base), Action: endpoint.ActionRead, Function: s.osHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
 	}
-
-	// Register routes
-	helpers.RegisterRoutes(routes, s.Controller.SecureMiddleware)
-	s.Logger.Info("registered routes", zap.Int("routes", len(routes)))
-
-	return nil
 }
 
 // Enabled returns true if the subsystem is enabled
@@ -70,25 +65,31 @@ func (s *Subsystem) Name() string {
 	return s.name
 }
 
-func (s *Subsystem) rootHandler(c *gin.Context) {
-	start := time.Now()
-	s.Controller.Formatter.WriteResponse(c, time.Since(start), s.info)
+// Endpoints returns an array of endpoints that this Subsystem handles
+func (s *Subsystem) Endpoints() []endpoint.Endpoint {
+	return s.endpoints
 }
 
-func (s *Subsystem) uuidHandler(c *gin.Context) {
-	start := time.Now()
-	uuid := s.info.UUID
-	s.Controller.Formatter.WriteResponse(c, time.Since(start), uuid)
+func (s *Subsystem) rootHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		return s.info, nil
+	}, "system information")
 }
 
-func (s *Subsystem) productHandler(c *gin.Context) {
-	start := time.Now()
-	product := s.info.ProductName
-	s.Controller.Formatter.WriteResponse(c, time.Since(start), product)
+func (s *Subsystem) uuidHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		return s.info.UUID, nil
+	}, "system uuid identifier")
 }
 
-func (s *Subsystem) osHandler(c *gin.Context) {
-	start := time.Now()
-	os := s.info.serializeOs()
-	s.Controller.Formatter.WriteResponse(c, time.Since(start), os)
+func (s *Subsystem) productHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		return s.info.ProductName, nil
+	}, "system product name")
+}
+
+func (s *Subsystem) osHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		return s.info.serializeOs(), nil
+	}, "system operation system information")
 }

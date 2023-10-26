@@ -2,15 +2,12 @@ package diag
 
 import (
 	"fmt"
+
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types/endpoint"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version"
-	"net/http"
-	"time"
-
-	"github.com/gin-gonic/gin"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
 	"go.uber.org/zap"
 )
 
@@ -24,6 +21,7 @@ func NewSubsystem(c *controller.Controller) interfaces.Subsystem {
 		enabled:    c.Config.Subsystems.Diag,
 		name:       name,
 	}
+	ds.register()
 	return &ds
 }
 
@@ -33,31 +31,27 @@ type Subsystem struct {
 	Logger     *zap.Logger
 	enabled    bool
 	name       string // Subsystem name
+	endpoints  []endpoint.Endpoint
 }
 
-// Register registers the routes that this module handles
-func (s *Subsystem) Register() error {
+// register registers the endpoints that this module handles
+func (s *Subsystem) register() {
 	if !s.Enabled() {
 		s.Logger.Info("subsystem is disabled", zap.String("subsystem", s.Name()))
-		return nil
+		return
 	}
+
 	// Create a group for this subsystem
-	base := s.Controller.Router.Group(s.name)
+	base := s.name
 
-	// Routes
+	// Endpoints
 	secure := s.Controller.Config.Auth.DefaultSecure
-	routes := []types.RouteInfo{
-		{Group: base, HTTPMethod: http.MethodGet, Path: "/", Handler: s.rootHandler, Protected: secure},
-		{Group: base, HTTPMethod: http.MethodGet, Path: "/jwt", Handler: s.jwtTestHandler, Protected: true},
-		{Group: base, HTTPMethod: http.MethodGet, Path: "/routes", Handler: s.httpRoutePrintHandler, Protected: secure},
-		{Group: base, HTTPMethod: http.MethodGet, Path: "/runningas", Handler: s.runningAsHandler, Protected: false},
+	s.endpoints = []endpoint.Endpoint{
+		{Path: fmt.Sprintf("%s/", base), Action: endpoint.ActionRead, Function: s.rootHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
+		{Path: fmt.Sprintf("%s/jwt", base), Action: endpoint.ActionRead, Function: s.jwtTestHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
+		{Path: fmt.Sprintf("%s/endpoints", base), Action: endpoint.ActionRead, Function: s.endpointListPrintHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
+		{Path: fmt.Sprintf("%s/runningas", base), Action: endpoint.ActionRead, Function: s.runningAsHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
 	}
-
-	// Register routes
-	helpers.RegisterRoutes(routes, s.Controller.SecureMiddleware)
-	s.Logger.Info("registered routes", zap.Int("routes", len(routes)))
-
-	return nil
 }
 
 // Enabled returns true if this module is enabled otherwise it returns false
@@ -70,51 +64,35 @@ func (s *Subsystem) Name() string {
 	return s.name
 }
 
+// Endpoints returns an array of endpoints that this Subsystem handles
+func (s *Subsystem) Endpoints() []endpoint.Endpoint {
+	return s.endpoints
+}
+
 // rootHandler handles requests for the root path for this subsystem
-func (s *Subsystem) rootHandler(c *gin.Context) {
-	start := time.Now()
-	response := gin.H{
-		"version": types.AnnotatedStruct{
-			Description: fmt.Sprintf("%s version information", s.Controller.Config.Internal.ShortName),
-			Value:       version.Current(),
-		},
-		"memory": types.AnnotatedStruct{
-			Description: fmt.Sprintf("current %s memory usage", s.Controller.Config.Internal.ShortName),
-			Value:       CurrentMemoryStats(),
-		},
-	}
-	s.Controller.Formatter.WriteResponse(c, time.Since(start), response)
+func (s *Subsystem) rootHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		return version.Current(), nil
+	}, "diagnostic information")
 }
 
-func (s *Subsystem) httpRoutePrintHandler(c *gin.Context) {
-	start := time.Now()
-	s.Controller.HTTPRouteList.UpdateRoutes()
-	response := gin.H{
-		"routes": types.AnnotatedStruct{
-			Description: fmt.Sprintf("list of registered http endpoints being served by %s", s.Controller.Config.Internal.ShortName),
-			Value:       s.Controller.HTTPRouteList.Routes,
-		},
-	}
-	s.Controller.Formatter.WriteResponse(c, time.Since(start), response)
+// endpointListPrintHandler handles requests for the supported endpoints
+func (s *Subsystem) endpointListPrintHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		return s.Controller.EndpointList, nil
+	}, "enabled api endpoints")
 }
 
-func (s *Subsystem) jwtTestHandler(c *gin.Context) {
-	start := time.Now()
-	response := gin.H{
-		"message": "jwt test page",
-	}
-	s.Controller.Formatter.WriteResponse(c, time.Since(start), response)
+// jwtTestHandler is a legacy endpoint that is depreciated and needs to be removed
+func (s *Subsystem) jwtTestHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		return map[string]string{"message": "jwt test page"}, nil
+	}, "jwt authentication test")
 }
 
-func (s *Subsystem) runningAsHandler(c *gin.Context) {
-	start := time.Now()
-	ug, err := AgentRunningAsUser()
-	if err != nil {
-		s.Controller.Formatter.WriteError(c, err)
-		return
-	}
-	response := gin.H{
-		"runningAs": ug,
-	}
-	s.Controller.Formatter.WriteResponse(c, time.Since(start), response)
+// runningAsHandler returns information about the user and group context the application is running as
+func (s *Subsystem) runningAsHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		return AgentRunningAsUser()
+	}, "application running as user/group information")
 }

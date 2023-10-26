@@ -1,13 +1,17 @@
 package hardware
 
 import (
-	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types/endpoint"
 	"github.com/shirou/gopsutil/net"
 	"go.uber.org/zap"
-	"time"
 )
+
+// NicInfoArgs is a struct to assist with validating the input arguments
+type NicInfoArgs struct {
+	Name string `json:"name,omitempty" yaml:"name,omitempty" xml:"name,omitempty"`
+}
 
 // NicInfo is the interface for the nic subsystem
 type NicInfo interface {
@@ -36,26 +40,24 @@ func (ni *LiveNicInfo) Info() []net.InterfaceStat {
 }
 
 // rootHandler handles requests for the root path for this subsystem
-func (s *Subsystem) nicRootHandler(c *gin.Context) {
-	start := time.Now()
-	s.nic.Update()
-	s.Controller.Formatter.WriteResponse(c, time.Since(start), s.nic.Info())
-}
-
-// nicInterfaceHandler handles requests for the root path for this subsystem
-func (s *Subsystem) nicInterfaceHandler(c *gin.Context) {
-	start := time.Now()
-	name := c.Param("name")
-	if name == "" {
-		s.Controller.Formatter.WriteError(c, errors.New("required path parameter 'name' not found. Ex: .../interface/<name>"))
-		return
-	}
-	s.nic.Update()
-	for _, info := range s.nic.Info() {
-		if info.Name == name {
-			s.Controller.Formatter.WriteResponse(c, time.Since(start), info)
-			return
+func (s *Subsystem) nicRootHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		name := ""
+		if v, ok := in.Params["name"]; ok {
+			name = v.(string)
 		}
-	}
-	s.Controller.Formatter.WriteError(c, fmt.Errorf("no interface found by name: %s", name))
+
+		s.nic.Update()
+		if name == "" {
+			return s.nic.Info(), nil
+		}
+
+		for _, info := range s.nic.Info() {
+			if info.Name == name {
+				return info, nil
+			}
+		}
+
+		return nil, fmt.Errorf("no interface found by name: %s", name)
+	}, "network interface information")
 }

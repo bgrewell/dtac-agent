@@ -8,20 +8,18 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/gin-gonic/gin"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
-
 	"github.com/bgrewell/gin-plugins/loader"
 	"github.com/fsnotify/fsnotify"
+	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
 // InternalSettings are never written out to the configuration file
 type InternalSettings struct {
-	ProductName string `json:"product_name" yaml:"product_name" mapstructure:"product_name"`
-	ShortName   string `json:"short_name" yaml:"short_name" mapstructure:"short_name"`
-	FileName    string `json:"file_name" yaml:"file_name" mapstructure:"file_name"`
+	ProductName string `json:"-" yaml:"-" mapstructure:"product_name"`
+	ShortName   string `json:"-" yaml:"-" mapstructure:"short_name"`
+	FileName    string `json:"-" yaml:"-" mapstructure:"file_name"`
 }
 
 // BlockingEntry is the struct for a blocking entry
@@ -32,14 +30,8 @@ type BlockingEntry struct {
 	TimeoutAction string `json:"timeout_action" yaml:"timeout_action" mapstructure:"timeout_action"`
 }
 
-// ListenerEntry is the struct for a listener entry
-type ListenerEntry struct {
-	Port  int                `json:"port" yaml:"port" mapstructure:"port"`
-	HTTPS ListenerHTTPSEntry `json:"https" yaml:"https" mapstructure:"https"`
-}
-
-// ListenerHTTPSEntry is the struct for a listener https entry
-type ListenerHTTPSEntry struct {
+// TLSConfigurationEntry is the struct for a TLS configuration
+type TLSConfigurationEntry struct {
 	Enabled         bool     `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 	Type            string   `json:"type" yaml:"type" mapstructure:"type"`
 	CreateIfMissing bool     `json:"create_if_missing" yaml:"create_if_missing" mapstructure:"create_if_missing"`
@@ -86,6 +78,7 @@ type SourceEntry struct {
 // SubsystemEntry is the struct for a subsystem entry
 type SubsystemEntry struct {
 	Diag     bool `json:"diag" yaml:"diag" mapstructure:"diag"`
+	Echo     bool `json:"echo" yaml:"echo" mapstructure:"echo"`
 	Hardware bool `json:"hardware" yaml:"hardware" mapstructure:"hardware"`
 	Network  bool `json:"network" yaml:"network" mapstructure:"network"`
 	//TODO: Below this line are old and should be removed
@@ -115,7 +108,7 @@ type WatchdogEntry struct {
 
 // AuthEntry is the struct for an auth entry
 type AuthEntry struct {
-	User          string `json:"user" yaml:"user" mapstructure:"user"`
+	User          string `json:"admin" yaml:"admin" mapstructure:"admin"`
 	Pass          string `json:"pass" yaml:"pass" mapstructure:"pass"`
 	DefaultSecure bool   `json:"default_secure" yaml:"default_secure" mapstructure:"default_secure"`
 	Model         string `json:"model" yaml:"model" mapstructure:"model"`
@@ -128,24 +121,50 @@ type OutputEntry struct {
 	WrapResponses bool   `json:"wrap_responses" yaml:"wrap_responses" mapstructure:"wrap_responses"`
 }
 
+// TLSSelection is the struct for a tls selection
+type TLSSelection struct {
+	Enabled bool   `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	Profile string `json:"profile" yaml:"profile" mapstructure:"profile"`
+}
+
+// RESTAPIEntry is the struct for a api entries
+type APIEntries struct {
+	REST RESTAPIEntry `json:"rest" yaml:"rest" mapstructure:"rest"`
+	GRPC GRPCAPIEntry `json:"grpc" yaml:"grpc" mapstructure:"grpc"`
+}
+
+// RESTAPIEntry is the struct for an api entry
+type RESTAPIEntry struct {
+	Enabled bool         `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	Port    int          `json:"port" yaml:"port" mapstructure:"port"`
+	TLS     TLSSelection `json:"tls" yaml:"tls" mapstructure:"tls"`
+}
+
+// GRPCAPIEntry is the struct for an api entry
+type GRPCAPIEntry struct {
+	Enabled bool         `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	Port    int          `json:"port" yaml:"port" mapstructure:"port"`
+	TLS     TLSSelection `json:"tls" yaml:"tls" mapstructure:"tls"`
+}
+
 // Configuration is the struct for the configuration
 type Configuration struct {
-	Auth         AuthEntry                `json:"authn" yaml:"authn" mapstructure:"authn"`
-	Internal     InternalSettings         `json:"internal" yaml:"internal" mapstructure:"internal"`
-	Listener     ListenerEntry            `json:"listener" yaml:"listener" mapstructure:"listener"`
-	Lockout      LockoutEntry             `json:"lockout" yaml:"lockout" mapstructure:"lockout"`
-	Subsystems   SubsystemEntry           `json:"subsystems" yaml:"subsystems" mapstructure:"subsystems"`
-	Updater      UpdaterEntry             `json:"updater" yaml:"updater" mapstructure:"updater"`
-	WifiWatchdog WatchdogEntry            `json:"wifi_watchdog" yaml:"wifi_watchdog" mapstructure:"wifi_watchdog"`
-	Plugins      PluginEntry              `json:"plugins" yaml:"plugins" mapstructure:"plugins"`
-	Custom       []map[string]*RouteEntry `json:"routes" yaml:"routes" mapstructure:"routes"`
-	Output       OutputEntry              `json:"output" yaml:"output" mapstructure:"output"`
-	router       *gin.Engine
-	logger       *zap.Logger
+	APIs            APIEntries                       `json:"apis" yaml:"apis" mapstructure:"apis"`
+	Auth            AuthEntry                        `json:"auth" yaml:"auth" mapstructure:"auth"`
+	Internal        InternalSettings                 `json:"-" yaml:"-" mapstructure:"internal"`
+	Lockout         LockoutEntry                     `json:"lockout" yaml:"lockout" mapstructure:"lockout"`
+	Subsystems      SubsystemEntry                   `json:"subsystems" yaml:"subsystems" mapstructure:"subsystems"`
+	TLS             map[string]TLSConfigurationEntry `json:"tls" yaml:"tls" mapstructure:"tls"`
+	Updater         UpdaterEntry                     `json:"updater" yaml:"updater" mapstructure:"updater"`
+	WifiWatchdog    WatchdogEntry                    `json:"wifi_watchdog" yaml:"wifi_watchdog" mapstructure:"wifi_watchdog"`
+	Plugins         PluginEntry                      `json:"plugins" yaml:"plugins" mapstructure:"plugins"`
+	CustomEndpoints []map[string]*RouteEntry         `json:"custom_endpoints" yaml:"custom_endpoints" mapstructure:"custom_endpoints"` //TODO: Needs to be updated for new architecture
+	Output          OutputEntry                      `json:"output" yaml:"output" mapstructure:"output"`
+	logger          *zap.Logger
 }
 
 // NewConfiguration creates a new configuration
-func NewConfiguration(router *gin.Engine, log *zap.Logger) (config *Configuration, err error) {
+func NewConfiguration(log *zap.Logger) (config *Configuration, err error) {
 	// Setup configuration file location(s)
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
@@ -202,8 +221,7 @@ func NewConfiguration(router *gin.Engine, log *zap.Logger) (config *Configuratio
 		return nil, fmt.Errorf("failed to unmarshal configuration: %v", err)
 	}
 
-	// Setup routes
-	c.router = router
+	// Setup logger
 	c.logger = log
 
 	viper.OnConfigChange(func(e fsnotify.Event) {
@@ -219,22 +237,24 @@ func DefaultConfig() map[string]interface{} {
 	hostname, _ := os.Hostname()
 
 	return map[string]interface{}{
-		"authn.user":                           "admin",
-		"authn.pass":                           "need_to_generate_a_random_password_on_install_or_first_run",
-		"authn.default_secure":                 true,
-		"authn.model":                          DefaultAuthModelName,
-		"authn.policy":                         DefaultAuthPolicyName,
+		"auth.admin":                           "admin",
+		"auth.pass":                            "need_to_generate_a_random_password_on_install_or_first_run",
+		"auth.default_secure":                  true,
+		"auth.model":                           DefaultAuthModelName,
+		"auth.policy":                          DefaultAuthPolicyName,
 		"internal.product_name":                "DTAC Agent",
 		"internal.short_name":                  "dtac",
 		"internal.file_name":                   "dtac-agentd",
-		"listener.port":                        8180,
-		"listener.https.enabled":               true,
-		"listener.https.type":                  "self-signed",
-		"listener.https.create_if_missing":     true,
-		"listener.https.domains":               []string{"localhost", hostname},
-		"listener.https.cert":                  DefaultTLSCertName,
-		"listener.https.key":                   DefaultTLSKeyName,
-		"listener.https.ca":                    DefaultTLSCACertName,
+		"apis.rest.enabled":                    true,
+		"apis.rest.port":                       8180,
+		"apis.rest.tls.enabled":                true,
+		"apis.rest.tls.profile":                "default",
+		"tls.default.type":                     "self-signed",
+		"tls.default.ca":                       DefaultTLSCACertName,
+		"tls.default.cert":                     DefaultTLSCertName,
+		"tls.default.key":                      DefaultTLSKeyName,
+		"tls.default.create_if_missing":        true,
+		"tls.default.domains":                  []string{"localhost", hostname},
 		"lockout.enabled":                      true,
 		"lockout.auto_unlock_time":             "10s",
 		"wifi_watchdog.enabled":                false,
@@ -257,31 +277,30 @@ func DefaultConfig() map[string]interface{} {
 		"plugins.entries.hello.user":           "",
 		"plugins.entries.hello.config.message": "hello world plugin",
 		"subsystems.diag":                      true,
+		"subsystems.echo":                      true,
 		"subsystems.network":                   true,
 		"subsystems.hardware":                  true,
-		"routes":                               []map[string]*RouteEntry{},
+		"custom_endpoints":                     []map[string]*RouteEntry{},
 		"output.log_level":                     "debug",
 		"output.wrap_responses":                false,
 	}
 }
 
-// Register registers the routes that this module handles
-func (c *Configuration) Register() error {
-	// Create a group for this subsystem
-	base := c.router.Group("config")
-
-	// Routes
-	routes := []types.RouteInfo{
-		{HTTPMethod: http.MethodGet, Path: "/", Handler: c.rootHandler},
-	}
-
-	// Register routes
-	for _, route := range routes {
-		base.Handle(route.HTTPMethod, route.Path, route.Handler)
-	}
-	c.logger.Info("registered routes", zap.Int("routes", len(routes)))
-
-	return nil
+// register registers the routes that this module handles
+func (c *Configuration) register() {
+	//// Create a group for this subsystem
+	//base := c.router.Group("config")
+	//
+	//// Routes
+	//routes := []types.RouteInfo{
+	//	{HTTPMethod: http.MethodGet, Path: "/", Handler: c.rootHandler},
+	//}
+	//
+	//// Register routes
+	//for _, route := range routes {
+	//	base.Handle(route.HTTPMethod, route.Path, route.Handler)
+	//}
+	//c.logger.Info("registered routes", zap.Int("routes", len(routes)))
 }
 
 func (c *Configuration) rootHandler(ctx *gin.Context) {
@@ -330,9 +349,9 @@ func writeConfigWithoutInternalKeys(filename string) error {
 	internalBackup := make(map[string]interface{})
 	allSettings := viper.AllSettings()
 	for key, value := range allSettings {
-		if strings.HasPrefix(key, "internal.") {
+		if key == "internal" {
 			internalBackup[key] = value
-			viper.Set(key, nil) // Temporarily remove the setting
+			viper.SetDefault(key, nil) // Temporarily remove the settings
 		}
 	}
 
@@ -344,7 +363,7 @@ func writeConfigWithoutInternalKeys(filename string) error {
 
 	// Restore internal settings from the backup
 	for key, value := range internalBackup {
-		viper.Set(key, value)
+		viper.SetDefault(key, value)
 	}
 
 	return nil

@@ -15,7 +15,7 @@ func loadConfig() (cfg *config.Configuration, err error) {
 	if err != nil {
 		return nil, err
 	}
-	return config.NewConfiguration(nil, logger)
+	return config.NewConfiguration(logger)
 }
 
 // NewCommandLineInterface returns a new instance of the CommandLineInterface struct.
