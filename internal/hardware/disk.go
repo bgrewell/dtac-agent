@@ -1,11 +1,16 @@
 package hardware
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types/endpoint"
 	"github.com/shirou/gopsutil/disk"
 	"go.uber.org/zap"
-	"time"
 )
+
+// DiskInfoArgs is a struct to assist with validating the input arguments for disk usage
+type DiskUsageArgs struct {
+	Path string `json:"path,omitempty" yaml:"path,omitempty" xml:"path,omitempty"`
+}
 
 // DiskDetails is the struct for the disk details
 type DiskDetails struct {
@@ -69,38 +74,45 @@ func (ni *LiveDiskInfo) Info() *DiskReport {
 	return ni.DiskReport
 }
 
-// rootHandler handles requests for the root path for this subsystem
-func (s *Subsystem) diskRootHandler(c *gin.Context) {
-	start := time.Now()
-	s.disk.Update()
-	s.Controller.Formatter.WriteResponse(c, time.Since(start), s.disk.Info())
+func (s *Subsystem) diskRootHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		s.disk.Update()
+		return s.disk.Info(), nil
+	}, "disk information")
 }
 
-func (s *Subsystem) diskPartitionHandler(c *gin.Context) {
-	start := time.Now()
-	s.disk.Update()
-	s.Controller.Formatter.WriteResponse(c, time.Since(start), s.disk.Info().Partitions)
+func (s *Subsystem) diskPartitionHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		s.disk.Update()
+		return s.disk.Info().Partitions, nil
+	}, "disk partition information")
 }
 
-func (s *Subsystem) diskPhysicalDisksHandler(c *gin.Context) {
-	start := time.Now()
-	s.disk.Update()
-	s.Controller.Formatter.WriteResponse(c, time.Since(start), s.disk.Info().Disks)
+func (s *Subsystem) diskPhysicalDisksHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		s.disk.Update()
+		return s.disk.Info().Disks, nil
+	}, "physical disk information")
 }
 
-func (s *Subsystem) diskUsageHandler(c *gin.Context) {
-	start := time.Now()
-	path := c.Query("path")
-	du := make([]*disk.UsageStat, 0)
-	s.disk.Update()
-	if path == "" {
-		du = append(du, s.disk.Info().Usage...)
-	} else {
-		for _, stats := range s.disk.Info().Usage {
-			if stats.Path == path {
-				du = append(du, stats)
+func (s *Subsystem) diskUsageHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		path := ""
+		if v, ok := in.Params["path"]; ok {
+			path = v.(string)
+		}
+		du := make([]*disk.UsageStat, 0)
+		s.disk.Update()
+		if path == "" {
+			du = append(du, s.disk.Info().Usage...)
+		} else {
+			for _, stats := range s.disk.Info().Usage {
+				if stats.Path == path {
+					du = append(du, stats)
+				}
 			}
 		}
-	}
-	s.Controller.Formatter.WriteResponse(c, time.Since(start), du)
+		return du, nil
+
+	}, "disk usage information")
 }

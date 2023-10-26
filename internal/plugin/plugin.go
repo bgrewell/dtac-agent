@@ -24,6 +24,7 @@ func NewSubsystem(router *gin.Engine, log *zap.Logger, cfg *config.Configuration
 		enabled: cfg.Plugins.Enabled,
 		name:    name,
 	}
+	ps.register()
 	return &ps
 }
 
@@ -36,17 +37,14 @@ type Subsystem struct {
 	name    string // Subsystem name
 }
 
-// Register registers the routes that this module handles.
-func (s *Subsystem) Register() (err error) {
+// register registers the routes that this module handles.
+func (s *Subsystem) register() {
 	if !s.Enabled() {
 		s.Logger.Info("subsystem is disabled", zap.String("subsystem", s.Name()))
-		return nil
+		return
 	}
 
-	group := &s.Router.RouterGroup
-	if s.Config.Plugins.PluginGroup != "" {
-		group = s.Router.Group(s.Config.Plugins.PluginGroup)
-	}
+	group := s.Config.Plugins.PluginGroup
 
 	// Remap the plugin configs to use full path for key
 	cm := make(map[string]*loader.PluginConfig)

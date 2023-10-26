@@ -1,10 +1,10 @@
 package hardware
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types/endpoint"
 	"github.com/shirou/gopsutil/mem"
 	"go.uber.org/zap"
-	"time"
 )
 
 // MemoryInfo is the interface for the memory subsystem
@@ -33,8 +33,9 @@ func (i *LiveMemoryInfo) Info() *mem.VirtualMemoryStat {
 	return i.MemStats
 }
 
-func (s *Subsystem) memInfoHandler(c *gin.Context) {
-	start := time.Now()
-	s.mem.Update()
-	s.Controller.Formatter.WriteResponse(c, time.Since(start), s.mem.Info())
+func (s *Subsystem) memInfoHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		s.mem.Update()
+		return s.mem.Info(), nil
+	}, "memory information")
 }

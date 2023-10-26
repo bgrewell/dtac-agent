@@ -106,6 +106,8 @@ func (s *Subsystem) AuthenticationHandler(c *gin.Context) {
 	//	zap.Any("groups", user.Groups))
 	c.Header("X-DTAC-AUTHENTICATION", user.Username)
 
+	// tODO: In the REST API set the Bearer token in the header
+
 	c.Set("user_id", user.ID)
 	c.Set("username", user.Username)
 	c.Set("groups", user.Groups)

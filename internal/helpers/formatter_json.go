@@ -35,6 +35,11 @@ func (f *JSONResponseFormatter) WriteResponse(c *gin.Context, duration time.Dura
 	}
 	rawMsg := json.RawMessage(rawData)
 
+	// We ensure that the response is always wrapped in a ResponseWrapper struct in order to ensure that the response
+	// is always properly formatted as machine-readable input, for example if a plugin or other function returns a
+	// string.
+	// WrapResponses is a configuration option that wraps the response with additional information including timing
+	// information and a text based status code. This is useful for debugging and testing purposes.
 	if f.cfg.Output.WrapResponses {
 		response = OKResponse{
 			Time:    time.Now().Format(time.RFC3339Nano),

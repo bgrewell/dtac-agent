@@ -1,12 +1,18 @@
 package hardware
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types/endpoint"
 	"github.com/shirou/gopsutil/cpu"
 	"go.uber.org/zap"
 	"strings"
 	"time"
 )
+
+// NicInfoArgs is a struct to assist with validating the input arguments
+type CpuUsageArgs struct {
+	PerCore string `json:"per_core,omitempty" yaml:"per_core,omitempty" xml:"per_core,omitempty"`
+}
 
 // CPUInfo is the interface for the cpu subsystem
 type CPUInfo interface {
@@ -40,24 +46,21 @@ func (i *LiveCPUInfo) Percent(interval time.Duration, perCPU bool) ([]float64, e
 	return cpu.Percent(interval, perCPU)
 }
 
-func (s *Subsystem) cpuInfoHandler(c *gin.Context) {
-	start := time.Now()
-	s.cpu.Update()
-	s.Controller.Formatter.WriteResponse(c, time.Since(start), s.cpu.Info())
+func (s *Subsystem) cpuInfoHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		s.cpu.Update()
+		return s.cpu.Info(), nil
+	}, "cpu information")
 }
 
-func (s *Subsystem) cpuUsageHandler(c *gin.Context) {
-	perCore := true
-	perCoreStr := c.Param("per_core")
-	if perCoreStr != "" && strings.ToLower(perCoreStr) == "false" {
-		perCore = false
-	}
-	start := time.Now()
-	stats, err := cpu.Percent(time.Millisecond*100, perCore)
-	if err != nil {
-		s.Controller.Formatter.WriteError(c, err)
-	}
-	s.Controller.Formatter.WriteResponse(c, time.Since(start), gin.H{
-		"cpu_usage": stats,
-	})
+func (s *Subsystem) cpuUsageHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		perCore := true
+		if v, ok := in.Params["per_core"]; ok {
+			if v.(string) != "" && strings.ToLower(v.(string)) == "false" {
+				perCore = false
+			}
+		}
+		return cpu.Percent(time.Millisecond*100, perCore)
+	}, "cpu usage information")
 }

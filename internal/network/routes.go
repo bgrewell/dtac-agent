@@ -1,98 +1,109 @@
 package network
 
 import (
+	"encoding/json"
 	"errors"
-	"fmt"
-	"github.com/gin-gonic/gin"
-	"time"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types/endpoint"
 )
 
-func (s *Subsystem) getRoutesHandler(c *gin.Context) {
-	start := time.Now()
-	routes, err := GetRouteTable()
-	if err != nil {
-		s.Controller.Formatter.WriteError(c, err)
-		return
-	}
-	s.Controller.Formatter.WriteResponse(c, time.Since(start), routes)
+func (s *Subsystem) getRoutesHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		routes, err := GetRouteTable()
+		if err != nil {
+			return nil, err
+		}
+		return routes, nil
+	}, "route table entries")
 }
 
-func (s *Subsystem) getRouteHandler(c *gin.Context) {
-	s.Controller.Formatter.WriteNotImplementedError(c, errors.New("this function has not been implemented yet"))
+func (s *Subsystem) getRouteHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		return nil, errors.New("this function has not been migrated yet")
+	}, "")
 }
 
-func (s *Subsystem) createRouteHandler(c *gin.Context) {
-	start := time.Now()
-	var input *RouteTableRow
-	if err := c.ShouldBindJSON(&input); err != nil {
-		s.Controller.Formatter.WriteError(c, err)
-		return
-	}
-	if err := CreateRoute(*input); err != nil {
-		s.Controller.Formatter.WriteError(c, fmt.Errorf("failed to create route: %v", err))
-		return
-	}
-	output, err := GetRouteTable()
-	if err != nil {
-		s.Controller.Formatter.WriteError(c, fmt.Errorf("route may not have been created. failed to retreive route table: %v", err))
-		return
-	}
-	s.Controller.Formatter.WriteResponse(c, time.Since(start), output)
+func (s *Subsystem) createRouteHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		var row RouteTableRow
+
+		// Transform the body into a RouteTableRow
+		if err := json.NewDecoder(in.Body).Decode(&row); err != nil {
+			return nil, err
+		}
+
+		// Create the route
+		if err = CreateRoute(row); err != nil {
+			return nil, err
+		}
+
+		// Return the route table
+		return GetRouteTable()
+	}, "route has been created")
 }
 
-func (s *Subsystem) updateRouteHandler(c *gin.Context) {
-	start := time.Now()
-	var input *RouteTableRow
-	if err := c.ShouldBindJSON(&input); err != nil {
-		s.Controller.Formatter.WriteError(c, err)
-		return
-	}
-	if err := UpdateRoute(*input); err != nil {
-		s.Controller.Formatter.WriteError(c, fmt.Errorf("failed to update route: %v", err))
-		return
-	}
-	output, err := GetRouteTable()
-	if err != nil {
-		s.Controller.Formatter.WriteError(c, fmt.Errorf("route may not have been updated. failed to retreive route table: %v", err))
-		return
-	}
-	s.Controller.Formatter.WriteResponse(c, time.Since(start), output)
+func (s *Subsystem) updateRouteHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		var row RouteTableRow
+
+		// Transform the body into a RouteTableRow
+		if err := json.NewDecoder(in.Body).Decode(&row); err != nil {
+			return nil, err
+		}
+
+		// Update the route
+		if err = UpdateRoute(row); err != nil {
+			return nil, err
+		}
+
+		// Return the route table
+		return GetRouteTable()
+	}, "route has been updated")
 }
 
-func (s *Subsystem) deleteRouteHandler(c *gin.Context) {
-	start := time.Now()
-	var input *RouteTableRow
-	if err := c.ShouldBindJSON(&input); err != nil {
-		s.Controller.Formatter.WriteError(c, err)
-		return
-	}
-	if err := DeleteRoute(*input); err != nil {
-		s.Controller.Formatter.WriteError(c, fmt.Errorf("failed to delete route: %v", err))
-		return
-	}
-	output, err := GetRouteTable()
-	if err != nil {
-		s.Controller.Formatter.WriteError(c, fmt.Errorf("route may not have been deleted. failed to retreive route table: %v", err))
-	}
-	s.Controller.Formatter.WriteResponse(c, time.Since(start), output)
+func (s *Subsystem) deleteRouteHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		var row RouteTableRow
+
+		// Transform the body into a RouteTableRow
+		if err := json.NewDecoder(in.Body).Decode(&row); err != nil {
+			return nil, err
+		}
+
+		// Delete the route
+		if err = DeleteRoute(row); err != nil {
+			return nil, err
+		}
+
+		return GetRouteTable()
+	}, "route has been deleted")
 }
 
-func (s *Subsystem) getRoutesUnifiedHandler(c *gin.Context) {
-	s.Controller.Formatter.WriteNotImplementedError(c, errors.New("this function has not been implemented yet"))
+func (s *Subsystem) getRoutesUnifiedHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		return nil, errors.New("this function has not been migrated yet")
+	}, "")
 }
 
-func (s *Subsystem) getRouteUnifiedHandler(c *gin.Context) {
-	s.Controller.Formatter.WriteNotImplementedError(c, errors.New("this function has not been implemented yet"))
+func (s *Subsystem) getRouteUnifiedHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		return nil, errors.New("this function has not been migrated yet")
+	}, "")
 }
 
-func (s *Subsystem) createRouteUnifiedHandler(c *gin.Context) {
-	s.Controller.Formatter.WriteNotImplementedError(c, errors.New("this function has not been implemented yet"))
+func (s *Subsystem) createRouteUnifiedHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		return nil, errors.New("this function has not been migrated yet")
+	}, "")
 }
 
-func (s *Subsystem) updateRouteUnifiedHandler(c *gin.Context) {
-	s.Controller.Formatter.WriteNotImplementedError(c, errors.New("this function has not been implemented yet"))
+func (s *Subsystem) updateRouteUnifiedHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		return nil, errors.New("this function has not been migrated yet")
+	}, "")
 }
-
-func (s *Subsystem) deleteRouteUnifiedHandler(c *gin.Context) {
-	s.Controller.Formatter.WriteNotImplementedError(c, errors.New("this function has not been implemented yet"))
+func (s *Subsystem) deleteRouteUnifiedHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		return nil, errors.New("this function has not been migrated yet")
+	}, "")
 }

@@ -11,8 +11,11 @@ import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/diag"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/endpoints"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/hardware"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/network"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/system"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 	"go.uber.org/zap"
@@ -138,9 +141,9 @@ func main() {
 			//AsSubsystem(authn.NewSubsystem),         // Authentication Subsystem
 			//AsSubsystem(authz.NewSubsystem),         // Authorization Subsystem
 			//AsSubsystem(plugin.NewSubsystem),        // Plugin Subsystem
-			//AsSubsystem(network.NewSubsystem),       // Network Subsystem
-			//AsSubsystem(hardware.NewSubsystem),      // Hardware Subsystem
-			//AsSubsystem(system.NewSubsystem),        // System Subsystem
+			AsSubsystem(network.NewSubsystem),  // Network Subsystem
+			AsSubsystem(hardware.NewSubsystem), // Hardware Subsystem
+			AsSubsystem(system.NewSubsystem),   // System Subsystem
 		),
 		// Invoke any functions needed to initialize everything. The empty anonymous functions are
 		// used to ensure that the providers that return that type are initialized.

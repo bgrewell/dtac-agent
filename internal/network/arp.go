@@ -1,9 +1,8 @@
 package network
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
-	"time"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types/endpoint"
 )
 
 // ArpEntry is the struct for the arp entry
@@ -16,18 +15,12 @@ type ArpEntry struct {
 	Iface     string `json:"device"`
 }
 
-func (s *Subsystem) arpTableHandler(c *gin.Context) {
-	start := time.Now()
-	arpData, err := GetArpTable()
-	if err != nil {
-		s.Controller.Formatter.WriteError(c, err)
-		return
-	}
-	response := gin.H{
-		"arp-table": types.AnnotatedStruct{
-			Description: "returns ARP table information from the system",
-			Value:       arpData,
-		},
-	}
-	s.Controller.Formatter.WriteResponse(c, time.Since(start), response)
+func (s *Subsystem) arpTableHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return helpers.HandleWrapper(in, func() (interface{}, error) {
+		arpData, err := GetArpTable()
+		if err != nil {
+			return nil, err
+		}
+		return arpData, nil
+	}, "returns ARP table information from the system")
 }

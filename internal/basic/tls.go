@@ -19,21 +19,28 @@ import (
 const (
 	// TLSTypeSelfSigned is the self-signed certificate type
 	TLSTypeSelfSigned = "self-signed"
+	TLSTypeCASigned   = "ca-signed"
 )
 
 // NewTLSInfo creates a new instance of the TLSInfo struct
-func NewTLSInfo(cfg *config.Configuration, log *zap.Logger) *TLSInfo {
-	tls := TLSInfo{
-		Enabled:      cfg.Listener.HTTPS.Enabled,
-		CertFilename: cfg.Listener.HTTPS.CertFile,
-		KeyFilename:  cfg.Listener.HTTPS.KeyFile,
-		Config:       cfg,
-		Logger:       log.With(zap.String("module", "tls")),
+func NewTLSInfo(cfg *config.Configuration, log *zap.Logger) *map[string]TLSInfo {
+	tlsMap := make(map[string]TLSInfo)
+
+	for k, c := range cfg.TLS {
+		tls := TLSInfo{
+			Enabled:      c.Enabled,
+			CertFilename: c.CertFile,
+			KeyFilename:  c.KeyFile,
+			Config:       c,
+			Logger:       log,
+		}
+		if tls.Enabled {
+			tls.Initialize()
+		}
+		tlsMap[k] = tls
 	}
-	if tls.Enabled {
-		tls.Initialize()
-	}
-	return &tls
+
+	return &tlsMap
 }
 
 // TLSInfo is the struct for the TLS subsystem
@@ -41,13 +48,13 @@ type TLSInfo struct {
 	Enabled      bool
 	CertFilename string
 	KeyFilename  string
-	Config       *config.Configuration
+	Config       config.TLSConfigurationEntry
 	Logger       *zap.Logger
 }
 
 // Initialize initializes the TLS subsystem
 func (tls *TLSInfo) Initialize() {
-	if tls.Config.Listener.HTTPS.Type == TLSTypeSelfSigned {
+	if tls.Config.Type == TLSTypeSelfSigned {
 		// Create default files if not specified and save to config
 		if tls.CertFilename == "" || tls.KeyFilename == "" {
 			tls.CertFilename = config.DefaultTLSCertName
@@ -83,7 +90,7 @@ func (tls *TLSInfo) Initialize() {
 
 // GenerateSelfSignedCertKey generates a self-signed certificate and key.
 // The certificate and key are written to certPath and keyPath respectively.
-func GenerateSelfSignedCertKey(cfg *config.Configuration) error {
+func GenerateSelfSignedCertKey(cfg config.TLSConfigurationEntry) error {
 
 	// Create CA Certificate Template
 	caTemplate := x509.Certificate{
@@ -116,7 +123,7 @@ func GenerateSelfSignedCertKey(cfg *config.Configuration) error {
 			PostalCode:    []string{"97124"},
 		},
 		IPAddresses:           []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback},
-		DNSNames:              cfg.Listener.HTTPS.Domains,
+		DNSNames:              cfg.Domains,
 		NotBefore:             time.Now(),
 		NotAfter:              time.Now().AddDate(10, 0, 0),
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
@@ -140,7 +147,7 @@ func GenerateSelfSignedCertKey(cfg *config.Configuration) error {
 
 	// PEM encode and write to disk
 	caPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: caDER})
-	err = os.WriteFile(cfg.Listener.HTTPS.CAFile, caPEM, 0600)
+	err = os.WriteFile(cfg.CAFile, caPEM, 0600)
 	if err != nil {
 		return err
 	}
@@ -159,7 +166,7 @@ func GenerateSelfSignedCertKey(cfg *config.Configuration) error {
 
 	// PEM encode cert and write to disk
 	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
-	err = os.WriteFile(cfg.Listener.HTTPS.CertFile, certPEM, 0600)
+	err = os.WriteFile(cfg.CertFile, certPEM, 0600)
 	if err != nil {
 		return err
 	}
@@ -172,7 +179,7 @@ func GenerateSelfSignedCertKey(cfg *config.Configuration) error {
 
 	// PEM encode key and write to disk
 	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyDER})
-	err = os.WriteFile(cfg.Listener.HTTPS.KeyFile, keyPEM, 0600)
+	err = os.WriteFile(cfg.KeyFile, keyPEM, 0600)
 	if err != nil {
 		return err
 	}

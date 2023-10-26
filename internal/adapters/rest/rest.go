@@ -20,8 +20,13 @@ import (
 )
 
 // NewAdapter creates a new REST adapter
-func NewAdapter(c *controller.Controller, tls *basic.TLSInfo) (adapter interfaces.APIAdapter, err error) {
-	name := "rest"
+func NewAdapter(c *controller.Controller, tls *map[string]basic.TLSInfo) (adapter interfaces.APIAdapter, err error) {
+	// Check to see if the REST API is enabled. If not return an error that it is disabled
+	if !c.Config.APIs.REST.Enabled {
+		return nil, errors.New("rest api is not enabled")
+	}
+
+	name := "rest:api"
 	logger := c.Logger.With(zap.String("module", name))
 	r := &Adapter{
 		controller: c,
@@ -38,7 +43,7 @@ func NewAdapter(c *controller.Controller, tls *basic.TLSInfo) (adapter interface
 type Adapter struct {
 	server     *http.Server
 	router     *gin.Engine
-	tls        *basic.TLSInfo
+	tls        *map[string]basic.TLSInfo
 	controller *controller.Controller
 	logger     *zap.Logger
 	name       string
@@ -75,7 +80,6 @@ func (a *Adapter) Register(subsystems []interfaces.Subsystem) (err error) {
 					return errors.New("invalid action")
 				}
 
-				// TODO: Handle verification of params, headers etc
 				a.shim(method, ep)
 			}
 		}
@@ -109,17 +113,23 @@ func (a *Adapter) Stop(ctx context.Context) (err error) {
 
 func (a *Adapter) setup() (err error) {
 	// Create a new http server
-	a.server = &http.Server{Addr: fmt.Sprintf(":%d", a.controller.Config.Listener.Port), Handler: a.router}
+	a.server = &http.Server{Addr: fmt.Sprintf(":%d", a.controller.Config.APIs.REST.Port), Handler: a.router}
 
 	// Set up the serve function
 	a.srvFunc = a.server.Serve
 	a.srvMsg = "starting HTTP server"
-	if a.tls.Enabled {
-		wrapper := func(l net.Listener) error {
-			return a.server.ServeTLS(l, a.tls.CertFilename, a.tls.KeyFilename)
+	if a.controller.Config.APIs.REST.TLS.Enabled {
+		if cfg, ok := (*a.tls)[a.controller.Config.APIs.REST.TLS.Profile]; ok {
+			wrapper := func(l net.Listener) error {
+				return a.server.ServeTLS(l, cfg.CertFilename, cfg.KeyFilename)
+			}
+			a.srvFunc = wrapper
+			a.srvMsg = "starting HTTPS server"
+			return nil
 		}
-		a.srvFunc = wrapper
-		a.srvMsg = "starting HTTPS server"
+
+		return errors.New("tls profile not found")
+
 	}
 
 	return nil
@@ -134,9 +144,19 @@ func (a *Adapter) shim(method string, ep endpoint.Endpoint) {
 			return
 		}
 
+		// TODO: Look at moving validation somewhere central so API's don't have to do it
 		err = ep.ValidateArgs(in)
 		if err != nil {
 			a.logger.Error("failed to validate input args", zap.Error(err))
+			a.formatter.WriteError(c, err)
+			return
+		}
+
+		// TODO: Look at moving validation somewhere central so API's don't have to do it
+		// TODO: Look at deserialization of body and storage in a central manner to ease endpoint dup code
+		err = ep.ValidateBody(in)
+		if err != nil {
+			a.logger.Error("failed to validate input body", zap.Error(err))
 			a.formatter.WriteError(c, err)
 			return
 		}
