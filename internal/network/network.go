@@ -31,7 +31,7 @@ type Subsystem struct {
 	NicInfo    hardware.NicInfo
 	enabled    bool   // Optional subsystems have a boolean to control if they are enabled
 	name       string // Subsystem name
-	endpoints  []endpoint.Endpoint
+	endpoints  []*endpoint.Endpoint
 }
 
 // register registers the routes that this module handles. Currently empty as no routes defined.
@@ -47,7 +47,7 @@ func (s *Subsystem) register() {
 
 	// Endpoints
 	secure := s.Controller.Config.Auth.DefaultSecure
-	s.endpoints = []endpoint.Endpoint{
+	s.endpoints = []*endpoint.Endpoint{
 		// OS Specific Endpoints
 		{Path: fmt.Sprintf("%s/", base), Action: endpoint.ActionRead, Function: s.networkInfoHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
 		{Path: fmt.Sprintf("%s/arp", base), Action: endpoint.ActionRead, Function: s.arpTableHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
@@ -76,7 +76,7 @@ func (s *Subsystem) Name() string {
 }
 
 // Endpoints returns an array of endpoints that this Subsystem handles
-func (s *Subsystem) Endpoints() []endpoint.Endpoint {
+func (s *Subsystem) Endpoints() []*endpoint.Endpoint {
 	return s.endpoints
 }
 

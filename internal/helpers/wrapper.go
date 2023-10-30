@@ -15,10 +15,12 @@ func HandleWrapperWithHeaders(in *endpoint.InputArgs, f func() (headers map[stri
 	if err != nil {
 		return nil, err
 	}
-	response := types.AnnotatedStruct{
-		Description: description,
-		Value:       value,
-	}
+	response := value
+	// TODO: Disabled for now, think more about if/how this is exposed later
+	//response := types.AnnotatedStruct{
+	//	Description: description,
+	//	Value:       value,
+	//}
 	duration := time.Since(start)
 	ctx := context.WithValue(in.Context, types.ContextExecDuration, duration)
 	out = &endpoint.ReturnVal{

@@ -7,6 +7,7 @@ import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/adapters/rest"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/authn"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/authndb"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/authz"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/basic"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
@@ -15,6 +16,7 @@ import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/hardware"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/middleware"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/network"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/system"
 	"go.uber.org/fx"
@@ -51,6 +53,32 @@ func NewController(logger *zap.Logger, cfg *config.Configuration, epl *endpoints
 
 // Setup is a function that is used to set up the API adapters
 func Setup(params AdapterParams) {
+	// Find middleware
+	params.Controller.Logger.Debug("searching for middleware")
+	middlewares := []middleware.Middleware{}
+	for _, subsystem := range params.Subsystems {
+		if sub, ok := subsystem.(middleware.Middleware); ok {
+			params.Controller.Logger.Debug("found middleware", zap.String("name", sub.Name()))
+			middlewares = append(middlewares, sub)
+		}
+	}
+
+	// Prioritize middlewares
+	params.Controller.Logger.Debug("prioritizing middleware")
+	middlewares = middleware.Sort(middlewares)
+
+	// Register middleware
+	params.Controller.Logger.Debug("registering middleware", zap.Int("count", len(middlewares)))
+	for _, subsystem := range params.Subsystems {
+		endpionts := subsystem.Endpoints()
+		for _, endpoint := range endpionts {
+			if endpoint.UsesAuth {
+				//TODO: This needs to be reworked as it will remove ALL middleware for endpoints that don't use Auth
+				endpoint.Function = middleware.Chain(middlewares, endpoint.Function)
+			}
+		}
+	}
+
 	params.Controller.Logger.Debug("setting up API adapters", zap.Int("count", len(params.Adapters)))
 	for _, adapter := range params.Adapters {
 		params.Controller.Logger.Debug("registering adapter")
@@ -140,7 +168,7 @@ func main() {
 			AsSubsystem(basic.NewEchoSubsystem),     // Demo Subsystem
 			AsSubsystem(diag.NewSubsystem),          // Diagnostic Subsystem
 			AsSubsystem(authn.NewSubsystem),         // Authentication Subsystem
-			//AsSubsystem(authz.NewSubsystem),         // Authorization Subsystem
+			AsSubsystem(authz.NewSubsystem),         // Authorization Subsystem
 			//AsSubsystem(plugin.NewSubsystem),        // Plugin Subsystem
 			AsSubsystem(network.NewSubsystem),  // Network Subsystem
 			AsSubsystem(hardware.NewSubsystem), // Hardware Subsystem

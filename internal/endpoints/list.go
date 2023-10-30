@@ -17,12 +17,12 @@ func NewEndpointList(cfg *config.Configuration, log *zap.Logger) *EndpointList {
 
 // EndpointList is the struct for the api endpoint list
 type EndpointList struct {
-	Endpoints []endpoint.Endpoint   `json:"endpoints" yaml:"endpoints"`
+	Endpoints []*endpoint.Endpoint  `json:"endpoints" yaml:"endpoints"`
 	Config    *config.Configuration `json:"-" yaml:"-"`
 	Logger    *zap.Logger           `json:"-" yaml:"-"`
 }
 
 // AddEndpoints inserts new endpoints into the endpoint list
-func (el *EndpointList) AddEndpoints(endpoints []endpoint.Endpoint) {
+func (el *EndpointList) AddEndpoints(endpoints []*endpoint.Endpoint) {
 	el.Endpoints = append(el.Endpoints, endpoints...)
 }

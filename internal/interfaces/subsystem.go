@@ -4,7 +4,7 @@ import "github.com/intel-innersource/frameworks.automation.dtac.agent/internal/t
 
 // Subsystem is the interface for the subsystems
 type Subsystem interface {
-	Endpoints() []endpoint.Endpoint
+	Endpoints() []*endpoint.Endpoint
 	Enabled() bool
 	Name() string
 }

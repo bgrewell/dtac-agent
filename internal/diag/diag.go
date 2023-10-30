@@ -31,7 +31,7 @@ type Subsystem struct {
 	Logger     *zap.Logger
 	enabled    bool
 	name       string // Subsystem name
-	endpoints  []endpoint.Endpoint
+	endpoints  []*endpoint.Endpoint
 }
 
 // register registers the endpoints that this module handles
@@ -46,7 +46,7 @@ func (s *Subsystem) register() {
 
 	// Endpoints
 	secure := s.Controller.Config.Auth.DefaultSecure
-	s.endpoints = []endpoint.Endpoint{
+	s.endpoints = []*endpoint.Endpoint{
 		{Path: fmt.Sprintf("%s/", base), Action: endpoint.ActionRead, Function: s.rootHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
 		{Path: fmt.Sprintf("%s/jwt", base), Action: endpoint.ActionRead, Function: s.jwtTestHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
 		{Path: fmt.Sprintf("%s/endpoints", base), Action: endpoint.ActionRead, Function: s.endpointListPrintHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
@@ -65,7 +65,7 @@ func (s *Subsystem) Name() string {
 }
 
 // Endpoints returns an array of endpoints that this Subsystem handles
-func (s *Subsystem) Endpoints() []endpoint.Endpoint {
+func (s *Subsystem) Endpoints() []*endpoint.Endpoint {
 	return s.endpoints
 }
 

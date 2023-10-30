@@ -1,22 +1,23 @@
 package authn
 
 import (
+	"context"
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/authndb"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/middleware"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types/endpoint"
 	"github.com/twinj/uuid"
 	"go.uber.org/zap"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -32,16 +33,18 @@ func NewSubsystem(c *controller.Controller) interfaces.Subsystem {
 		enabled:    true,
 		name:       name,
 		admin: authndb.User{ // This is all stubbed in until we get the authentication database up and running
-			ID:       1,
-			Username: fmt.Sprintf("%x", sha256.Sum256([]byte(c.Config.Auth.User))),
-			Password: fmt.Sprintf("%x", sha256.Sum256([]byte(c.Config.Auth.Pass))), //TODO: Store as a sha256 hash in the configuration file
-			Groups:   []string{"admin"},
+			ID:             1,
+			Username:       c.Config.Auth.User,
+			UsernameHashed: fmt.Sprintf("%x", sha256.Sum256([]byte(c.Config.Auth.User))),
+			Password:       fmt.Sprintf("%x", sha256.Sum256([]byte(c.Config.Auth.Pass))), //TODO: Store as a sha256 hash in the configuration file
+			Groups:         []string{"admin"},
 		},
 		guest: authndb.User{
-			ID:       2,
-			Username: fmt.Sprintf("%x", sha256.Sum256([]byte("guest"))),
-			Password: fmt.Sprintf("%x", sha256.Sum256([]byte("guest"))),
-			Groups:   []string{"guest"},
+			ID:             2,
+			Username:       "guest",
+			UsernameHashed: fmt.Sprintf("%x", sha256.Sum256([]byte("guest"))),
+			Password:       fmt.Sprintf("%x", sha256.Sum256([]byte("guest"))),
+			Groups:         []string{"guest"},
 		},
 	}
 	as.register()
@@ -56,7 +59,7 @@ type Subsystem struct {
 	name       string
 	admin      authndb.User //TODO: Replace with actual authentication database
 	guest      authndb.User
-	endpoints  []endpoint.Endpoint
+	endpoints  []*endpoint.Endpoint
 }
 
 // register registers the authn subsystem
@@ -70,7 +73,7 @@ func (s *Subsystem) register() {
 	base := s.name
 
 	// Endpoints
-	s.endpoints = []endpoint.Endpoint{
+	s.endpoints = []*endpoint.Endpoint{
 		{Path: fmt.Sprintf("%s/login", base), Action: endpoint.ActionCreate, Function: s.loginHandler, UsesAuth: false, ExpectedArgs: nil, ExpectedBody: authndb.UserArgs{}},
 	}
 }
@@ -86,8 +89,13 @@ func (s *Subsystem) Name() string {
 }
 
 // Endpoints returns an array of endpoints that this Subsystem handles
-func (s *Subsystem) Endpoints() []endpoint.Endpoint {
+func (s *Subsystem) Endpoints() []*endpoint.Endpoint {
 	return s.endpoints
+}
+
+// Handler handles the authentication middleware
+func (s *Subsystem) Handler(next endpoint.EndpointFunc) endpoint.EndpointFunc {
+	return s.AuthenticationHandler(next)
 }
 
 // TODO: Need to make sure this function can access the context used for logging in
@@ -109,9 +117,9 @@ func (s *Subsystem) loginHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVa
 		check := func(a, b string) bool {
 			return subtle.ConstantTimeCompare([]byte(a), []byte(b)) == 1
 		}
-		isAdminUsername := check(userHash, s.admin.Username)
+		isAdminUsername := check(userHash, s.admin.UsernameHashed)
 		isAdminPassword := check(passHash, s.admin.Password)
-		isGuestUsername := check(userHash, s.guest.Username)
+		isGuestUsername := check(userHash, s.guest.UsernameHashed)
 		isGuestPassword := check(passHash, s.guest.Password)
 
 		// check the users credentials //TODO: Replace with actual authentication database
@@ -210,35 +218,34 @@ func (s *Subsystem) createAuth(userid uint64, td *authndb.TokenDetails) (err err
 }
 
 // START OF AuthenticationMiddleware portion of code
-// TODO: Will need to figure out how this fits into the new decoupled API frontend architecture
-// AuthenticationHandler is the middleware function that is called before every secure request
-func (s *Subsystem) AuthenticationHandler(c *gin.Context) {
-	// The AuthenticationHandler is a middleware function that is called before every secure request
-	// that is used to get the user_id from the JWT token and store it in the request context to be
-	// used by the Authorization handler
-	user, err := s.authorizeUser(c.Request)
-	if err != nil {
-		c.Header("X-DTAC-AUTHENTICATION", "INCOMPLETE")
-		//TODO: NEED TO UPDATE THIS
-		c.Abort()
-		return
-	}
-	//s.Logger.Info("user granted access",
-	//	zap.Uint64("userid", user.ID),
-	//	zap.String("username", user.Username),
-	//	zap.Any("groups", user.Groups))
-	c.Header("X-DTAC-AUTHENTICATION", user.Username)
-
-	// tODO: In the REST API set the Bearer token in the header
-
-	c.Set("user_id", user.ID)
-	c.Set("username", user.Username)
-	c.Set("groups", user.Groups)
-	c.Next()
+// Priority returns the priority of the middleware
+func (s *Subsystem) Priority() middleware.MiddlewarePriority {
+	return middleware.PriorityAuthentication
 }
 
-func (s *Subsystem) authorizeUser(r *http.Request) (user *authndb.User, err error) {
-	tokenStr := s.extractToken(r)
+// AuthenticationHandler is the middleware function that is called before every secure request
+func (s *Subsystem) AuthenticationHandler(next endpoint.EndpointFunc) endpoint.EndpointFunc {
+	return func(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+		// The AuthenticationHandler is a middleware function that is called before every secure request
+		// that is used to get the user_id from the JWT token and store it in the request context to be
+		// used by the Authorization handler
+		s.Logger.Debug("authentication middleware called")
+		auth := in.Context.Value(types.ContextAuthHeader)
+		if auth == nil {
+			// Return error, API adapter should do a check to provide user with a more specific error
+			return nil, errors.New("unable to authenticate user")
+		}
+		user, err := s.authorizeUser(auth.(string))
+		if err != nil {
+			return nil, err
+		}
+		in.Context = context.WithValue(in.Context, types.ContextAuthUser, user)
+		return next(in)
+	}
+}
+
+func (s *Subsystem) authorizeUser(bearerToken string) (user *authndb.User, err error) {
+	tokenStr := s.extractToken(bearerToken)
 	if tokenStr == "" {
 		return nil, errors.New("invalid authorization header")
 	}
@@ -270,12 +277,11 @@ func (s *Subsystem) authorizeUser(r *http.Request) (user *authndb.User, err erro
 	}
 }
 
-func (s *Subsystem) extractToken(r *http.Request) string {
-	bearToken := r.Header.Get("Authorization")
-	if bearToken == "" {
+func (s *Subsystem) extractToken(bearerToken string) string {
+	if bearerToken == "" {
 		return ""
 	}
-	tokenArr := strings.Split(bearToken, " ")
+	tokenArr := strings.Split(bearerToken, " ")
 	if len(tokenArr) == 2 {
 		return tokenArr[1]
 	}

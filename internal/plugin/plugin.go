@@ -37,7 +37,7 @@ type Subsystem struct {
 	Config    *config.Configuration
 	enabled   bool
 	name      string // Subsystem name
-	endpoints []endpoint.Endpoint
+	endpoints []*endpoint.Endpoint
 }
 
 // register registers the routes that this module handles.
@@ -115,7 +115,7 @@ func (s *Subsystem) Name() string {
 }
 
 // Endpoints returns an array of endpoints that this Subsystem handles
-func (s *Subsystem) Endpoints() []endpoint.Endpoint {
+func (s *Subsystem) Endpoints() []*endpoint.Endpoint {
 	return s.endpoints
 }
 

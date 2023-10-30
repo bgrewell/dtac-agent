@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/adapters/rest/handlers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/basic"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
@@ -59,10 +60,16 @@ func (a *Adapter) Name() string {
 
 // Register registers the subsystems with the API adapter
 func (a *Adapter) Register(subsystems []interfaces.Subsystem) (err error) {
+	// Register handlers endpoints TODO: REMOVE LATER
+	a.router.GET("/auth/weblogin", handlers.DebugLoginHandler)
+
 	// Iterate over the subsystems and register each of the endpoints
 	for _, subsystem := range subsystems {
 		a.logger.Debug("registering subsystem", zap.String("subsystem", subsystem.Name()))
 		if subsystem.Enabled() {
+			// TODO: BUG - If this is called in multiple API adapters then our EndpointList in the controller which is
+			//       universal is going to have duplicate endpoints. This should either be per API or should show
+			//       API + endpoint
 			a.controller.EndpointList.AddEndpoints(subsystem.Endpoints())
 			for _, ep := range subsystem.Endpoints() {
 				a.logger.Debug("registering endpoint", zap.String("path", ep.Path), zap.Any("action", ep.Action))
@@ -135,7 +142,7 @@ func (a *Adapter) setup() (err error) {
 	return nil
 }
 
-func (a *Adapter) shim(method string, ep endpoint.Endpoint) {
+func (a *Adapter) shim(method string, ep *endpoint.Endpoint) {
 	a.router.Handle(method, ep.Path, func(c *gin.Context) {
 		in, err := a.createInputArgs(c)
 		if err != nil {
@@ -160,6 +167,21 @@ func (a *Adapter) shim(method string, ep endpoint.Endpoint) {
 			a.formatter.WriteError(c, err)
 			return
 		}
+
+		// If this is a secured endpoint check for the authorization header
+		if ep.UsesAuth {
+			auth := c.GetHeader("Authorization")
+			if auth == "" {
+				a.formatter.WriteUnauthorizedError(c, errors.New("authorization header is missing"))
+				return
+			}
+			a.logger.Debug("authorization header found", zap.String("header", auth))
+			in.Context = context.WithValue(in.Context, types.ContextAuthHeader, auth)
+		}
+
+		// Add additional context
+		in.Context = context.WithValue(in.Context, types.ContextResourceAction, ep.Action)
+		in.Context = context.WithValue(in.Context, types.ContextResourcePath, ep.Path)
 
 		out, err := ep.Function(in)
 		if err != nil {

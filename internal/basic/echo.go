@@ -35,7 +35,7 @@ type EchoSubsystem struct {
 	Logger     *zap.Logger // All subsystems have a pointer to the logger
 	enabled    bool        // Optional subsystems have a boolean to control if they are enabled
 	name       string      // Subsystem name
-	endpoints  []endpoint.Endpoint
+	endpoints  []*endpoint.Endpoint
 }
 
 // register registers the routes that this module handles
@@ -50,7 +50,7 @@ func (es *EchoSubsystem) register() {
 
 	// Routes
 	secure := es.Controller.Config.Auth.DefaultSecure
-	es.endpoints = []endpoint.Endpoint{
+	es.endpoints = []*endpoint.Endpoint{
 		{Path: fmt.Sprintf("%s/", base), Action: endpoint.ActionRead, Function: es.rootHandler, UsesAuth: secure, ExpectedArgs: EchoArgs{}, ExpectedBody: nil},
 	}
 }
@@ -66,7 +66,7 @@ func (es *EchoSubsystem) Name() string {
 }
 
 // Endpoints returns an array of endpoints that this Subsystem handles
-func (es *EchoSubsystem) Endpoints() []endpoint.Endpoint {
+func (es *EchoSubsystem) Endpoints() []*endpoint.Endpoint {
 	return es.endpoints
 }
 

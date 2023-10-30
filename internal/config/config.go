@@ -281,7 +281,7 @@ func DefaultConfig() map[string]interface{} {
 		"subsystems.network":                   true,
 		"subsystems.hardware":                  true,
 		"custom_endpoints":                     []map[string]*RouteEntry{},
-		"output.log_level":                     "debug",
+		"output.log_level":                     "handlers",
 		"output.wrap_responses":                false,
 	}
 }

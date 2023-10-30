@@ -28,7 +28,7 @@ type HomePageSubsystem struct {
 	Controller *controller.Controller
 	Logger     *zap.Logger // All subsystems have a pointer to the logger
 	name       string      // Subsystem name
-	endpoints  []endpoint.Endpoint
+	endpoints  []*endpoint.Endpoint
 }
 
 // register registers the routes for the homepage
@@ -41,7 +41,7 @@ func (hps *HomePageSubsystem) register() {
 	// Routes
 	base := ""
 	secure := hps.Controller.Config.Auth.DefaultSecure
-	hps.endpoints = []endpoint.Endpoint{
+	hps.endpoints = []*endpoint.Endpoint{
 		{Path: fmt.Sprintf("%s/", base), Action: endpoint.ActionRead, Function: hps.homeHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
 	}
 }
@@ -57,7 +57,7 @@ func (hps *HomePageSubsystem) Name() string {
 }
 
 // Endpoints returns an array of endpoints that this Subsystem handles
-func (hps *HomePageSubsystem) Endpoints() []endpoint.Endpoint {
+func (hps *HomePageSubsystem) Endpoints() []*endpoint.Endpoint {
 	return hps.endpoints
 }
 
