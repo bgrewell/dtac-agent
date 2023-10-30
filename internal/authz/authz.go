@@ -68,17 +68,17 @@ func (s *Subsystem) Endpoints() []*endpoint.Endpoint {
 }
 
 // Handler handles the authentication middleware
-func (s *Subsystem) Handler(next endpoint.EndpointFunc) endpoint.EndpointFunc {
+func (s *Subsystem) Handler(next endpoint.Func) endpoint.Func {
 	return s.AuthorizationHandler(next)
 }
 
 // Priority returns the priority of the middleware
-func (s *Subsystem) Priority() middleware.MiddlewarePriority {
+func (s *Subsystem) Priority() middleware.Priority {
 	return middleware.PriorityAuthorization
 }
 
 // AuthorizationHandler is the handler for authorization
-func (s *Subsystem) AuthorizationHandler(next endpoint.EndpointFunc) endpoint.EndpointFunc {
+func (s *Subsystem) AuthorizationHandler(next endpoint.Func) endpoint.Func {
 	return func(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
 		s.Logger.Debug("authorization middleware called")
 		userCtx := in.Context.Value(types.ContextAuthUser)
@@ -98,9 +98,9 @@ func (s *Subsystem) AuthorizationHandler(next endpoint.EndpointFunc) endpoint.En
 
 		if canAccess, _ := s.enforcer.Enforce(user.Username, path, string(action)); canAccess {
 			return next(in)
-		} else {
-			return nil, errors.New("user not authorized to access this resource")
 		}
+
+		return nil, errors.New("user not authorized to access this resource")
 	}
 	// This is just a extremely basic authorization function right now. Will need to be built out to have full
 	// RBAC or ACL access controls in place. This implementation just checks to see if the user can access the

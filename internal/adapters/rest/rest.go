@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/adapters/rest/handlers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/basic"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
@@ -60,9 +59,6 @@ func (a *Adapter) Name() string {
 
 // Register registers the subsystems with the API adapter
 func (a *Adapter) Register(subsystems []interfaces.Subsystem) (err error) {
-	// Register handlers endpoints TODO: REMOVE LATER
-	a.router.GET("/auth/weblogin", handlers.DebugLoginHandler)
-
 	// Iterate over the subsystems and register each of the endpoints
 	for _, subsystem := range subsystems {
 		a.logger.Debug("registering subsystem", zap.String("subsystem", subsystem.Name()))

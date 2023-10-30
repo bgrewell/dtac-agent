@@ -9,8 +9,8 @@ import (
 	"time"
 )
 
-// NicInfoArgs is a struct to assist with validating the input arguments
-type CpuUsageArgs struct {
+// CPUUsageArgs is a struct to assist with validating the input arguments
+type CPUUsageArgs struct {
 	PerCore string `json:"per_core,omitempty" yaml:"per_core,omitempty" xml:"per_core,omitempty"`
 }
 

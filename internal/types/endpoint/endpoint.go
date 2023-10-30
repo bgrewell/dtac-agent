@@ -26,11 +26,11 @@ func (e *Endpoint) ValidateArgs(in *InputArgs) error {
 	actualArgs := reflect.TypeOf(in.Params)
 
 	if expectedArgs.Kind() != reflect.Struct {
-		return fmt.Errorf("ExpectedArgs must be a struct")
+		return fmt.Errorf("expectedArgs must be a struct")
 	}
 
 	if actualArgs.Kind() != reflect.Map {
-		return fmt.Errorf("Params must be a map")
+		return fmt.Errorf("params must be a map")
 	}
 
 	for i := 0; i < expectedArgs.NumField(); i++ {
@@ -42,7 +42,7 @@ func (e *Endpoint) ValidateArgs(in *InputArgs) error {
 				continue // Optional field is missing, but that's okay
 			}
 
-			return fmt.Errorf("Missing parameter: %s", jsonTag)
+			return fmt.Errorf("missing parameter: %s", jsonTag)
 		}
 	}
 

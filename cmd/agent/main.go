@@ -82,12 +82,10 @@ func Setup(params AdapterParams) {
 	params.Controller.Logger.Debug("setting up API adapters", zap.Int("count", len(params.Adapters)))
 	for _, adapter := range params.Adapters {
 		params.Controller.Logger.Debug("registering adapter")
-		if a, ok := adapter.(interfaces.APIAdapter); ok {
-			params.Controller.Logger.Debug("registering adapter", zap.String("name", a.Name()))
-			err := a.Register(params.Subsystems)
-			if err != nil {
-				params.Controller.Logger.Fatal("failed to register adapter", zap.Error(err))
-			}
+		params.Controller.Logger.Debug("registering adapter", zap.String("name", adapter.Name()))
+		err := adapter.Register(params.Subsystems)
+		if err != nil {
+			params.Controller.Logger.Fatal("failed to register adapter", zap.Error(err))
 		}
 	}
 
@@ -95,12 +93,10 @@ func Setup(params AdapterParams) {
 	params.LC.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			for _, adapter := range params.Adapters {
-				if a, ok := adapter.(interfaces.APIAdapter); ok {
-					params.Controller.Logger.Debug("starting adapter", zap.String("name", a.Name()))
-					err := a.Start(ctx)
-					if err != nil {
-						params.Controller.Logger.Fatal("failed to start adapter", zap.Error(err))
-					}
+				params.Controller.Logger.Debug("starting adapter", zap.String("name", adapter.Name()))
+				err := adapter.Start(ctx)
+				if err != nil {
+					params.Controller.Logger.Fatal("failed to start adapter", zap.Error(err))
 				}
 			}
 			return nil
@@ -108,12 +104,10 @@ func Setup(params AdapterParams) {
 
 		OnStop: func(ctx context.Context) error {
 			for _, adapter := range params.Adapters {
-				if a, ok := adapter.(interfaces.APIAdapter); ok {
-					params.Controller.Logger.Debug("stopping adapter", zap.String("name", a.Name()))
-					err := a.Stop(ctx)
-					if err != nil {
-						params.Controller.Logger.Fatal("failed to stop adapter", zap.Error(err))
-					}
+				params.Controller.Logger.Debug("stopping adapter", zap.String("name", adapter.Name()))
+				err := adapter.Stop(ctx)
+				if err != nil {
+					params.Controller.Logger.Fatal("failed to stop adapter", zap.Error(err))
 				}
 			}
 			return nil

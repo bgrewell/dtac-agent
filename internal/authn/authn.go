@@ -94,7 +94,7 @@ func (s *Subsystem) Endpoints() []*endpoint.Endpoint {
 }
 
 // Handler handles the authentication middleware
-func (s *Subsystem) Handler(next endpoint.EndpointFunc) endpoint.EndpointFunc {
+func (s *Subsystem) Handler(next endpoint.Func) endpoint.Func {
 	return s.AuthenticationHandler(next)
 }
 
@@ -218,13 +218,14 @@ func (s *Subsystem) createAuth(userid uint64, td *authndb.TokenDetails) (err err
 }
 
 // START OF AuthenticationMiddleware portion of code
+
 // Priority returns the priority of the middleware
-func (s *Subsystem) Priority() middleware.MiddlewarePriority {
+func (s *Subsystem) Priority() middleware.Priority {
 	return middleware.PriorityAuthentication
 }
 
 // AuthenticationHandler is the middleware function that is called before every secure request
-func (s *Subsystem) AuthenticationHandler(next endpoint.EndpointFunc) endpoint.EndpointFunc {
+func (s *Subsystem) AuthenticationHandler(next endpoint.Func) endpoint.Func {
 	return func(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
 		// The AuthenticationHandler is a middleware function that is called before every secure request
 		// that is used to get the user_id from the JWT token and store it in the request context to be

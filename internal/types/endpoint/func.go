@@ -1,3 +1,4 @@
 package endpoint
 
-type EndpointFunc func(in *InputArgs) (out *ReturnVal, err error)
+// Func is the type for an endpoint function
+type Func func(in *InputArgs) (out *ReturnVal, err error)

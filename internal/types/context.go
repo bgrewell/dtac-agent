@@ -5,9 +5,13 @@ type ContextKey string
 
 const (
 	// ContextExecDuration is the key used to store the value of the execution duration
-	ContextExecDuration   ContextKey = "exec_duration"
-	ContextAuthHeader     ContextKey = "auth_header"
-	ContextAuthUser       ContextKey = "auth_user"
+	ContextExecDuration ContextKey = "exec_duration"
+	// ContextAuthHeader is the key used to store the value of the auth header
+	ContextAuthHeader ContextKey = "auth_header"
+	// ContextAuthUser is the key used to store the value of the auth user
+	ContextAuthUser ContextKey = "auth_user"
+	// ContextResourceAction is the key used to store the value of the resource action
 	ContextResourceAction ContextKey = "resource_action"
-	ContextResourcePath   ContextKey = "resource_path"
+	// ContextResourcePath is the key used to store the value of the resource path
+	ContextResourcePath ContextKey = "resource_path"
 )

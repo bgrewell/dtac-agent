@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// DiskInfoArgs is a struct to assist with validating the input arguments for disk usage
+// DiskUsageArgs is a struct to assist with validating the input arguments for disk usage
 type DiskUsageArgs struct {
 	Path string `json:"path,omitempty" yaml:"path,omitempty" xml:"path,omitempty"`
 }

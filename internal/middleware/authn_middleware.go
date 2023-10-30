@@ -6,5 +6,5 @@ import (
 
 // AuthenticationMiddleware is the interface for the authentication middleware
 type AuthenticationMiddleware interface {
-	AuthenticationHandler(next endpoint.EndpointFunc) endpoint.EndpointFunc
+	AuthenticationHandler(next endpoint.Func) endpoint.Func
 }

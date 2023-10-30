@@ -5,6 +5,7 @@ import (
 	"sort"
 )
 
+// Sort sorts the middleware by priority
 func Sort(middlewares []Middleware) []Middleware {
 	sort.Slice(middlewares, func(i, j int) bool {
 		return middlewares[i].Priority() > middlewares[j].Priority()
@@ -12,7 +13,8 @@ func Sort(middlewares []Middleware) []Middleware {
 	return middlewares
 }
 
-func Chain(middlewares []Middleware, endpoint endpoint.EndpointFunc) endpoint.EndpointFunc {
+// Chain chains the middleware
+func Chain(middlewares []Middleware, endpoint endpoint.Func) endpoint.Func {
 	for _, middleware := range middlewares {
 		endpoint = middleware.Handler(endpoint)
 	}
