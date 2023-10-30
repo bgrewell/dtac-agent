@@ -153,7 +153,7 @@ You can obtain an authentication token by sending a POST request to the /api/aut
 To retrieve the administrative password you can use the following command:
 
 ```bash
-sudo dtac config view authn.pass
+sudo dtac config view auth.pass
 ```
 
 Once this is done you can use a tool like curl to request an access token with a request like shown below:
@@ -192,7 +192,7 @@ is designed to make it easier to perform common tasks such as viewing and editin
 if you want to view the default administrative credentials after install you can do so with the following command:
 
 ```bash
-sudo dtac config view authn.pass
+sudo dtac config view auth.pass
 ```
 
 The format for viewing configuration elements is `dtac config view <path>` where `<path>` is the path to the element you
@@ -200,7 +200,7 @@ wish to view. The path is a dot separated list of keys to the element you wish t
 view the entire authentication section of the configuration you could do so with the following command:
 
 ```bash
-sudo dtac config view authn
+sudo dtac config view auth
 ```
 
 ### Authentication
