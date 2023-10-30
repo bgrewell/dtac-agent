@@ -32,7 +32,7 @@ type Subsystem struct {
 	enabled    bool        // Optional subsystems have a boolean to control if they are enabled
 	name       string      // Subsystem name
 	info       *Info       // Info structure
-	endpoints  []endpoint.Endpoint
+	endpoints  []*endpoint.Endpoint
 }
 
 // register registers the routes that this module handles
@@ -47,7 +47,7 @@ func (s *Subsystem) register() {
 
 	// Endpoints
 	secure := s.Controller.Config.Auth.DefaultSecure
-	s.endpoints = []endpoint.Endpoint{
+	s.endpoints = []*endpoint.Endpoint{
 		{Path: fmt.Sprintf("%s/", base), Action: endpoint.ActionRead, Function: s.rootHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
 		{Path: fmt.Sprintf("%s/uuid", base), Action: endpoint.ActionRead, Function: s.uuidHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
 		{Path: fmt.Sprintf("%s/product", base), Action: endpoint.ActionRead, Function: s.productHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
@@ -66,7 +66,7 @@ func (s *Subsystem) Name() string {
 }
 
 // Endpoints returns an array of endpoints that this Subsystem handles
-func (s *Subsystem) Endpoints() []endpoint.Endpoint {
+func (s *Subsystem) Endpoints() []*endpoint.Endpoint {
 	return s.endpoints
 }
 

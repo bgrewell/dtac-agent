@@ -19,7 +19,9 @@ import (
 const (
 	// TLSTypeSelfSigned is the self-signed certificate type
 	TLSTypeSelfSigned = "self-signed"
-	TLSTypeCASigned   = "ca-signed"
+
+	// TLSTypeCASigned is the CA signed certificate type
+	TLSTypeCASigned = "ca-signed"
 )
 
 // NewTLSInfo creates a new instance of the TLSInfo struct

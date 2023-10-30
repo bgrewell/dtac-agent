@@ -37,7 +37,7 @@ type Subsystem struct {
 	cpu        CPUInfo
 	mem        MemoryInfo
 	disk       DiskInfo
-	endpoints  []endpoint.Endpoint
+	endpoints  []*endpoint.Endpoint
 }
 
 // register registers the routes that this module handles
@@ -52,9 +52,9 @@ func (s *Subsystem) register() {
 
 	// Endpoints
 	secure := s.Controller.Config.Auth.DefaultSecure
-	s.endpoints = []endpoint.Endpoint{
+	s.endpoints = []*endpoint.Endpoint{
 		{Path: fmt.Sprintf("%s/cpu", base), Action: endpoint.ActionRead, Function: s.cpuInfoHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
-		{Path: fmt.Sprintf("%s/cpu/usage", base), Action: endpoint.ActionRead, Function: s.cpuUsageHandler, UsesAuth: secure, ExpectedArgs: CpuUsageArgs{}, ExpectedBody: nil},
+		{Path: fmt.Sprintf("%s/cpu/usage", base), Action: endpoint.ActionRead, Function: s.cpuUsageHandler, UsesAuth: secure, ExpectedArgs: CPUUsageArgs{}, ExpectedBody: nil},
 		{Path: fmt.Sprintf("%s/memory", base), Action: endpoint.ActionRead, Function: s.memInfoHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
 		{Path: fmt.Sprintf("%s/disk", base), Action: endpoint.ActionRead, Function: s.diskRootHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
 		{Path: fmt.Sprintf("%s/disk/partitions", base), Action: endpoint.ActionRead, Function: s.diskPartitionHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
@@ -76,6 +76,6 @@ func (s *Subsystem) Name() string {
 }
 
 // Endpoints returns an array of endpoints that this Subsystem handles
-func (s *Subsystem) Endpoints() []endpoint.Endpoint {
+func (s *Subsystem) Endpoints() []*endpoint.Endpoint {
 	return s.endpoints
 }

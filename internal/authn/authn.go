@@ -1,18 +1,23 @@
 package authn
 
 import (
+	"context"
+	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/authndb"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/middleware"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types/endpoint"
 	"github.com/twinj/uuid"
 	"go.uber.org/zap"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -28,16 +33,18 @@ func NewSubsystem(c *controller.Controller) interfaces.Subsystem {
 		enabled:    true,
 		name:       name,
 		admin: authndb.User{ // This is all stubbed in until we get the authentication database up and running
-			ID:       1,
-			Username: c.Config.Auth.User,
-			Password: c.Config.Auth.Pass,
-			Groups:   []string{"admin"},
+			ID:             1,
+			Username:       c.Config.Auth.User,
+			UsernameHashed: fmt.Sprintf("%x", sha256.Sum256([]byte(c.Config.Auth.User))),
+			Password:       fmt.Sprintf("%x", sha256.Sum256([]byte(c.Config.Auth.Pass))), //TODO: Store as a sha256 hash in the configuration file
+			Groups:         []string{"admin"},
 		},
 		guest: authndb.User{
-			ID:       2,
-			Username: "guest",
-			Password: "guest",
-			Groups:   []string{"guest"},
+			ID:             2,
+			Username:       "guest",
+			UsernameHashed: fmt.Sprintf("%x", sha256.Sum256([]byte("guest"))),
+			Password:       fmt.Sprintf("%x", sha256.Sum256([]byte("guest"))),
+			Groups:         []string{"guest"},
 		},
 	}
 	as.register()
@@ -50,9 +57,9 @@ type Subsystem struct {
 	Logger     *zap.Logger
 	enabled    bool
 	name       string
-	admin      authndb.User
+	admin      authndb.User //TODO: Replace with actual authentication database
 	guest      authndb.User
-	endpoints  []endpoint.Endpoint
+	endpoints  []*endpoint.Endpoint
 }
 
 // register registers the authn subsystem
@@ -63,12 +70,11 @@ func (s *Subsystem) register() {
 	}
 
 	// Create a group for this subsystem
-	base := s.Controller.Router.Group(s.name)
+	base := s.name
 
 	// Endpoints
-	secure := s.Controller.Config.Auth.DefaultSecure
-	s.endpoints = []endpoint.Endpoint{
-		{fmt.Sprintf("%s/login", base), endpoint.ActionRead, s.loginHandler, secure},
+	s.endpoints = []*endpoint.Endpoint{
+		{Path: fmt.Sprintf("%s/login", base), Action: endpoint.ActionCreate, Function: s.loginHandler, UsesAuth: false, ExpectedArgs: nil, ExpectedBody: authndb.UserArgs{}},
 	}
 }
 
@@ -83,109 +89,77 @@ func (s *Subsystem) Name() string {
 }
 
 // Endpoints returns an array of endpoints that this Subsystem handles
-func (s *Subsystem) Endpoints() []endpoint.Endpoint {
+func (s *Subsystem) Endpoints() []*endpoint.Endpoint {
 	return s.endpoints
 }
 
-// TODO: Will need to figure out how this fits into the new decoupled API frontend architecture
-// AuthenticationHandler is the middleware function that is called before every secure request
-func (s *Subsystem) AuthenticationHandler(c *gin.Context) {
-	// The AuthenticationHandler is a middleware function that is called before every secure request
-	// that is used to get the user_id from the JWT token and store it in the request context to be
-	// used by the Authorization handler
-	user, err := s.authorizeUser(c.Request)
-	if err != nil {
-		c.Header("X-DTAC-AUTHENTICATION", "INCOMPLETE")
-		s.Controller.Formatter.WriteUnauthorizedError(c, err)
-		c.Abort()
-		return
+// Handler handles the authentication middleware
+func (s *Subsystem) Handler(ep endpoint.Endpoint) endpoint.Func {
+	// Bypass authentication for endpoints that don't use auth
+	if !ep.UsesAuth {
+		return ep.Function
 	}
-	//s.Logger.Info("user granted access",
-	//	zap.Uint64("userid", user.ID),
-	//	zap.String("username", user.Username),
-	//	zap.Any("groups", user.Groups))
-	c.Header("X-DTAC-AUTHENTICATION", user.Username)
-
-	// tODO: In the REST API set the Bearer token in the header
-
-	c.Set("user_id", user.ID)
-	c.Set("username", user.Username)
-	c.Set("groups", user.Groups)
-	c.Next()
+	return s.AuthenticationHandler(ep.Function)
 }
 
 // TODO: Need to make sure this function can access the context used for logging in
 func (s *Subsystem) loginHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
-	start := time.Now()
-	var u authndb.User
-	if err := c.ShouldBindJSON(&u); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, "invalid json provided")
-		return
-	}
+	return helpers.HandleWrapperWithHeaders(in, func() (map[string][]string, interface{}, error) {
+		var u authndb.User
 
-	// check the admin user
-	if (s.admin.Username != u.Username || s.admin.Password != u.Password) &&
-		(s.guest.Username != u.Username || s.guest.Password != u.Password) {
-		c.JSON(http.StatusUnauthorized, "invalid login credentials")
-		return
-	}
-
-	// TODO: Fake lookup in database
-	if u.Username == "admin" {
-		u = s.admin // set the user to admins
-	} else {
-		u = s.guest // guest is the only other valid user at this point
-	}
-
-	token, err := s.createToken(u.ID)
-	if err != nil {
-		c.JSON(http.StatusUnprocessableEntity, err.Error())
-		return
-	}
-
-	saveErr := s.createAuth(u.ID, token)
-	if saveErr != nil {
-		c.JSON(http.StatusUnprocessableEntity, fmt.Sprintf("CreateAuth: %s", saveErr.Error()))
-		return
-	}
-
-	tokens := map[string]string{
-		"access_token":  token.AccessToken,
-		"refresh_token": token.RefreshToken,
-	}
-	s.Controller.Formatter.WriteResponse(c, time.Since(start), tokens)
-}
-
-func (s *Subsystem) extractToken(r *http.Request) string {
-	bearToken := r.Header.Get("Authorization")
-	if bearToken == "" {
-		return ""
-	}
-	tokenArr := strings.Split(bearToken, " ")
-	if len(tokenArr) == 2 {
-		return tokenArr[1]
-	}
-	return ""
-}
-
-func (s *Subsystem) extractTokenMetadata(token *jwt.Token) (*authndb.AccessDetails, error) {
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if ok && token.Valid {
-		accessUUID, ok := claims["access_uuid"].(string)
-		if !ok {
-			return nil, errors.New("unable to extract access id from token")
+		// Transform the body into a RouteTableRow
+		if err := json.NewDecoder(in.Body).Decode(&u); err != nil {
+			return nil, nil, err
 		}
-		userID, err := strconv.ParseUint(fmt.Sprintf("%.f", claims["user_id"]), 10, 64)
+
+		// Convert the users credentials into sha256 hashes
+		userHash := fmt.Sprintf("%x", sha256.Sum256([]byte(u.Username)))
+		passHash := fmt.Sprintf("%x", sha256.Sum256([]byte(u.Password)))
+
+		// Operations performed here are done this way to ensure constant time comparison where authentication checks will
+		// always take the same approximate amount of time to avoid timing attacks
+		check := func(a, b string) bool {
+			return subtle.ConstantTimeCompare([]byte(a), []byte(b)) == 1
+		}
+		isAdminUsername := check(userHash, s.admin.UsernameHashed)
+		isAdminPassword := check(passHash, s.admin.Password)
+		isGuestUsername := check(userHash, s.guest.UsernameHashed)
+		isGuestPassword := check(passHash, s.guest.Password)
+
+		// check the users credentials //TODO: Replace with actual authentication database
+		if !((isAdminUsername && isAdminPassword) || (isGuestUsername && isGuestPassword)) {
+			return nil, nil, errors.New("invalid username or password")
+		}
+
+		// TODO: Fake lookup in database
+		if u.Username == "admin" {
+			u = s.admin // set the user to admins
+		} else {
+			u = s.guest // guest is the only other valid user at this point
+		}
+
+		token, err := s.createToken(u.ID)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		return &authndb.AccessDetails{
-			AccessUUID: accessUUID,
-			UserID:     userID,
-		}, nil
-	}
 
-	return nil, errors.New("failed to get claims from token")
+		saveErr := s.createAuth(u.ID, token)
+		if saveErr != nil {
+			return nil, nil, err
+		}
+
+		tokens := map[string]string{
+			"access_token":  token.AccessToken,
+			"refresh_token": token.RefreshToken,
+		}
+
+		// TODO: Should also package and transfer the refresh_token as a cookie here
+		headers := map[string][]string{
+			"Authorization": {fmt.Sprintf("Bearer %s", token.AccessToken)},
+		}
+
+		return headers, tokens, nil
+	}, "authentication tokens")
 }
 
 func (s *Subsystem) createToken(userid uint64) (token *authndb.TokenDetails, err error) {
@@ -247,34 +221,36 @@ func (s *Subsystem) createAuth(userid uint64, td *authndb.TokenDetails) (err err
 	return nil
 }
 
-func (s *Subsystem) verifyToken(tokenStr string) (*jwt.Token, error) {
-	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+// START OF AuthenticationMiddleware portion of code
+
+// Priority returns the priority of the middleware
+func (s *Subsystem) Priority() middleware.Priority {
+	return middleware.PriorityAuthentication
+}
+
+// AuthenticationHandler is the middleware function that is called before every secure request
+func (s *Subsystem) AuthenticationHandler(next endpoint.Func) endpoint.Func {
+	return func(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+		// The AuthenticationHandler is a middleware function that is called before every secure request
+		// that is used to get the user_id from the JWT token and store it in the request context to be
+		// used by the Authorization handler
+		s.Logger.Debug("authentication middleware called")
+		auth := in.Context.Value(types.ContextAuthHeader)
+		if auth == nil {
+			// Return error, API adapter should do a check to provide user with a more specific error
+			return nil, errors.New("unable to authenticate user")
 		}
-		return []byte(base64.URLEncoding.EncodeToString([]byte(os.Getenv("ACCESS_SECRET")))), nil
-	})
-	if err != nil {
-		return nil, err
+		user, err := s.authorizeUser(auth.(string))
+		if err != nil {
+			return nil, err
+		}
+		in.Context = context.WithValue(in.Context, types.ContextAuthUser, user)
+		return next(in)
 	}
-
-	if !token.Valid {
-		return nil, fmt.Errorf("token is invalid")
-	}
-	return token, nil
 }
 
-func (s *Subsystem) fetchAuth(authD *authndb.AccessDetails) (userID uint64, err error) {
-	userIDStr, err := s.Controller.AuthDB.ViewDB(authD.AccessUUID)
-	if userIDStr == "" || err != nil {
-		return 0, fmt.Errorf("unable to find %s authn details in database", authD.AccessUUID)
-	}
-	userID, _ = strconv.ParseUint(userIDStr, 10, 64)
-	return userID, nil
-}
-
-func (s *Subsystem) authorizeUser(r *http.Request) (user *authndb.User, err error) {
-	tokenStr := s.extractToken(r)
+func (s *Subsystem) authorizeUser(bearerToken string) (user *authndb.User, err error) {
+	tokenStr := s.extractToken(bearerToken)
 	if tokenStr == "" {
 		return nil, errors.New("invalid authorization header")
 	}
@@ -304,4 +280,61 @@ func (s *Subsystem) authorizeUser(r *http.Request) (user *authndb.User, err erro
 	} else {
 		return nil, fmt.Errorf("unable to find %v", userID)
 	}
+}
+
+func (s *Subsystem) extractToken(bearerToken string) string {
+	if bearerToken == "" {
+		return ""
+	}
+	tokenArr := strings.Split(bearerToken, " ")
+	if len(tokenArr) == 2 {
+		return tokenArr[1]
+	}
+	return ""
+}
+
+func (s *Subsystem) verifyToken(tokenStr string) (*jwt.Token, error) {
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(base64.URLEncoding.EncodeToString([]byte(os.Getenv("ACCESS_SECRET")))), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if !token.Valid {
+		return nil, fmt.Errorf("token is invalid")
+	}
+	return token, nil
+}
+
+func (s *Subsystem) fetchAuth(authD *authndb.AccessDetails) (userID uint64, err error) {
+	userIDStr, err := s.Controller.AuthDB.ViewDB(authD.AccessUUID)
+	if userIDStr == "" || err != nil {
+		return 0, fmt.Errorf("unable to find %s authn details in database", authD.AccessUUID)
+	}
+	userID, _ = strconv.ParseUint(userIDStr, 10, 64)
+	return userID, nil
+}
+
+func (s *Subsystem) extractTokenMetadata(token *jwt.Token) (*authndb.AccessDetails, error) {
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if ok && token.Valid {
+		accessUUID, ok := claims["access_uuid"].(string)
+		if !ok {
+			return nil, errors.New("unable to extract access id from token")
+		}
+		userID, err := strconv.ParseUint(fmt.Sprintf("%.f", claims["user_id"]), 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		return &authndb.AccessDetails{
+			AccessUUID: accessUUID,
+			UserID:     userID,
+		}, nil
+	}
+
+	return nil, errors.New("failed to get claims from token")
 }

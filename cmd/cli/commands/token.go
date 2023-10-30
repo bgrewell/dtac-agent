@@ -35,8 +35,8 @@ func NewTokenCmd() *cobra.Command {
 			}
 			cfg := c.(*config.Configuration)
 
-			body, done := getTokens(cmd, cfg)
-			if done {
+			body, ok := getTokens(cmd, cfg)
+			if !ok {
 				return
 			}
 
@@ -60,34 +60,35 @@ func NewTokenCmd() *cobra.Command {
 }
 
 func getTokens(cmd *cobra.Command, cfg *config.Configuration) ([]byte, bool) {
+	ok := true
 	scheme := "http"
 	var transport *http.Transport
 	if cfg.APIs.REST.TLS.Enabled {
 		scheme = "https"
 
 		profile := cfg.APIs.REST.TLS.Profile
-		var ok bool
+		var found bool
 		var tlsCfg config.TLSConfigurationEntry
 
-		if tlsCfg, ok = cfg.TLS[profile]; !ok {
+		if tlsCfg, found = cfg.TLS[profile]; !found {
 			cmd.ErrOrStderr().Write([]byte("Error: TLS profile not found"))
-			return nil, false
+			return nil, !ok
 		}
 
 		cert, err := tls.LoadX509KeyPair(tlsCfg.CertFile, tlsCfg.KeyFile)
 		if err != nil {
 			cmd.ErrOrStderr().Write([]byte("Error: " + err.Error()))
-			return nil, false
+			return nil, !ok
 		}
 
 		caCert, err := os.ReadFile(tlsCfg.CAFile)
 		if err != nil {
-			return nil, false
+			return nil, !ok
 		}
 
 		caCertPool := x509.NewCertPool()
-		if ok := caCertPool.AppendCertsFromPEM(caCert); !ok {
-			return nil, false
+		if appended := caCertPool.AppendCertsFromPEM(caCert); !appended {
+			return nil, !ok
 		}
 
 		tlsConfig := &tls.Config{
@@ -109,13 +110,13 @@ func getTokens(cmd *cobra.Command, cfg *config.Configuration) ([]byte, bool) {
 	payload, err := json.Marshal(data)
 	if err != nil {
 		cmd.ErrOrStderr().Write([]byte("Error: " + err.Error()))
-		return nil, false
+		return nil, !ok
 	}
 
 	req, err := http.NewRequest("POST", apiEndpoint, bytes.NewBuffer(payload))
 	if err != nil {
 		cmd.ErrOrStderr().Write([]byte("Error: " + err.Error()))
-		return nil, false
+		return nil, !ok
 	}
 	req.Header.Set("Content-Type", "application/json")
 
@@ -127,14 +128,15 @@ func getTokens(cmd *cobra.Command, cfg *config.Configuration) ([]byte, bool) {
 	resp, err := client.Do(req)
 	if err != nil {
 		cmd.ErrOrStderr().Write([]byte("Error: " + err.Error()))
-		return nil, false
+		return nil, !ok
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		cmd.ErrOrStderr().Write([]byte("Error: " + err.Error()))
-		return nil, false
+		return nil, !ok
 	}
-	return body, false
+
+	return body, ok
 }

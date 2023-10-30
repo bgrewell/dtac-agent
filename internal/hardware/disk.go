@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// DiskInfoArgs is a struct to assist with validating the input arguments for disk usage
+// DiskUsageArgs is a struct to assist with validating the input arguments for disk usage
 type DiskUsageArgs struct {
 	Path string `json:"path,omitempty" yaml:"path,omitempty" xml:"path,omitempty"`
 }
@@ -99,7 +99,7 @@ func (s *Subsystem) diskUsageHandler(in *endpoint.InputArgs) (out *endpoint.Retu
 	return helpers.HandleWrapper(in, func() (interface{}, error) {
 		path := ""
 		if v, ok := in.Params["path"]; ok {
-			path = v.(string)
+			path = v[0]
 		}
 		du := make([]*disk.UsageStat, 0)
 		s.disk.Update()

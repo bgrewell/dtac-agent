@@ -9,8 +9,8 @@ import (
 	"time"
 )
 
-// NicInfoArgs is a struct to assist with validating the input arguments
-type CpuUsageArgs struct {
+// CPUUsageArgs is a struct to assist with validating the input arguments
+type CPUUsageArgs struct {
 	PerCore string `json:"per_core,omitempty" yaml:"per_core,omitempty" xml:"per_core,omitempty"`
 }
 
@@ -57,7 +57,7 @@ func (s *Subsystem) cpuUsageHandler(in *endpoint.InputArgs) (out *endpoint.Retur
 	return helpers.HandleWrapper(in, func() (interface{}, error) {
 		perCore := true
 		if v, ok := in.Params["per_core"]; ok {
-			if v.(string) != "" && strings.ToLower(v.(string)) == "false" {
+			if v[0] != "" && strings.ToLower(v[0]) == "false" {
 				perCore = false
 			}
 		}

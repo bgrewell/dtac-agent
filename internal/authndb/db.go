@@ -9,12 +9,19 @@ import (
 	"time"
 )
 
+// UserArgs is the struct for the user arguments validation
+type UserArgs struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 // User is the struct for a user
 type User struct {
-	ID       uint64   `json:"id"`
-	Username string   `json:"username"`
-	Password string   `json:"password"`
-	Groups   []string `json:"groups"`
+	ID             uint64   `json:"id"`       // User ID
+	UsernameHashed string   `json:"-"`        // Username stored as sha256 hash
+	Username       string   `json:"username"` // Username
+	Password       string   `json:"password"` // Password stored as sha256 hash
+	Groups         []string `json:"groups"`   // Groups user belongs to
 }
 
 // TokenDetails is the struct for the token details

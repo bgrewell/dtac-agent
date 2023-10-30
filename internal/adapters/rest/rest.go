@@ -63,6 +63,9 @@ func (a *Adapter) Register(subsystems []interfaces.Subsystem) (err error) {
 	for _, subsystem := range subsystems {
 		a.logger.Debug("registering subsystem", zap.String("subsystem", subsystem.Name()))
 		if subsystem.Enabled() {
+			// TODO: BUG - If this is called in multiple API adapters then our EndpointList in the controller which is
+			//       universal is going to have duplicate endpoints. This should either be per API or should show
+			//       API + endpoint
 			a.controller.EndpointList.AddEndpoints(subsystem.Endpoints())
 			for _, ep := range subsystem.Endpoints() {
 				a.logger.Debug("registering endpoint", zap.String("path", ep.Path), zap.Any("action", ep.Action))
@@ -135,7 +138,7 @@ func (a *Adapter) setup() (err error) {
 	return nil
 }
 
-func (a *Adapter) shim(method string, ep endpoint.Endpoint) {
+func (a *Adapter) shim(method string, ep *endpoint.Endpoint) {
 	a.router.Handle(method, ep.Path, func(c *gin.Context) {
 		in, err := a.createInputArgs(c)
 		if err != nil {
@@ -161,11 +164,33 @@ func (a *Adapter) shim(method string, ep endpoint.Endpoint) {
 			return
 		}
 
+		// If this is a secured endpoint check for the authorization header
+		if ep.UsesAuth {
+			auth := c.GetHeader("Authorization")
+			if auth == "" {
+				a.formatter.WriteUnauthorizedError(c, errors.New("authorization header is missing"))
+				return
+			}
+			a.logger.Debug("authorization header found", zap.String("header", auth))
+			in.Context = context.WithValue(in.Context, types.ContextAuthHeader, auth)
+		}
+
+		// Add additional context
+		in.Context = context.WithValue(in.Context, types.ContextResourceAction, ep.Action)
+		in.Context = context.WithValue(in.Context, types.ContextResourcePath, ep.Path)
+
 		out, err := ep.Function(in)
 		if err != nil {
 			a.logger.Error("failed to execute endpoint", zap.Error(err))
 			a.formatter.WriteError(c, err)
 			return
+		}
+
+		// Set headers from out.Headers into gin.Context
+		for headerKey, headerValues := range out.Headers {
+			for _, headerValue := range headerValues {
+				c.Header(headerKey, headerValue)
+			}
 		}
 
 		et := out.Context.Value(types.ContextExecDuration).(time.Duration)
@@ -176,18 +201,19 @@ func (a *Adapter) shim(method string, ep endpoint.Endpoint) {
 func (a *Adapter) createInputArgs(ctx *gin.Context) (*endpoint.InputArgs, error) {
 	input := &endpoint.InputArgs{
 		Context: ctx.Request.Context(),
-		Params:  make(map[string]interface{}),
+		Headers: make(map[string][]string),
+		Params:  make(map[string][]string),
 		Body:    nil,
 	}
 
 	// Populate headers
 	for k, v := range ctx.Request.Header {
-		input.Context = context.WithValue(input.Context, k, v[0])
+		input.Headers[k] = v
 	}
 
 	// Populate query parameters
 	for k, v := range ctx.Request.URL.Query() {
-		input.Params[k] = v[0]
+		input.Params[k] = v
 	}
 
 	// Read request body

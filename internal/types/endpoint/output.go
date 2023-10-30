@@ -5,5 +5,7 @@ import "context"
 // ReturnVal is the struct that captures all the output that is returned to the endpoints
 type ReturnVal struct {
 	Context context.Context
+	Headers map[string][]string
+	Params  map[string][]string
 	Value   interface{}
 }

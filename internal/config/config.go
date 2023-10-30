@@ -127,7 +127,7 @@ type TLSSelection struct {
 	Profile string `json:"profile" yaml:"profile" mapstructure:"profile"`
 }
 
-// RESTAPIEntry is the struct for a api entries
+// APIEntries is the struct for a api entries
 type APIEntries struct {
 	REST RESTAPIEntry `json:"rest" yaml:"rest" mapstructure:"rest"`
 	GRPC GRPCAPIEntry `json:"grpc" yaml:"grpc" mapstructure:"grpc"`
@@ -224,6 +224,9 @@ func NewConfiguration(log *zap.Logger) (config *Configuration, err error) {
 	// Setup logger
 	c.logger = log
 
+	// Register
+	c.register()
+
 	viper.OnConfigChange(func(e fsnotify.Event) {
 		log.Info("config file changed", zap.String("filename", e.Name))
 	})
@@ -281,7 +284,7 @@ func DefaultConfig() map[string]interface{} {
 		"subsystems.network":                   true,
 		"subsystems.hardware":                  true,
 		"custom_endpoints":                     []map[string]*RouteEntry{},
-		"output.log_level":                     "debug",
+		"output.log_level":                     "handlers",
 		"output.wrap_responses":                false,
 	}
 }
@@ -301,6 +304,7 @@ func (c *Configuration) register() {
 	//	base.Handle(route.HTTPMethod, route.Path, route.Handler)
 	//}
 	//c.logger.Info("registered routes", zap.Int("routes", len(routes)))
+	_ = c.rootHandler
 }
 
 func (c *Configuration) rootHandler(ctx *gin.Context) {
