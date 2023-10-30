@@ -66,7 +66,7 @@ func TestNewConfigViewCmd(t *testing.T) {
 	actual.Reset()
 	cmd.SetOut(actual)
 	cmd.SetErr(actual)
-	cmd.SetArgs([]string{"authn.user"})
+	cmd.SetArgs([]string{"auth.admin"})
 	err = cmd.Execute()
 	if err != nil {
 		t.Errorf("Expected no error, but got %v", err)
