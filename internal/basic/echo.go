@@ -16,6 +16,11 @@ type EchoArgs struct {
 	Message string `json:"msg"`
 }
 
+// EchoOutput is a struct to assist with validating the output
+type EchoOutput struct {
+	Message string `json:"message"`
+}
+
 // NewEchoSubsystem creates a new echo subsystem
 func NewEchoSubsystem(c *controller.Controller) interfaces.Subsystem {
 	name := "echo"
@@ -51,7 +56,7 @@ func (es *EchoSubsystem) register() {
 	// Routes
 	secure := es.Controller.Config.Auth.DefaultSecure
 	es.endpoints = []*endpoint.Endpoint{
-		{Path: fmt.Sprintf("%s/", base), Action: endpoint.ActionRead, Function: es.rootHandler, UsesAuth: secure, ExpectedArgs: EchoArgs{}, ExpectedBody: nil},
+		{Path: fmt.Sprintf("%s/", base), Action: endpoint.ActionRead, Function: es.rootHandler, UsesAuth: secure, ExpectedArgs: EchoArgs{}, ExpectedBody: nil, ExpectedOutput: EchoOutput{}},
 	}
 }
 
@@ -73,8 +78,7 @@ func (es *EchoSubsystem) Endpoints() []*endpoint.Endpoint {
 func (es *EchoSubsystem) rootHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
 	return helpers.HandleWrapper(in, func() (interface{}, error) {
 		if m := in.Params["msg"]; m[0] != "" {
-			msg := m[0]
-			return msg, nil
+			return EchoOutput{Message: m[0]}, nil
 		}
 
 		return nil, errors.New("missing parameter 'msg'")

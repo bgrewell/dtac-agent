@@ -2,6 +2,7 @@ package network
 
 import (
 	"fmt"
+	"github.com/shirou/gopsutil/net"
 
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/hardware"
@@ -49,19 +50,19 @@ func (s *Subsystem) register() {
 	secure := s.Controller.Config.Auth.DefaultSecure
 	s.endpoints = []*endpoint.Endpoint{
 		// OS Specific Endpoints
-		{Path: fmt.Sprintf("%s/", base), Action: endpoint.ActionRead, Function: s.networkInfoHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
-		{Path: fmt.Sprintf("%s/arp", base), Action: endpoint.ActionRead, Function: s.arpTableHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
-		{Path: fmt.Sprintf("%s/routes", base), Action: endpoint.ActionRead, Function: s.getRoutesHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
-		{Path: fmt.Sprintf("%s/route", base), Action: endpoint.ActionRead, Function: s.getRouteHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
-		{Path: fmt.Sprintf("%s/route", base), Action: endpoint.ActionWrite, Function: s.updateRouteHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: RouteTableRowArgs{}},
-		{Path: fmt.Sprintf("%s/route", base), Action: endpoint.ActionCreate, Function: s.createRouteHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: RouteTableRowArgs{}},
-		{Path: fmt.Sprintf("%s/route", base), Action: endpoint.ActionDelete, Function: s.deleteRouteHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: RouteTableRowArgs{}},
+		{Path: fmt.Sprintf("%s/", base), Action: endpoint.ActionRead, Function: s.networkInfoHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: []net.InterfaceStat{}},
+		{Path: fmt.Sprintf("%s/arp", base), Action: endpoint.ActionRead, Function: s.arpTableHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: []ArpEntry{}},
+		{Path: fmt.Sprintf("%s/routes", base), Action: endpoint.ActionRead, Function: s.getRoutesHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: []RouteTableRow{}},
+		{Path: fmt.Sprintf("%s/route", base), Action: endpoint.ActionRead, Function: s.getRouteHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: nil},
+		{Path: fmt.Sprintf("%s/route", base), Action: endpoint.ActionWrite, Function: s.updateRouteHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: RouteTableRowArgs{}, ExpectedOutput: []RouteTableRow{}},
+		{Path: fmt.Sprintf("%s/route", base), Action: endpoint.ActionCreate, Function: s.createRouteHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: RouteTableRowArgs{}, ExpectedOutput: []RouteTableRow{}},
+		{Path: fmt.Sprintf("%s/route", base), Action: endpoint.ActionDelete, Function: s.deleteRouteHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: RouteTableRowArgs{}, ExpectedOutput: []RouteTableRow{}},
 		// Unified Endpoints
-		{Path: fmt.Sprintf("%s/routes", unified), Action: endpoint.ActionRead, Function: s.getRoutesUnifiedHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
-		{Path: fmt.Sprintf("%s/route", unified), Action: endpoint.ActionRead, Function: s.getRouteUnifiedHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
-		{Path: fmt.Sprintf("%s/route", unified), Action: endpoint.ActionWrite, Function: s.updateRouteUnifiedHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
-		{Path: fmt.Sprintf("%s/route", unified), Action: endpoint.ActionCreate, Function: s.createRouteUnifiedHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
-		{Path: fmt.Sprintf("%s/route", unified), Action: endpoint.ActionDelete, Function: s.deleteRouteUnifiedHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
+		{Path: fmt.Sprintf("%s/routes", unified), Action: endpoint.ActionRead, Function: s.getRoutesUnifiedHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: nil},
+		{Path: fmt.Sprintf("%s/route", unified), Action: endpoint.ActionRead, Function: s.getRouteUnifiedHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: nil},
+		{Path: fmt.Sprintf("%s/route", unified), Action: endpoint.ActionWrite, Function: s.updateRouteUnifiedHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: nil},
+		{Path: fmt.Sprintf("%s/route", unified), Action: endpoint.ActionCreate, Function: s.createRouteUnifiedHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: nil},
+		{Path: fmt.Sprintf("%s/route", unified), Action: endpoint.ActionDelete, Function: s.deleteRouteUnifiedHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: nil},
 	}
 }
 

@@ -171,7 +171,6 @@ func (a *Adapter) shim(method string, ep *endpoint.Endpoint) {
 				a.formatter.WriteUnauthorizedError(c, errors.New("authorization header is missing"))
 				return
 			}
-			a.logger.Debug("authorization header found", zap.String("header", auth))
 			in.Context = context.WithValue(in.Context, types.ContextAuthHeader, auth)
 		}
 

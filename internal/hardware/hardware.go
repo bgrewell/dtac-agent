@@ -2,6 +2,10 @@ package hardware
 
 import (
 	"fmt"
+	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/disk"
+	"github.com/shirou/gopsutil/mem"
+	"github.com/shirou/gopsutil/net"
 
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
@@ -32,7 +36,7 @@ type Subsystem struct {
 	Controller *controller.Controller
 	Logger     *zap.Logger
 	enabled    bool
-	name       string // Subsystem name
+	name       string
 	nic        NicInfo
 	cpu        CPUInfo
 	mem        MemoryInfo
@@ -53,15 +57,15 @@ func (s *Subsystem) register() {
 	// Endpoints
 	secure := s.Controller.Config.Auth.DefaultSecure
 	s.endpoints = []*endpoint.Endpoint{
-		{Path: fmt.Sprintf("%s/cpu", base), Action: endpoint.ActionRead, Function: s.cpuInfoHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
-		{Path: fmt.Sprintf("%s/cpu/usage", base), Action: endpoint.ActionRead, Function: s.cpuUsageHandler, UsesAuth: secure, ExpectedArgs: CPUUsageArgs{}, ExpectedBody: nil},
-		{Path: fmt.Sprintf("%s/memory", base), Action: endpoint.ActionRead, Function: s.memInfoHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
-		{Path: fmt.Sprintf("%s/disk", base), Action: endpoint.ActionRead, Function: s.diskRootHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
-		{Path: fmt.Sprintf("%s/disk/partitions", base), Action: endpoint.ActionRead, Function: s.diskPartitionHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
-		{Path: fmt.Sprintf("%s/disk/disks", base), Action: endpoint.ActionRead, Function: s.diskPhysicalDisksHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
-		{Path: fmt.Sprintf("%s/disk/usage", base), Action: endpoint.ActionRead, Function: s.diskUsageHandler, UsesAuth: secure, ExpectedArgs: DiskUsageArgs{}, ExpectedBody: nil},
-		{Path: fmt.Sprintf("%s/network", base), Action: endpoint.ActionRead, Function: s.nicRootHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
-		{Path: fmt.Sprintf("%s/network/interfaces", base), Action: endpoint.ActionRead, Function: s.nicRootHandler, UsesAuth: secure, ExpectedArgs: NicInfoArgs{}, ExpectedBody: nil},
+		{Path: fmt.Sprintf("%s/cpu", base), Action: endpoint.ActionRead, Function: s.cpuInfoHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: []cpu.InfoStat{}},
+		{Path: fmt.Sprintf("%s/cpu/usage", base), Action: endpoint.ActionRead, Function: s.cpuUsageHandler, UsesAuth: secure, ExpectedArgs: CPUUsageArgs{}, ExpectedBody: nil, ExpectedOutput: CPUUsageOutput{}},
+		{Path: fmt.Sprintf("%s/memory", base), Action: endpoint.ActionRead, Function: s.memInfoHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: &mem.VirtualMemoryStat{}},
+		{Path: fmt.Sprintf("%s/disk", base), Action: endpoint.ActionRead, Function: s.diskRootHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: &DiskReport{}},
+		{Path: fmt.Sprintf("%s/disk/partitions", base), Action: endpoint.ActionRead, Function: s.diskPartitionHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: []disk.PartitionStat{}},
+		{Path: fmt.Sprintf("%s/disk/disks", base), Action: endpoint.ActionRead, Function: s.diskPhysicalDisksHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: []*DiskDetails{}},
+		{Path: fmt.Sprintf("%s/disk/usage", base), Action: endpoint.ActionRead, Function: s.diskUsageHandler, UsesAuth: secure, ExpectedArgs: DiskUsageArgs{}, ExpectedBody: nil, ExpectedOutput: []*disk.UsageStat{}},
+		{Path: fmt.Sprintf("%s/network", base), Action: endpoint.ActionRead, Function: s.nicRootHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: []net.InterfaceStat{}},
+		{Path: fmt.Sprintf("%s/network/interfaces", base), Action: endpoint.ActionRead, Function: s.nicRootHandler, UsesAuth: secure, ExpectedArgs: NicInfoArgs{}, ExpectedBody: nil, ExpectedOutput: []net.InterfaceStat{}},
 	}
 }
 

@@ -48,10 +48,10 @@ func (s *Subsystem) register() {
 	// Endpoints
 	secure := s.Controller.Config.Auth.DefaultSecure
 	s.endpoints = []*endpoint.Endpoint{
-		{Path: fmt.Sprintf("%s/", base), Action: endpoint.ActionRead, Function: s.rootHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
-		{Path: fmt.Sprintf("%s/uuid", base), Action: endpoint.ActionRead, Function: s.uuidHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
-		{Path: fmt.Sprintf("%s/product", base), Action: endpoint.ActionRead, Function: s.productHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
-		{Path: fmt.Sprintf("%s/os", base), Action: endpoint.ActionRead, Function: s.osHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
+		{Path: fmt.Sprintf("%s/", base), Action: endpoint.ActionRead, Function: s.rootHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: &Info{}},
+		{Path: fmt.Sprintf("%s/uuid", base), Action: endpoint.ActionRead, Function: s.uuidHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: Info{}.UUID},
+		{Path: fmt.Sprintf("%s/product", base), Action: endpoint.ActionRead, Function: s.productHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: Info{}.ProductName},
+		{Path: fmt.Sprintf("%s/os", base), Action: endpoint.ActionRead, Function: s.osHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: nil},
 	}
 }
 

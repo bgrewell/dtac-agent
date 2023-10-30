@@ -2,10 +2,11 @@ package diag
 
 import (
 	"fmt"
-
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/endpoints"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types/endpoint"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version"
 	"go.uber.org/zap"
@@ -47,10 +48,9 @@ func (s *Subsystem) register() {
 	// Endpoints
 	secure := s.Controller.Config.Auth.DefaultSecure
 	s.endpoints = []*endpoint.Endpoint{
-		{Path: fmt.Sprintf("%s/", base), Action: endpoint.ActionRead, Function: s.rootHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
-		{Path: fmt.Sprintf("%s/jwt", base), Action: endpoint.ActionRead, Function: s.jwtTestHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
-		{Path: fmt.Sprintf("%s/endpoints", base), Action: endpoint.ActionRead, Function: s.endpointListPrintHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
-		{Path: fmt.Sprintf("%s/runningas", base), Action: endpoint.ActionRead, Function: s.runningAsHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
+		{Path: fmt.Sprintf("%s/", base), Action: endpoint.ActionRead, Function: s.rootHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: version.Info{}},
+		{Path: fmt.Sprintf("%s/endpoints", base), Action: endpoint.ActionRead, Function: s.endpointListPrintHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: endpoints.EndpointList{}},
+		{Path: fmt.Sprintf("%s/runningas", base), Action: endpoint.ActionRead, Function: s.runningAsHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: types.UserGroup{}},
 	}
 }
 
@@ -81,13 +81,6 @@ func (s *Subsystem) endpointListPrintHandler(in *endpoint.InputArgs) (out *endpo
 	return helpers.HandleWrapper(in, func() (interface{}, error) {
 		return s.Controller.EndpointList, nil
 	}, "enabled api endpoints")
-}
-
-// jwtTestHandler is a legacy endpoint that is depreciated and needs to be removed
-func (s *Subsystem) jwtTestHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
-	return helpers.HandleWrapper(in, func() (interface{}, error) {
-		return map[string]string{"message": "jwt test page"}, nil
-	}, "jwt authentication test")
 }
 
 // runningAsHandler returns information about the user and group context the application is running as

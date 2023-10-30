@@ -14,6 +14,10 @@ type CPUUsageArgs struct {
 	PerCore string `json:"per_core,omitempty" yaml:"per_core,omitempty" xml:"per_core,omitempty"`
 }
 
+type CPUUsageOutput struct {
+	Usage []float64 `json:"usage,omitempty" yaml:"usage,omitempty" xml:"usage,omitempty"`
+}
+
 // CPUInfo is the interface for the cpu subsystem
 type CPUInfo interface {
 	Update()
@@ -61,6 +65,9 @@ func (s *Subsystem) cpuUsageHandler(in *endpoint.InputArgs) (out *endpoint.Retur
 				perCore = false
 			}
 		}
-		return cpu.Percent(time.Millisecond*100, perCore)
+		usage, err := cpu.Percent(time.Millisecond*100, perCore)
+		return CPUUsageOutput{
+			Usage: usage,
+		}, err
 	}, "cpu usage information")
 }

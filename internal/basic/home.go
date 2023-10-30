@@ -11,6 +11,13 @@ import (
 	"go.uber.org/zap"
 )
 
+// HomeOutput is the struct for the home page output
+type HomeOutput struct {
+	Message   string               `json:"message"`
+	Version   string               `json:"version"`
+	Endpoints []*endpoint.Endpoint `json:"endpoints"`
+}
+
 // NewHomePageSubsystem creates a new homepage subsystem
 func NewHomePageSubsystem(c *controller.Controller) interfaces.Subsystem {
 	name := "homepage"
@@ -42,7 +49,7 @@ func (hps *HomePageSubsystem) register() {
 	base := ""
 	secure := hps.Controller.Config.Auth.DefaultSecure
 	hps.endpoints = []*endpoint.Endpoint{
-		{Path: fmt.Sprintf("%s/", base), Action: endpoint.ActionRead, Function: hps.homeHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil},
+		{Path: fmt.Sprintf("%s/", base), Action: endpoint.ActionRead, Function: hps.homeHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: HomeOutput{}},
 	}
 }
 
@@ -63,10 +70,10 @@ func (hps *HomePageSubsystem) Endpoints() []*endpoint.Endpoint {
 
 func (hps *HomePageSubsystem) homeHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
 	return helpers.HandleWrapper(in, func() (interface{}, error) {
-		response := map[string]interface{}{
-			"message":   fmt.Sprintf("welcome to the %s", hps.Controller.Config.Internal.ProductName),
-			"version":   version.Current().String(),
-			"endpoints": hps.Controller.EndpointList.Endpoints,
+		response := HomeOutput{
+			Message:   fmt.Sprintf("welcome to the %s", hps.Controller.Config.Internal.ProductName),
+			Version:   version.Current().String(),
+			Endpoints: hps.Controller.EndpointList.Endpoints,
 		}
 		return response, nil
 	}, "dtac-agentd information")

@@ -24,6 +24,11 @@ import (
 	"time"
 )
 
+type AuthTokens struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}
+
 // NewSubsystem creates a new authn subsystem
 func NewSubsystem(c *controller.Controller) interfaces.Subsystem {
 	name := "auth"
@@ -74,7 +79,7 @@ func (s *Subsystem) register() {
 
 	// Endpoints
 	s.endpoints = []*endpoint.Endpoint{
-		{Path: fmt.Sprintf("%s/login", base), Action: endpoint.ActionCreate, Function: s.loginHandler, UsesAuth: false, ExpectedArgs: nil, ExpectedBody: authndb.UserArgs{}},
+		{Path: fmt.Sprintf("%s/login", base), Action: endpoint.ActionCreate, Function: s.loginHandler, UsesAuth: false, ExpectedArgs: nil, ExpectedBody: authndb.UserArgs{}, ExpectedOutput: AuthTokens{}},
 	}
 }
 
@@ -148,12 +153,12 @@ func (s *Subsystem) loginHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVa
 			return nil, nil, err
 		}
 
-		tokens := map[string]string{
-			"access_token":  token.AccessToken,
-			"refresh_token": token.RefreshToken,
+		tokens := AuthTokens{
+			AccessToken:  token.AccessToken,
+			RefreshToken: token.RefreshToken,
 		}
 
-		// TODO: Should also package and transfer the refresh_token as a cookie here
+		// TODO: Should also package and transfer the refresh_token as a cookie here? (probably better to handle in the REST API)
 		headers := map[string][]string{
 			"Authorization": {fmt.Sprintf("Bearer %s", token.AccessToken)},
 		}
