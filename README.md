@@ -11,8 +11,11 @@ collection of monitoring and manipulation of a wide variety of systems.
 
 This project, the DTAC Agent, is focused on the endpoints. It is designed to run on various operating systems including
 Windows, Linux and MacOS (Darwin). It provides access to a wide variety of telemetry on these systems and also provides
-the ability to control many of the system parameters out of the box. It has been designed to be highly extensible 
-through a multitude of methodologies described in more detail in the [extensibility](#extensibility) section below.
+the ability to control many operating system and application parameters out of the box. The goal of the DTAC agent and
+broader DTAC ecosystem is to replace legacy insecure APIs, custom tooling and shell scripts that do things like `ssh user@host <command>`
+with a more feature complete, flexible and secure framework for automation and telemetry. To this end it has been designed 
+to be highly extensible through a multitude of methodologies described in more detail in the [extensibility](#extensibility) 
+section below.
 
 It is important to note that this project is under active development and as such it may have incomplete or missing documentation as well as incomplete implementations of some functionality. While we will do our best to not change the public APIs it is possible that they will have breaking changes prior to the first production release.
 
