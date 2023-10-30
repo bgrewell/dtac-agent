@@ -14,10 +14,10 @@ func Sort(middlewares []Middleware) []Middleware {
 }
 
 // Chain chains the middleware
-func Chain(middlewares []Middleware, endpoint endpoint.Func) endpoint.Func {
+func Chain(middlewares []Middleware, endpoint endpoint.Endpoint) endpoint.Func {
 	for _, middleware := range middlewares {
-		endpoint = middleware.Handler(endpoint)
+		endpoint.Function = middleware.Handler(endpoint)
 	}
 
-	return endpoint
+	return endpoint.Function
 }

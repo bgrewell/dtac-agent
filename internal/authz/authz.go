@@ -68,8 +68,12 @@ func (s *Subsystem) Endpoints() []*endpoint.Endpoint {
 }
 
 // Handler handles the authentication middleware
-func (s *Subsystem) Handler(next endpoint.Func) endpoint.Func {
-	return s.AuthorizationHandler(next)
+func (s *Subsystem) Handler(ep endpoint.Endpoint) endpoint.Func {
+	// Bypass authentication for endpoints that don't use auth
+	if !ep.UsesAuth {
+		return ep.Function
+	}
+	return s.AuthorizationHandler(ep.Function)
 }
 
 // Priority returns the priority of the middleware

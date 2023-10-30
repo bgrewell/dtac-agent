@@ -72,10 +72,7 @@ func Setup(params AdapterParams) {
 	for _, subsystem := range params.Subsystems {
 		endpionts := subsystem.Endpoints()
 		for _, endpoint := range endpionts {
-			if endpoint.UsesAuth {
-				//TODO: This needs to be reworked as it will remove ALL middleware for endpoints that don't use Auth
-				endpoint.Function = middleware.Chain(middlewares, endpoint.Function)
-			}
+			endpoint.Function = middleware.Chain(middlewares, *endpoint)
 		}
 	}
 
