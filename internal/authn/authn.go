@@ -24,7 +24,8 @@ import (
 	"time"
 )
 
-type AuthTokens struct {
+// AuthOutput is a struct to assist with describing the output format
+type AuthOutput struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
 }
@@ -79,7 +80,7 @@ func (s *Subsystem) register() {
 
 	// Endpoints
 	s.endpoints = []*endpoint.Endpoint{
-		{Path: fmt.Sprintf("%s/login", base), Action: endpoint.ActionCreate, Function: s.loginHandler, UsesAuth: false, ExpectedArgs: nil, ExpectedBody: authndb.UserArgs{}, ExpectedOutput: AuthTokens{}},
+		{Path: fmt.Sprintf("%s/login", base), Action: endpoint.ActionCreate, Function: s.loginHandler, UsesAuth: false, ExpectedArgs: nil, ExpectedBody: authndb.UserArgs{}, ExpectedOutput: AuthOutput{}},
 	}
 }
 
@@ -153,7 +154,7 @@ func (s *Subsystem) loginHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVa
 			return nil, nil, err
 		}
 
-		tokens := AuthTokens{
+		tokens := AuthOutput{
 			AccessToken:  token.AccessToken,
 			RefreshToken: token.RefreshToken,
 		}

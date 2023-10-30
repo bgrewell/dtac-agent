@@ -14,6 +14,7 @@ type CPUUsageArgs struct {
 	PerCore string `json:"per_core,omitempty" yaml:"per_core,omitempty" xml:"per_core,omitempty"`
 }
 
+// CPUUsageOutput is a struct to assist with describing the output format
 type CPUUsageOutput struct {
 	Usage []float64 `json:"usage,omitempty" yaml:"usage,omitempty" xml:"usage,omitempty"`
 }
