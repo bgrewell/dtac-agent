@@ -4,14 +4,14 @@ import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/hello/helloplugin"
 	"log"
 
-	"github.com/bgrewell/gin-plugins/host"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins"
 )
 
 func main() {
 
 	p := new(helloplugin.HelloPlugin)
 
-	h, err := host.NewPluginHost(p, "this_is_not_a_security_feature")
+	h, err := plugins.NewPluginHost(p)
 	if err != nil {
 		log.Fatal(err)
 	}

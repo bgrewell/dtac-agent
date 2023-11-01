@@ -4,23 +4,20 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"io"
-	"os"
-	"path"
-
-	"github.com/bgrewell/gin-plugins/loader"
-	"github.com/gin-gonic/gin"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types/endpoint"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins"
 	"go.uber.org/zap"
+	"io"
+	"os"
+	"path"
 )
 
 // NewSubsystem creates a new instance of the Subsystem struct
-func NewSubsystem(router *gin.Engine, log *zap.Logger, cfg *config.Configuration) interfaces.Subsystem {
+func NewSubsystem(log *zap.Logger, cfg *config.Configuration) interfaces.Subsystem {
 	name := "plugin"
 	ps := Subsystem{
-		Router:  router,
 		Logger:  log.With(zap.String("module", name)),
 		Config:  cfg,
 		enabled: cfg.Plugins.Enabled,
@@ -32,7 +29,6 @@ func NewSubsystem(router *gin.Engine, log *zap.Logger, cfg *config.Configuration
 
 // Subsystem handles plugin related functionalities
 type Subsystem struct {
-	Router    *gin.Engine
 	Logger    *zap.Logger
 	Config    *config.Configuration
 	enabled   bool
@@ -48,10 +44,9 @@ func (s *Subsystem) register() {
 	}
 
 	group := s.Config.Plugins.PluginGroup
-	_ = group //TODO: clear warning
 
 	// Remap the plugin configs to use full path for key
-	cm := make(map[string]*loader.PluginConfig)
+	cm := make(map[string]*plugins.PluginConfig)
 	for k, v := range s.Config.Plugins.Entries {
 
 		// Deal with any poorly formed entries
@@ -61,12 +56,13 @@ func (s *Subsystem) register() {
 		}
 		full := path.Join(s.Config.Plugins.PluginDir, fmt.Sprintf("%s.plugin", k))
 		v.PluginPath = full
+		v.RootPath = group
 		s.Logger.Info("loaded configuration",
 			zap.String("name", v.Name()),
 			zap.Bool("enabled", v.Enabled),
 			zap.String("path", v.PluginPath),
-			zap.String("cookie", v.Cookie),
-			zap.String("hash", v.Hash))
+			zap.String("hash", v.Hash),
+			zap.String("root", v.RootPath))
 
 		if v.Hash != "" {
 			ph, err := ComputeSHA256(v.PluginPath)
@@ -89,9 +85,10 @@ func (s *Subsystem) register() {
 	}
 
 	// TODO: Fix all of this, temporary hack to clear automated checks
-	l := loader.NewPluginLoader(s.Config.Plugins.PluginDir, cm, &gin.Default().RouterGroup, s.Config.Plugins.LoadUnconfigured)
-	active, err := l.Initialize()
+	loader := plugins.NewPluginLoader(s.Config.Plugins.PluginDir, group, cm, s.Config.Plugins.LoadUnconfigured)
+	active, err := loader.Initialize(s.Config.Auth.DefaultSecure)
 	if err != nil {
+		s.Logger.Error("failed to initialize plugins", zap.Error(err))
 		return
 	}
 
@@ -102,6 +99,24 @@ func (s *Subsystem) register() {
 			zap.String("name", plug.Name),
 			zap.String("path", plug.Path))
 	}
+
+	// Manipulate the endpoints
+	for _, ep := range loader.Endpoints() {
+		// Intentionally shadow 'ep' so the closure captures the correct value
+		ep := ep
+
+		// If plugins have a group namespace then append it
+		if group != "" {
+			ep.Path = path.Join(group, ep.Path)
+		}
+
+		// Ensure all functions point to the plugin loaders shim
+		ep.Function = func(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+			return loader.CallShim(ep, in)
+		}
+	}
+
+	s.endpoints = loader.Endpoints()
 }
 
 // Enabled returns true if the subsystem is enabled

@@ -1,10 +1,9 @@
 package helloplugin
 
 import (
-	"net/http"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types/endpoint"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins"
 	"reflect"
-
-	plugins "github.com/bgrewell/gin-plugins"
 )
 
 // HelloMessage is just a simple helper struct to encapsulate the hello world message
@@ -22,8 +21,8 @@ type HelloPlugin struct {
 	message HelloMessage
 }
 
-// RouteRoot returns the root path for the plugin
-func (h HelloPlugin) RouteRoot() string {
+// RootPath returns the root path for the plugin
+func (h HelloPlugin) RootPath() string {
 	return "hello"
 }
 
@@ -35,30 +34,39 @@ func (h HelloPlugin) Name() string {
 
 // Register registers the plugin with the plugin manager
 func (h *HelloPlugin) Register(args plugins.RegisterArgs, reply *plugins.RegisterReply) error {
-	*reply = plugins.RegisterReply{Routes: make([]*plugins.Route, 1)}
+	*reply = plugins.RegisterReply{Endpoints: make([]*plugins.PluginEndpoint, 0)}
 
 	// Register our one hello world route
 	h.message = HelloMessage{
 		Message: "this is an example of how to create a plugin. See the source at https://github.com/intel-innersource/frameworks.automation.dtac.agent/tree/main/plugin/examples/hello",
 	}
 
-	r := &plugins.Route{
-		Path:       "hello",
-		Method:     http.MethodGet,
-		HandleFunc: "Hello",
+	r := &plugins.PluginEndpoint{
+		Endpoint: &endpoint.Endpoint{
+			Path:           "hello",
+			Action:         endpoint.ActionRead,
+			UsesAuth:       true, //TODO: Need to be able to pass this in and honor it
+			Function:       nil,  // This function pointer isn't used in the plugins and the function sigs don't match
+			ExpectedArgs:   nil,
+			ExpectedBody:   nil,
+			ExpectedOutput: &HelloMessage{},
+		},
+		FunctionName: "Hello",
 	}
-	reply.Routes[0] = r
+	reply.Endpoints = append(reply.Endpoints, r)
 
 	// Return no error
 	return nil
 }
 
 // Hello is the handler for the hello world route
-func (h *HelloPlugin) Hello(args plugins.Args, c *string) error {
-	v, e := h.Serialize(h.message)
-	if e != nil {
-		return e
-	}
-	*c = v
+func (h *HelloPlugin) Hello(in *endpoint.InputArgs, out *endpoint.ReturnVal) (err error) {
+	//return utility.PlugFuncWrapper(in, out, func() (interface{}, error) {
+	//	return h.Serialize(h.message)
+	//}, "hello plugin message")
+	out.Value = h.message
+	out.Headers = in.Headers
+	out.Params = in.Params
+	out.Headers["Alive"] = []string{"true"}
 	return nil
 }

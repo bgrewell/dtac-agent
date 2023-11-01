@@ -24,7 +24,7 @@ func (s *Subsystem) createRouteHandler(in *endpoint.InputArgs) (out *endpoint.Re
 		var row RouteTableRow
 
 		// Transform the body into a RouteTableRow
-		if err := json.NewDecoder(in.Body).Decode(&row); err != nil {
+		if err = json.Unmarshal(in.Body, &row); err != nil {
 			return nil, err
 		}
 
@@ -43,7 +43,7 @@ func (s *Subsystem) updateRouteHandler(in *endpoint.InputArgs) (out *endpoint.Re
 		var row RouteTableRow
 
 		// Transform the body into a RouteTableRow
-		if err := json.NewDecoder(in.Body).Decode(&row); err != nil {
+		if err = json.Unmarshal(in.Body, &row); err != nil {
 			return nil, err
 		}
 
@@ -62,7 +62,7 @@ func (s *Subsystem) deleteRouteHandler(in *endpoint.InputArgs) (out *endpoint.Re
 		var row RouteTableRow
 
 		// Transform the body into a RouteTableRow
-		if err := json.NewDecoder(in.Body).Decode(&row); err != nil {
+		if err = json.Unmarshal(in.Body, &row); err != nil {
 			return nil, err
 		}
 

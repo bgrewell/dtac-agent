@@ -2,13 +2,13 @@ package config
 
 import (
 	"fmt"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins"
 	"net/http"
 	"os"
 	"path"
 	"reflect"
 	"strings"
 
-	"github.com/bgrewell/gin-plugins/loader"
 	"github.com/fsnotify/fsnotify"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -49,11 +49,11 @@ type LockoutEntry struct {
 
 // PluginEntry is the struct for a plugin entry
 type PluginEntry struct {
-	Enabled          bool                            `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
-	PluginDir        string                          `json:"dir" yaml:"dir" mapstructure:"dir"`
-	PluginGroup      string                          `json:"group" yaml:"group" mapstructure:"group"`
-	LoadUnconfigured bool                            `json:"load_unconfigured" yaml:"load_unconfigured" mapstructure:"load_unconfigured"`
-	Entries          map[string]*loader.PluginConfig `json:"entries" yaml:"entries" mapstructure:"entries"`
+	Enabled          bool                             `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	PluginDir        string                           `json:"dir" yaml:"dir" mapstructure:"dir"`
+	PluginGroup      string                           `json:"group" yaml:"group" mapstructure:"group"`
+	LoadUnconfigured bool                             `json:"load_unconfigured" yaml:"load_unconfigured" mapstructure:"load_unconfigured"`
+	Entries          map[string]*plugins.PluginConfig `json:"entries" yaml:"entries" mapstructure:"entries"`
 }
 
 // RouteEntry is the struct for a route entry
@@ -275,7 +275,6 @@ func DefaultConfig() map[string]interface{} {
 		"plugins.group":                        "plugins",
 		"plugins.load_unconfigured":            false,
 		"plugins.entries.hello.enabled":        true,
-		"plugins.entries.hello.cookie":         "this_is_not_a_security_feature",
 		"plugins.entries.hello.hash":           "",
 		"plugins.entries.hello.user":           "",
 		"plugins.entries.hello.config.message": "hello world plugin",

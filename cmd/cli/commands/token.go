@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/adapters/rest"
 	"io"
 	"net/http"
 	"os"
@@ -13,7 +14,6 @@ import (
 
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/cli/consts"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/spf13/cobra"
 )
 
@@ -40,7 +40,7 @@ func NewTokenCmd() *cobra.Command {
 				return
 			}
 
-			var response helpers.ResponseWrapper
+			var response rest.ResponseWrapper
 			err := json.Unmarshal(body, &response)
 			if err != nil {
 				cmd.ErrOrStderr().Write([]byte("Failed to unmarshal response: " + err.Error()))
