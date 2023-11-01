@@ -346,3 +346,109 @@ go run tools/mage/mage.go build
 #### Go
 
 #### Python
+
+Below is an example code snippet of a functional example plugin written in Python. The code is heavily commented to explain the process. 
+
+```python
+#!/usr/bin/env python3
+# ^^ the shebang is required so that the script can be executed directly without being called by python ^^
+
+# IMPORTANT NOTES: ################################################################################################################################################################
+#   NOTE-1: The file must have the extension .plugin such as example.plugin as this is how the plugins are found by the DTAC Agent
+#   Note-2: The plugin must be placed inside the DTAC Agent's plugin directory; default is /opt/dtac/plugins on Linux or C:\Program Files\Intel\dtac-agent\plugins on Windows
+###################################################################################################################################################################################
+
+# You will import the PluginBase and Route types which will help to build your plugin
+from dtac_tools.plugins.base import PluginBase
+from dtac_tools.plugins.types import Route
+
+# You will import DefaultPluginhost to handle the hosting of your plugin
+from dtac_tools.host.default_host import DefaultPluginHost
+
+# ExamplePlugin here defines a plugin object and it inherits PluginBase
+class ExamplePlugin(PluginBase):
+
+    def __init__(self):
+        # root_path is the base portion of the path for the functions this plugin exposes. For example if you have a function called message that is exposed then it's path would be
+        # <root_path>/message. For example in the case of this example plugin that would be /example/message which depending on the API protocols enabled on DTAC Agent could look
+        # like this in the case of REST  http://<host>:<port>/plugins/example/message
+        self.root_path = "example"
+
+        # All plugins get a configuration object that is passed to them by the DTAC Agent. This configuration blob is defined in the main DTAC Agent configuration file under the
+        # plugins: section and can be any valid yaml. Whatever values are found below the config: entry in the DTAC Agent main configuration for the specified plugin will be passed
+        # without processing or modification to the plugin to be handled internally as you the developer sees fit. Configuration is not required and can be ignored and left out in
+        # cases where there are no configurable parameters.
+        #
+        # In the case of our example here we will only have one configuration element with a key called message and a value of the message we want returned when this endpoint is
+        # called.
+        #
+        # So inside of the main DTAC Agent configuration we may have a section like this which sets our message. In this case that message will be used below to overwrite the default
+        # value of self.message
+        #
+        # plugins:
+        #   ...
+        #   entries:
+        #     example:
+        #       enabled: true
+        #       cookie: this_is_not_a_security_feature
+        #       hash: <sha256 hash>
+        #       config:
+        #         message: this is a message that has been overridden
+
+        # This is where we hold our message string and we give it a defualt value (which will be overwritten if we get a confguration from the DTAC Agent at load time with the message value)
+        self.message = "this is the default message which can be overridden by dtac"
+
+    # You need to have this helper function which returns your route base or root. You can hardcode the value in here
+    # if you wish instead of using a class attribute
+    def root_path(self) -> str:
+        return self.root_path
+
+    # You need to have this helper function as well which returns the name of the class which is used as the name of the
+    # plugin.
+    def name(self) -> str:
+        return self.__class__.__name__
+
+    # register is a function that must be in all plugins with this signature. It is used to setup the handlers that the
+    # plugin will support. In this case it is a single handler called message that returns the message attribute for
+    # this class.
+    def register(self, params) -> list[Route]:
+        # The params objects will pass through the configuration blob from the main DTAC Agent configuration file that was
+        # mentioned above. In the case of our example we will check to see if the configuration has been passed and if it
+        # has we will set our internal message to the message value from the configuration.
+        if not params[0]["Config"] is None:
+            self.message = params[0]["Config"]["message"]
+
+        # Routes is a list of the endpoints that we support in the plugin. In this example it is just the message endpoint
+        routes = []
+
+        # Create a route for a GET request to https://host/plugins/example/message
+        routes.append(Route("message", "GET", self.message))
+        return routes
+
+    # message is an example handler function. It is called and passed the params object from dtac which contains
+    # QueryParams from the web request
+    # Headers from the web request
+    # Data any data sent with the web request
+    # It returns a dictionary object which is then returned to the web browser via the dtac agent
+    def message(self, params) -> dict:
+        return {
+            "message": self.message,
+        }
+
+def main():
+    # This is where you setup your plugin to be executed. When it is placed inside the plugins directory with the correct extension and shebang
+    # the DTAC Agent will find and execute it which will cause this main() method to be executed. This will create an instance of the plugin and
+    # register it with the plugin host which will relay the connection information back to the DTAC Agent and wait for a connection.
+    cookie = "this_is_not_a_security_feature" # this can be whatever you like but must match the dtac plugin config
+    plugin = ExamplePlugin() # Get an instantiation of your plugin
+    host = DefaultPluginHost(plugin, cookie) # Create a host and pass in your plugin and cookie.
+    host.serve() # run the host
+
+# Press the green button in the gutter to run the script.
+if __name__ == '__main__':
+    # When you run this you should see an output like this
+    # CONNECT{{ExamplePlugin:example:tcp:127.0.0.1:53381:this_is_not_a_security_feature}}
+    # which means things are working as expected as this is the output that tells the plugin loader how to talk to your
+    # plugin directly.
+    main()
+```
