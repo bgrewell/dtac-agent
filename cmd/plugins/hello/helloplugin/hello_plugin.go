@@ -89,6 +89,8 @@ func (h *HelloPlugin) Register(args plugins.RegisterArgs, reply *plugins.Registe
 
 // Hello is the handler for the hello world route
 func (h *HelloPlugin) Hello(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	// Here we use the utility wrapper to help us add some additional context to the call and simplify the
+	// code by having a helper function build the ReturnVal object for us.
 	return utility.PluginHandleWrapperWithHeaders(in, func() (map[string][]string, interface{}, error) {
 		headers := map[string][]string{
 			"X-PLUGIN-NAME": {h.Name()},
