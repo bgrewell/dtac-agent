@@ -114,7 +114,7 @@ func (s *Subsystem) loginHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVa
 		var u authndb.User
 
 		// Transform the body into a RouteTableRow
-		if err := json.NewDecoder(in.Body).Decode(&u); err != nil {
+		if err := json.Unmarshal(in.Body, &u); err != nil {
 			return nil, nil, err
 		}
 

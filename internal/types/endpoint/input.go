@@ -2,7 +2,6 @@ package endpoint
 
 import (
 	"context"
-	"io"
 )
 
 // InputArgs is the struct that captures all the inputs that are available to be sent to endpoints
@@ -10,8 +9,8 @@ import (
 // Params is a map of key/value pairs where the value can be of any type
 // ExpectedArgs helps the API understand what arguments are expected
 type InputArgs struct {
-	Context context.Context
-	Headers map[string][]string
-	Params  map[string][]string
-	Body    io.Reader
+	Context context.Context     `json:"-"`
+	Headers map[string][]string `json:"headers,omitempty"`
+	Params  map[string][]string `json:"params,omitempty"`
+	Body    []byte              `json:"body,omitempty"`
 }

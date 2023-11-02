@@ -10,6 +10,7 @@ import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/authz"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/basic"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config/authorization"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/diag"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/endpoints"
@@ -18,6 +19,7 @@ import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/middleware"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/network"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/plugin"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/system"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
@@ -150,7 +152,7 @@ func main() {
 			config.NewConfiguration,                 // Configuration
 			zap.NewDevelopment,                      // Structured Logger
 			basic.NewTLSInfo,                        // Tls Cert Handler
-			helpers.NewJSONResponseFormatter,        // Response Formatter
+			rest.NewJSONResponseFormatter,           // Response Formatter
 			endpoints.NewEndpointList,               // Endpoint List
 			NewController,                           // Wrapper around common subsystem input components
 			authndb.NewAuthDB,                       // Authentication database
@@ -160,17 +162,17 @@ func main() {
 			AsSubsystem(diag.NewSubsystem),          // Diagnostic Subsystem
 			AsSubsystem(authn.NewSubsystem),         // Authentication Subsystem
 			AsSubsystem(authz.NewSubsystem),         // Authorization Subsystem
-			//AsSubsystem(plugin.NewSubsystem),        // Plugin Subsystem
-			AsSubsystem(network.NewSubsystem),  // Network Subsystem
-			AsSubsystem(hardware.NewSubsystem), // Hardware Subsystem
-			AsSubsystem(system.NewSubsystem),   // System Subsystem
+			AsSubsystem(plugin.NewSubsystem),        // Plugin Subsystem
+			AsSubsystem(network.NewSubsystem),       // Network Subsystem
+			AsSubsystem(hardware.NewSubsystem),      // Hardware Subsystem
+			AsSubsystem(system.NewSubsystem),        // System Subsystem
 		),
 		// Invoke any functions needed to initialize everything. The empty anonymous functions are
 		// used to ensure that the providers that return that type are initialized.
 		fx.Invoke(
-			//authorization.EnsureAuthzModel,  // Ensure we have at least a default authorization model
-			//authorization.EnsureAuthzPolicy, // Ensure we have at least a default authorization policy
-			Setup, // Set up the application
+			authorization.EnsureAuthzModel,  // Ensure we have at least a default authorization model
+			authorization.EnsureAuthzPolicy, // Ensure we have at least a default authorization policy
+			Setup,                           // Set up the application
 		),
 	).Run()
 }

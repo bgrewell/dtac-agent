@@ -1,14 +1,12 @@
 package rest
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/basic"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types/endpoint"
@@ -34,7 +32,7 @@ func NewAdapter(c *controller.Controller, tls *map[string]basic.TLSInfo) (adapte
 		logger:     logger,
 		tls:        tls,
 		name:       name,
-		formatter:  helpers.NewJSONResponseFormatter(c.Config, logger),
+		formatter:  NewJSONResponseFormatter(c.Config, logger),
 	}
 	return r, r.setup()
 }
@@ -49,7 +47,7 @@ type Adapter struct {
 	name       string
 	srvMsg     string
 	srvFunc    func(net.Listener) error
-	formatter  helpers.ResponseFormatter
+	formatter  ResponseFormatter
 }
 
 // Name returns the name of the REST API adapter
@@ -192,8 +190,13 @@ func (a *Adapter) shim(method string, ep *endpoint.Endpoint) {
 			}
 		}
 
-		et := out.Context.Value(types.ContextExecDuration).(time.Duration)
-		a.formatter.WriteResponse(c, et, out.Value)
+		// If timing information is present then write it out
+		if et, ok := out.Context.Value(types.ContextExecDuration).(time.Duration); ok {
+			a.formatter.WriteResponse(c, et, out.Value)
+		} else {
+			a.formatter.WriteResponse(c, -1, out.Value)
+		}
+
 	})
 }
 
@@ -220,7 +223,7 @@ func (a *Adapter) createInputArgs(ctx *gin.Context) (*endpoint.InputArgs, error)
 	if err != nil {
 		return nil, err
 	}
-	input.Body = bytes.NewReader(body)
+	input.Body = body
 
 	return input, nil
 }

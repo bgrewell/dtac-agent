@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package plugin;
+
+option go_package = "github.com/intel-innersource/frameworks.automation.dtac.agent/api/grpc/go";
+
+service PluginService {
+  rpc Register(RegisterArgs) returns (RegisterReply);
+  rpc Call (PluginRequest) returns (PluginResponse);
+}
+
+message PluginRequest {
+  string method = 1;
+  InputArgs input_args = 2;
+}
+
+message PluginResponse {
+  int32 id = 1;
+  ReturnVal return_val = 2;
+  string error = 3;
+}
+
+message StringList {
+  repeated string values = 1;
+}
+
+message InputArgs {
+  map<string, StringList> headers = 1;
+  map<string, StringList> params = 2;
+  bytes body = 3;
+}
+
+message ReturnVal {
+  map<string, StringList> headers = 1;
+  map<string, StringList> params = 2;
+  string value = 3;
+}
+
+message RegisterArgs {
+  string config = 1;
+  bool default_secure = 2;
+}
+
+message RegisterReply {
+  repeated PluginEndpoint endpoints = 1;
+}
+
+message PluginEndpoint {
+  string path = 2;
+  string action = 3;
+  bool uses_auth = 4;
+  string expected_args = 5;
+  string expected_body = 6;
+  string expected_output = 7;
+}

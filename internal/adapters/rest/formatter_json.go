@@ -1,4 +1,4 @@
-package helpers
+package rest
 
 import (
 	"encoding/json"
@@ -35,25 +35,14 @@ func (f *JSONResponseFormatter) WriteResponse(c *gin.Context, duration time.Dura
 	}
 	rawMsg := json.RawMessage(rawData)
 
-	// We ensure that the response is always wrapped in a ResponseWrapper struct in order to ensure that the response
-	// is always properly formatted as machine-readable input, for example if a plugin or other function returns a
-	// string.
-	// WrapResponses is a configuration option that wraps the response with additional information including timing
-	// information and a text based status code. This is useful for debugging and testing purposes.
-	if f.cfg.Output.WrapResponses {
-		response = OKResponse{
-			Time:    time.Now().Format(time.RFC3339Nano),
-			Status:  "success",
-			Elapsed: duration.String(),
-			ResponseWrapper: ResponseWrapper{
-				Response: rawMsg,
-			},
-		}
-	} else {
-		response = ResponseWrapper{
-			Response: rawMsg,
-		}
+	c.Header("X-Exec-Duration", duration.String())
+	c.Header("X-Exec-Status", "success")
+	c.Header("X-Exec-Time", time.Now().Format(time.RFC3339Nano))
+
+	response = ResponseWrapper{
+		Response: rawMsg,
 	}
+
 	jout, err := json.Marshal(response)
 	if err != nil {
 		f.WriteError(c, err)
@@ -73,6 +62,10 @@ func (f *JSONResponseFormatter) WriteError(c *gin.Context, err error) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error(), "time": time.Now().Format(time.RFC3339Nano)})
 		return
 	}
+
+	c.Header("X-Exec-Status", "error")
+	c.Header("X-Exec-Time", time.Now().Format(time.RFC3339Nano))
+
 	c.Data(http.StatusInternalServerError, gin.MIMEJSON, jerr)
 	c.Abort()
 }
@@ -83,6 +76,10 @@ func (f *JSONResponseFormatter) WriteNotImplementedError(c *gin.Context, err err
 		Time: time.Now().Format(time.RFC3339Nano),
 		Err:  err.Error(),
 	}
+
+	c.Header("X-Exec-Status", "not-implemented")
+	c.Header("X-Exec-Time", time.Now().Format(time.RFC3339Nano))
+
 	jerr, err := json.Marshal(er)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error(), "time": time.Now().Format(time.RFC3339Nano)})
@@ -98,6 +95,10 @@ func (f *JSONResponseFormatter) WriteUnauthorizedError(c *gin.Context, err error
 		Time: time.Now().Format(time.RFC3339Nano),
 		Err:  err.Error(),
 	}
+
+	c.Header("X-Exec-Status", "unauthorized")
+	c.Header("X-Exec-Time", time.Now().Format(time.RFC3339Nano))
+
 	jerr, err := json.Marshal(er)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error(), "time": time.Now().Format(time.RFC3339Nano)})
@@ -113,6 +114,10 @@ func (f *JSONResponseFormatter) WriteNotFoundError(c *gin.Context) {
 		Time: time.Now().Format(time.RFC3339Nano),
 		Err:  "404 page not found",
 	}
+
+	c.Header("X-Exec-Status", "not-found")
+	c.Header("X-Exec-Time", time.Now().Format(time.RFC3339Nano))
+
 	jerr, _ := json.Marshal(er)
 	c.Data(http.StatusNotFound, gin.MIMEJSON, jerr)
 	c.Abort()
