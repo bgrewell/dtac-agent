@@ -1,6 +1,8 @@
 package plugins
 
-import "github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types/endpoint"
+import (
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/types/endpoint"
+)
 
 // Plugin interface that all plugins must implement
 type Plugin interface {

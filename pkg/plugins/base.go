@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types/endpoint"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/types/endpoint"
 	"strings"
 )
 

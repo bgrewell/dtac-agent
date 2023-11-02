@@ -2,13 +2,13 @@ package network
 
 import (
 	"fmt"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/types/endpoint"
 	"github.com/shirou/gopsutil/net"
 
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/hardware"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types/endpoint"
 	"go.uber.org/zap"
 )
 

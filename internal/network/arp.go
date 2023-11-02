@@ -2,7 +2,7 @@ package network
 
 import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types/endpoint"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/types/endpoint"
 )
 
 // ArpEntry is the struct for the arp entry

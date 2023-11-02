@@ -1,9 +1,9 @@
 package helloplugin
 
 import (
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types/endpoint"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins/utility"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/types/endpoint"
 	"reflect"
 )
 
