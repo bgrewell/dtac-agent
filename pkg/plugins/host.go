@@ -17,9 +17,9 @@ func NewPluginHost(plugin Plugin) (hostPlugin PluginHost, err error) {
 	plug := &DefaultPluginHost{
 		Plugin:     plugin,
 		Proto:      "tcp",
-		Ip:         "127.0.0.1",
-		ApiVersion: "plug_api_1.0",
-		encryptor:  utility.NewRpcEncryptor(key),
+		IP:         "127.0.0.1",
+		APIVersion: "plug_api_1.0",
+		encryptor:  utility.NewRPCEncryptor(key),
 	}
 
 	return plug, nil

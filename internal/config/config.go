@@ -53,6 +53,7 @@ type PluginEntry struct {
 	PluginDir        string                           `json:"dir" yaml:"dir" mapstructure:"dir"`
 	PluginGroup      string                           `json:"group" yaml:"group" mapstructure:"group"`
 	LoadUnconfigured bool                             `json:"load_unconfigured" yaml:"load_unconfigured" mapstructure:"load_unconfigured"`
+	TLS              TLSSelection                     `json:"tls" yaml:"tls" mapstructure:"tls"`
 	Entries          map[string]*plugins.PluginConfig `json:"entries" yaml:"entries" mapstructure:"entries"`
 }
 
@@ -274,6 +275,8 @@ func DefaultConfig() map[string]interface{} {
 		"plugins.dir":                          DefaultPluginLocation,
 		"plugins.group":                        "plugins",
 		"plugins.load_unconfigured":            false,
+		"plugins.tls.enabled":                  true,
+		"plugins.tls.profile":                  "default",
 		"plugins.entries.hello.enabled":        true,
 		"plugins.entries.hello.hash":           "",
 		"plugins.entries.hello.user":           "",

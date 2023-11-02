@@ -22,11 +22,9 @@ func PlugFuncWrapperWithHeaders(in *endpoint.InputArgs, out *endpoint.ReturnVal,
 	//duration := time.Since(start)
 	//ctx := context.WithValue(in.Context, types.ContextExecDuration, duration)
 	var ctx context.Context = nil // Have to clear context because it can't travel over an RPC - TODO: This should be redesigned
-	out = &endpoint.ReturnVal{
-		Context: ctx,
-		Headers: headers,
-		Value:   response,
-	}
+	out.Context = ctx
+	out.Headers = headers
+	out.Value = response
 	return nil
 }
 

@@ -24,25 +24,25 @@ func DecodeKeyString(key string) ([]byte, error) {
 	return base64.StdEncoding.DecodeString(key)
 }
 
-// NewRpcEncryptor creates a new RpcEncryptor with the given symmetric key
-func NewRpcEncryptor(symmetricKey []byte) *RpcEncryptor {
-	return &RpcEncryptor{
+// NewRPCEncryptor creates a new RPCEncryptor with the given symmetric key
+func NewRPCEncryptor(symmetricKey []byte) *RPCEncryptor {
+	return &RPCEncryptor{
 		SymmetricKey: symmetricKey,
 	}
 }
 
-// RpcEncryptor is used to encrypt and decrypt data using a symmetric key
-type RpcEncryptor struct {
+// RPCEncryptor is used to encrypt and decrypt data using a symmetric key
+type RPCEncryptor struct {
 	SymmetricKey []byte
 }
 
 // KeyString returns the base64 encoded symmetric key
-func (r *RpcEncryptor) KeyString() string {
+func (r *RPCEncryptor) KeyString() string {
 	return base64.StdEncoding.EncodeToString(r.SymmetricKey)
 }
 
 // Encrypt encrypts the given data using the symmetric key
-func (r *RpcEncryptor) Encrypt(data string) (string, error) {
+func (r *RPCEncryptor) Encrypt(data string) (string, error) {
 	block, err := aes.NewCipher(r.SymmetricKey)
 	if err != nil {
 		return "", err
@@ -63,7 +63,7 @@ func (r *RpcEncryptor) Encrypt(data string) (string, error) {
 }
 
 // Decrypt decrypts the given data using the symmetric key
-func (r *RpcEncryptor) Decrypt(encodedData string) (string, error) {
+func (r *RPCEncryptor) Decrypt(encodedData string) (string, error) {
 	data, err := base64.StdEncoding.DecodeString(encodedData)
 	if err != nil {
 		return "", err

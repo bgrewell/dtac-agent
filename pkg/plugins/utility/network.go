@@ -2,8 +2,8 @@ package utility
 
 import "net"
 
-// GetUnusedTcpPort returns an unused TCP port
-func GetUnusedTcpPort() (int, error) {
+// GetUnusedTCPPort returns an unused TCP port
+func GetUnusedTCPPort() (int, error) {
 	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
 	if err != nil {
 		return 0, err

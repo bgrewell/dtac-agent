@@ -84,8 +84,18 @@ func (s *Subsystem) register() {
 		cm[full] = v
 	}
 
-	// TODO: Fix all of this, temporary hack to clear automated checks
-	loader := plugins.NewPluginLoader(s.Config.Plugins.PluginDir, group, cm, s.Config.Plugins.LoadUnconfigured)
+	// Check for TLS config
+	var tlsKey, tlsCert, tlsCACert *string
+	if s.Config.Plugins.TLS.Enabled {
+		profileName := s.Config.Plugins.TLS.Profile
+		if profile, ok := s.Config.TLS[profileName]; ok {
+			tlsCert = &profile.CertFile
+			tlsKey = &profile.KeyFile
+			tlsCACert = &profile.CAFile
+		}
+	}
+
+	loader := plugins.NewPluginLoader(s.Config.Plugins.PluginDir, group, cm, s.Config.Plugins.LoadUnconfigured, tlsCert, tlsKey, tlsCACert)
 	active, err := loader.Initialize(s.Config.Auth.DefaultSecure)
 	if err != nil {
 		s.Logger.Error("failed to initialize plugins", zap.Error(err))

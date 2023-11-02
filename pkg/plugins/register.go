@@ -2,7 +2,8 @@ package plugins
 
 // RegisterArgs is a struct to pass in any configuration parameters from the plugin host
 type RegisterArgs struct {
-	Config map[string]interface{}
+	DefaultSecure bool
+	Config        map[string]interface{}
 }
 
 // RegisterReply is a struct to pass back any endpoints that the plugin wants to register

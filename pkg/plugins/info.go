@@ -2,25 +2,26 @@ package plugins
 
 import (
 	"context"
-	"net/rpc"
+	api "github.com/intel-innersource/frameworks.automation.dtac.agent/api/grpc/go"
 )
 
 // PluginInfo struct that contains information about a running plugin
 type PluginInfo struct {
-	Path         string
-	Name         string
-	RootPath     string
-	Endpoints    []*PluginEndpoint
-	Pid          int
-	Proto        string
-	Ip           string
-	Port         int
-	ApiVersion   string
-	Key          []byte
-	Rpc          *rpc.Client
-	CancelToken  *context.CancelFunc
-	ExitChan     chan int
-	HasExited    bool
-	ExitCode     int
-	PluginConfig *PluginConfig
+	Path          string
+	Name          string
+	RootPath      string
+	Endpoints     []*PluginEndpoint
+	Pid           int
+	RPCProto      string
+	Proto         string
+	IP            string
+	Port          int
+	APIVersion    string
+	PluginOptions *Options
+	RPC           api.PluginServiceClient
+	CancelToken   *context.CancelFunc
+	ExitChan      chan int
+	HasExited     bool
+	ExitCode      int
+	PluginConfig  *PluginConfig
 }
