@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types/endpoint"
+	"strings"
 )
 
 // PluginMethod declares the signature of plugin endpoint methods
@@ -12,7 +13,8 @@ type PluginMethod func(input *endpoint.InputArgs) (output *endpoint.ReturnVal, e
 
 // PluginBase is a base struct that all plugins should embed as it implements the common shared methods
 type PluginBase struct {
-	Methods map[string]endpoint.Func
+	Methods  map[string]endpoint.Func
+	rootPath string
 }
 
 // Register is a default implementation of the Register method that must be implemented by the plugin therefor this one returns an error
@@ -22,7 +24,8 @@ func (p *PluginBase) Register(args RegisterArgs, reply *RegisterReply) error {
 
 // Call is a shim that calls the appropriate method on the plugin
 func (p *PluginBase) Call(method string, args *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
-	if f, exists := p.Methods[method]; exists {
+	key := strings.TrimPrefix(method, p.RootPath()+"/")
+	if f, exists := p.Methods[key]; exists {
 		return f(args)
 	}
 
@@ -46,7 +49,12 @@ func (p *PluginBase) Name() string {
 
 // RootPath returns the root path for the plugin
 func (p *PluginBase) RootPath() string {
-	return ""
+	return p.rootPath
+}
+
+// SetRootPath sets the value of rootPath for the plugin
+func (p *PluginBase) SetRootPath(rootPath string) {
+	p.rootPath = rootPath
 }
 
 // Serialize serializes the given interface to a string

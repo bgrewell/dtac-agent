@@ -3,8 +3,8 @@ package helloplugin
 import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types/endpoint"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins/utility"
 	"reflect"
-	"strings"
 )
 
 // HelloMessage is just a simple helper struct to encapsulate the hello world message
@@ -12,8 +12,29 @@ type HelloMessage struct {
 	Message string `json:"message"`
 }
 
-// Ensure that our type meets the requirements for being a plugin
+// This sets a non-existent variable to the interface type of plugin then attempts to assign
+// a pointer to HelloPlugin to it. This isn't needed, but it's a good way to ensure that the
+// HelloPlugin struct implements the Plugin interface. If there are missing functions, this
+// will fail to compile.
 var _ plugins.Plugin = &HelloPlugin{}
+
+// NewHelloPlugin is a constructor that returns a new instance of the HelloPlugin
+func NewHelloPlugin() *HelloPlugin {
+	// Create a new instance of the plugin
+	hp := &HelloPlugin{
+		PluginBase: plugins.PluginBase{
+			Methods: make(map[string]endpoint.Func),
+		},
+		message: HelloMessage{
+			Message: "this is an example of how to create a plugin. See the source at https://github.com/intel-innersource/frameworks.automation.dtac.agent/tree/main/plugin/examples/hello",
+		},
+	}
+	// Ensure we set our root path which will be appended to all of our methods to help namespace them
+	hp.SetRootPath("hello")
+
+	// Return the new instance
+	return hp
+}
 
 // HelloPlugin is the plugin struct that implements the Plugin interface
 type HelloPlugin struct {
@@ -22,30 +43,23 @@ type HelloPlugin struct {
 	message HelloMessage
 }
 
-// RootPath returns the root path for the plugin
-func (h HelloPlugin) RootPath() string {
-	return "hello"
-}
-
-// Name returns the name of the plugin
+// Name returns the name of the plugin type
+// NOTE: this is intentionally not a pointer receiver otherwise it wouldn't work. This must be set at your plugin struct
+// level. otherwise it will return the type of the PluginBase struct instead.
 func (h HelloPlugin) Name() string {
 	t := reflect.TypeOf(h)
 	return t.Name()
-}
-
-// Call is a shim that strips the root path off of the method name and then uses the base Call function to perform the call
-func (h *HelloPlugin) Call(method string, args *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
-	key := strings.TrimPrefix(method, h.RootPath()+"/")
-	return h.PluginBase.Call(key, args)
 }
 
 // Register registers the plugin with the plugin manager
 func (h *HelloPlugin) Register(args plugins.RegisterArgs, reply *plugins.RegisterReply) error {
 	*reply = plugins.RegisterReply{Endpoints: make([]*plugins.PluginEndpoint, 0)}
 
-	// Register our one hello world route
-	h.message = HelloMessage{
-		Message: "this is an example of how to create a plugin. See the source at https://github.com/intel-innersource/frameworks.automation.dtac.agent/tree/main/plugin/examples/hello",
+	// Check if the configuration has the message set
+	if message, ok := args.Config["message"]; ok {
+		h.message = HelloMessage{
+			Message: message.(string),
+		}
 	}
 
 	// Declare our endpoint(s)
@@ -75,13 +89,11 @@ func (h *HelloPlugin) Register(args plugins.RegisterArgs, reply *plugins.Registe
 
 // Hello is the handler for the hello world route
 func (h *HelloPlugin) Hello(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
-	//return utility.PlugFuncWrapper(in, out, func() (interface{}, error) {
-	//	return h.Serialize(h.message)
-	//}, "hello plugin message")
-	out = &endpoint.ReturnVal{}
-	out.Value = h.message
-	out.Headers = in.Headers
-	out.Params = in.Params
-	out.Headers["Alive"] = []string{"true"}
-	return out, nil
+	return utility.PluginHandleWrapperWithHeaders(in, func() (map[string][]string, interface{}, error) {
+		headers := map[string][]string{
+			"X-PLUGIN-NAME": {h.Name()},
+		}
+
+		return headers, h.message, nil
+	}, "hello plugin output message")
 }

@@ -1,17 +1,16 @@
 package utility
 
 import (
-	"context"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types/endpoint"
 )
 
-// PlugFuncWrapperWithHeaders is a generic handler that is used to help add additional context and measurements to calls without
+// PluginHandleWrapperWithHeaders is a generic handler that is used to help add additional context and measurements to calls without
 // requiring the duplication of this code into every handler.
-func PlugFuncWrapperWithHeaders(in *endpoint.InputArgs, out *endpoint.ReturnVal, f func() (headers map[string][]string, retval interface{}, err error), description string) (err error) {
+func PluginHandleWrapperWithHeaders(in *endpoint.InputArgs, f func() (headers map[string][]string, retval interface{}, err error), description string) (out *endpoint.ReturnVal, err error) {
 	//start := time.Now()
 	headers, value, err := f()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	response := value
 	// TODO: Disabled for now, think more about if/how this is exposed later
@@ -19,18 +18,19 @@ func PlugFuncWrapperWithHeaders(in *endpoint.InputArgs, out *endpoint.ReturnVal,
 	//	Description: description,
 	//	Value:       value,
 	//}
-	//duration := time.Since(start)
-	//ctx := context.WithValue(in.Context, types.ContextExecDuration, duration)
-	var ctx context.Context = nil // Have to clear context because it can't travel over an RPC - TODO: This should be redesigned
-	out.Context = ctx
-	out.Headers = headers
-	out.Value = response
-	return nil
+	//duration := time.Since(start) //TODO: Can't pass contexts through the RPC layer, so this is disabled for now
+	//ctx := context.WithValue(in.Context, types.ContextExecDuration, -1)
+	out = &endpoint.ReturnVal{
+		Context: nil,
+		Headers: headers,
+		Value:   response,
+	}
+	return out, nil
 }
 
-// PlugFuncWrapper is a generic handler that is used to help add additional context and measurements to calls without
+// PluginHandleWrapper is a generic handler that is used to help add additional context and measurements to calls without
 // requiring the duplication of this code into every handler.
-func PlugFuncWrapper(in *endpoint.InputArgs, out *endpoint.ReturnVal, f func() (retval interface{}, err error), description string) (err error) {
+func PluginHandleWrapper(in *endpoint.InputArgs, f func() (retval interface{}, err error), description string) (out *endpoint.ReturnVal, err error) {
 	// Define a new function that matches the signature of the function expected by HandleWrapperWithHeaders
 	newFunc := func() (headers map[string][]string, retval interface{}, err error) {
 		retval, err = f()
@@ -38,5 +38,5 @@ func PlugFuncWrapper(in *endpoint.InputArgs, out *endpoint.ReturnVal, f func() (
 		return nil, retval, err
 	}
 
-	return PlugFuncWrapperWithHeaders(in, out, newFunc, description)
+	return PluginHandleWrapperWithHeaders(in, newFunc, description)
 }

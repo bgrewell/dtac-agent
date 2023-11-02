@@ -9,7 +9,7 @@ import (
 
 func main() {
 
-	p := new(helloplugin.HelloPlugin)
+	p := helloplugin.NewHelloPlugin()
 
 	h, err := plugins.NewPluginHost(p)
 	if err != nil {
