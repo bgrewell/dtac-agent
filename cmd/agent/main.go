@@ -37,8 +37,6 @@ type AdapterParams struct {
 	Subsystems []interfaces.Subsystem  `group:"subsystems"`
 }
 
-// TODO: How to implement authn/authz middleware in such a way that it works with any API
-
 // NewController creates a new instance of the controller.Controller struct
 func NewController(logger *zap.Logger, cfg *config.Configuration, epl *endpoints.EndpointList,
 	db *authndb.AuthDB) *controller.Controller {
