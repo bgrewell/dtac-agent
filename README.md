@@ -352,9 +352,9 @@ explaining each section of code and why it is needed. This sample can also be fo
 package helloplugin
 
 import (
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types/endpoint"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins/utility"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/types/endpoint"
 	"reflect"
 )
 
@@ -450,6 +450,7 @@ func (h *HelloPlugin) Hello(in *endpoint.InputArgs) (out *endpoint.ReturnVal, er
 		return headers, h.message, nil
 	}, "hello plugin output message")
 }
+
 ```
 
 Once the HelloPlugin type has been defined you simply need to create a new instance of it and serve it. 
