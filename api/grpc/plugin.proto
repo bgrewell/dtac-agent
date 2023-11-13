@@ -7,6 +7,7 @@ option go_package = "github.com/intel-innersource/frameworks.automation.dtac.age
 service PluginService {
   rpc Register(RegisterArgs) returns (RegisterReply);
   rpc Call (PluginRequest) returns (PluginResponse);
+  rpc LoggingStream(LoggingArgs) returns (stream LogMessage);
 }
 
 message PluginRequest {
@@ -52,4 +53,30 @@ message PluginEndpoint {
   string expected_args = 5;
   string expected_body = 6;
   string expected_output = 7;
+}
+
+// Logging arguments which for now is empty
+message LoggingArgs {
+}
+
+// Define log level as an enum for clarity and type safety
+enum LogLevel {
+  DEBUG = 0;
+  INFO = 1;
+  WARNING = 2;
+  ERROR = 3;
+  FATAL = 4;
+}
+
+// Key-value pair for structured data
+message LogField {
+  string key = 1;
+  string value = 2;  // You can define more types if needed (e.g., int, float, etc.)
+}
+
+// Main log message structure
+message LogMessage {
+  LogLevel level = 1;
+  string message = 2;
+  repeated LogField fields = 3;  // Structured data
 }

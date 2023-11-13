@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	PluginService_Register_FullMethodName = "/plugin.PluginService/Register"
-	PluginService_Call_FullMethodName     = "/plugin.PluginService/Call"
+	PluginService_Register_FullMethodName      = "/plugin.PluginService/Register"
+	PluginService_Call_FullMethodName          = "/plugin.PluginService/Call"
+	PluginService_LoggingStream_FullMethodName = "/plugin.PluginService/LoggingStream"
 )
 
 // PluginServiceClient is the client API for PluginService service.
@@ -29,6 +30,7 @@ const (
 type PluginServiceClient interface {
 	Register(ctx context.Context, in *RegisterArgs, opts ...grpc.CallOption) (*RegisterReply, error)
 	Call(ctx context.Context, in *PluginRequest, opts ...grpc.CallOption) (*PluginResponse, error)
+	LoggingStream(ctx context.Context, in *LoggingArgs, opts ...grpc.CallOption) (PluginService_LoggingStreamClient, error)
 }
 
 type pluginServiceClient struct {
@@ -57,12 +59,45 @@ func (c *pluginServiceClient) Call(ctx context.Context, in *PluginRequest, opts 
 	return out, nil
 }
 
+func (c *pluginServiceClient) LoggingStream(ctx context.Context, in *LoggingArgs, opts ...grpc.CallOption) (PluginService_LoggingStreamClient, error) {
+	stream, err := c.cc.NewStream(ctx, &PluginService_ServiceDesc.Streams[0], PluginService_LoggingStream_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &pluginServiceLoggingStreamClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type PluginService_LoggingStreamClient interface {
+	Recv() (*LogMessage, error)
+	grpc.ClientStream
+}
+
+type pluginServiceLoggingStreamClient struct {
+	grpc.ClientStream
+}
+
+func (x *pluginServiceLoggingStreamClient) Recv() (*LogMessage, error) {
+	m := new(LogMessage)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // PluginServiceServer is the server API for PluginService service.
 // All implementations must embed UnimplementedPluginServiceServer
 // for forward compatibility
 type PluginServiceServer interface {
 	Register(context.Context, *RegisterArgs) (*RegisterReply, error)
 	Call(context.Context, *PluginRequest) (*PluginResponse, error)
+	LoggingStream(*LoggingArgs, PluginService_LoggingStreamServer) error
 	mustEmbedUnimplementedPluginServiceServer()
 }
 
@@ -75,6 +110,9 @@ func (UnimplementedPluginServiceServer) Register(context.Context, *RegisterArgs)
 }
 func (UnimplementedPluginServiceServer) Call(context.Context, *PluginRequest) (*PluginResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Call not implemented")
+}
+func (UnimplementedPluginServiceServer) LoggingStream(*LoggingArgs, PluginService_LoggingStreamServer) error {
+	return status.Errorf(codes.Unimplemented, "method LoggingStream not implemented")
 }
 func (UnimplementedPluginServiceServer) mustEmbedUnimplementedPluginServiceServer() {}
 
@@ -125,6 +163,27 @@ func _PluginService_Call_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PluginService_LoggingStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(LoggingArgs)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(PluginServiceServer).LoggingStream(m, &pluginServiceLoggingStreamServer{stream})
+}
+
+type PluginService_LoggingStreamServer interface {
+	Send(*LogMessage) error
+	grpc.ServerStream
+}
+
+type pluginServiceLoggingStreamServer struct {
+	grpc.ServerStream
+}
+
+func (x *pluginServiceLoggingStreamServer) Send(m *LogMessage) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // PluginService_ServiceDesc is the grpc.ServiceDesc for PluginService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -141,6 +200,12 @@ var PluginService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _PluginService_Call_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "LoggingStream",
+			Handler:       _PluginService_LoggingStream_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "plugin.proto",
 }

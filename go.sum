@@ -41,6 +41,14 @@ github.com/BGrewell/go-conversions v0.0.0-20211209224842-146e47cfb964 h1:oTRrG2R
 github.com/BGrewell/go-conversions v0.0.0-20211209224842-146e47cfb964/go.mod h1:XtXcz/MP04vhr6c6R/5gZPJZVQpbXlFsKTHr5yy/5sU=
 github.com/BGrewell/go-execute v0.0.0-20231012192536-99a5da333338 h1:JSTCLBXK4N//zNr+IX/k8KmY4C5dZLrecfRRfjbw3Dk=
 github.com/BGrewell/go-execute v0.0.0-20231012192536-99a5da333338/go.mod h1:ymEJe5uLe+JOOu7gb81gw2WLkU+giML0//0ihY4xlnQ=
+github.com/BGrewell/go-execute v0.0.0-20231113155852-a76c616d77fd h1:QM1yK8G6m1/csxGtEMQXXSGrA7WcR0VydxQH2b5B60w=
+github.com/BGrewell/go-execute v0.0.0-20231113155852-a76c616d77fd/go.mod h1:ymEJe5uLe+JOOu7gb81gw2WLkU+giML0//0ihY4xlnQ=
+github.com/BGrewell/go-execute v0.0.0-20231113162030-c753e6ed9b3c h1:VCTlcxbgEPS84o+Pf+cjtD3JFtIAsUz5eSDCEPCmwVg=
+github.com/BGrewell/go-execute v0.0.0-20231113162030-c753e6ed9b3c/go.mod h1:ymEJe5uLe+JOOu7gb81gw2WLkU+giML0//0ihY4xlnQ=
+github.com/BGrewell/go-execute v0.0.0-20231113162402-097a134fc494 h1:VDlUAt5w0j0MmKxIf0vmEhtTSfr4bJ8RC7pbnncJW4g=
+github.com/BGrewell/go-execute v0.0.0-20231113162402-097a134fc494/go.mod h1:ymEJe5uLe+JOOu7gb81gw2WLkU+giML0//0ihY4xlnQ=
+github.com/BGrewell/go-execute v0.0.0-20231113163100-51ec09072d2f h1:/m/dPdAaYffiWb6HvdfoOEPbCghsd6duyj1n/mhz+Fk=
+github.com/BGrewell/go-execute v0.0.0-20231113163100-51ec09072d2f/go.mod h1:ymEJe5uLe+JOOu7gb81gw2WLkU+giML0//0ihY4xlnQ=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible h1:1G1pk05UrOh0NlF1oeaaix1x8XzrfjIDK47TY0Zehcw=

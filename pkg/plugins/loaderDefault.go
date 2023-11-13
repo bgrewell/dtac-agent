@@ -21,6 +21,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 
 	api "github.com/intel-innersource/frameworks.automation.dtac.agent/api/grpc/go"
 )
@@ -42,10 +43,14 @@ type DefaultPluginLoader struct {
 	tlsCertFile             *string
 	tlsKeyFile              *string
 	tlsCAFile               *string
+	defaultSecure           bool
 }
 
 // Initialize is used to initialize the plugin loader
 func (pl *DefaultPluginLoader) Initialize(secure bool) (loadedPlugins []*PluginInfo, err error) {
+
+	// Set default secure
+	pl.defaultSecure = secure
 
 	// List plugins
 	loadedPlugins = make([]*PluginInfo, 0)
@@ -153,7 +158,8 @@ func (pl *DefaultPluginLoader) RegisterPlugin(pluginName string) (err error) {
 	}
 
 	ra := &api.RegisterArgs{
-		Config: string(configJSON),
+		Config:        string(configJSON),
+		DefaultSecure: pl.defaultSecure,
 	}
 
 	// Call the plugins register function
@@ -377,7 +383,14 @@ func (pl *DefaultPluginLoader) executePlugin(config *PluginConfig) (info *Plugin
 	envs = nil
 	runtime.GC()
 
-	scanner := bufio.NewScanner(stdout)
+	// Wait for command to execute and output to be available - TODO: Expose timeout as a config option
+	reader := bufio.NewReader(stdout)
+	ready, err := execute.SignalRead(reader, 2*time.Second)
+	if err != nil || !ready {
+		return nil, fmt.Errorf("failed to read from plugin: %s", err.Error())
+	}
+
+	scanner := bufio.NewScanner(reader)
 	scanner.Scan()
 	output := scanner.Text()
 	output = strings.Replace(output, "CONNECT{{", "", 1)

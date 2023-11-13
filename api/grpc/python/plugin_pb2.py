@@ -13,7 +13,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0cplugin.proto\x12\x06plugin\"F\n\rPluginRequest\x12\x0e\n\x06method\x18\x01 \x01(\t\x12%\n\ninput_args\x18\x02 \x01(\x0b\x32\x11.plugin.InputArgs\"R\n\x0ePluginResponse\x12\n\n\x02id\x18\x01 \x01(\x05\x12%\n\nreturn_val\x18\x02 \x01(\x0b\x32\x11.plugin.ReturnVal\x12\r\n\x05\x65rror\x18\x03 \x01(\t\"\x1c\n\nStringList\x12\x0e\n\x06values\x18\x01 \x03(\t\"\x80\x02\n\tInputArgs\x12/\n\x07headers\x18\x01 \x03(\x0b\x32\x1e.plugin.InputArgs.HeadersEntry\x12-\n\x06params\x18\x02 \x03(\x0b\x32\x1d.plugin.InputArgs.ParamsEntry\x12\x0c\n\x04\x62ody\x18\x03 \x01(\x0c\x1a\x42\n\x0cHeadersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12!\n\x05value\x18\x02 \x01(\x0b\x32\x12.plugin.StringList:\x02\x38\x01\x1a\x41\n\x0bParamsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12!\n\x05value\x18\x02 \x01(\x0b\x32\x12.plugin.StringList:\x02\x38\x01\"\x81\x02\n\tReturnVal\x12/\n\x07headers\x18\x01 \x03(\x0b\x32\x1e.plugin.ReturnVal.HeadersEntry\x12-\n\x06params\x18\x02 \x03(\x0b\x32\x1d.plugin.ReturnVal.ParamsEntry\x12\r\n\x05value\x18\x03 \x01(\t\x1a\x42\n\x0cHeadersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12!\n\x05value\x18\x02 \x01(\x0b\x32\x12.plugin.StringList:\x02\x38\x01\x1a\x41\n\x0bParamsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12!\n\x05value\x18\x02 \x01(\x0b\x32\x12.plugin.StringList:\x02\x38\x01\"6\n\x0cRegisterArgs\x12\x0e\n\x06\x63onfig\x18\x01 \x01(\t\x12\x16\n\x0e\x64\x65\x66\x61ult_secure\x18\x02 \x01(\x08\":\n\rRegisterReply\x12)\n\tendpoints\x18\x01 \x03(\x0b\x32\x16.plugin.PluginEndpoint\"\x88\x01\n\x0ePluginEndpoint\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x0e\n\x06\x61\x63tion\x18\x03 \x01(\t\x12\x11\n\tuses_auth\x18\x04 \x01(\x08\x12\x15\n\rexpected_args\x18\x05 \x01(\t\x12\x15\n\rexpected_body\x18\x06 \x01(\t\x12\x17\n\x0f\x65xpected_output\x18\x07 \x01(\t2\x7f\n\rPluginService\x12\x37\n\x08Register\x12\x14.plugin.RegisterArgs\x1a\x15.plugin.RegisterReply\x12\x35\n\x04\x43\x61ll\x12\x15.plugin.PluginRequest\x1a\x16.plugin.PluginResponseBKZIgithub.com/intel-innersource/frameworks.automation.dtac.agent/api/grpc/gob\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0cplugin.proto\x12\x06plugin\"F\n\rPluginRequest\x12\x0e\n\x06method\x18\x01 \x01(\t\x12%\n\ninput_args\x18\x02 \x01(\x0b\x32\x11.plugin.InputArgs\"R\n\x0ePluginResponse\x12\n\n\x02id\x18\x01 \x01(\x05\x12%\n\nreturn_val\x18\x02 \x01(\x0b\x32\x11.plugin.ReturnVal\x12\r\n\x05\x65rror\x18\x03 \x01(\t\"\x1c\n\nStringList\x12\x0e\n\x06values\x18\x01 \x03(\t\"\x80\x02\n\tInputArgs\x12/\n\x07headers\x18\x01 \x03(\x0b\x32\x1e.plugin.InputArgs.HeadersEntry\x12-\n\x06params\x18\x02 \x03(\x0b\x32\x1d.plugin.InputArgs.ParamsEntry\x12\x0c\n\x04\x62ody\x18\x03 \x01(\x0c\x1a\x42\n\x0cHeadersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12!\n\x05value\x18\x02 \x01(\x0b\x32\x12.plugin.StringList:\x02\x38\x01\x1a\x41\n\x0bParamsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12!\n\x05value\x18\x02 \x01(\x0b\x32\x12.plugin.StringList:\x02\x38\x01\"\x81\x02\n\tReturnVal\x12/\n\x07headers\x18\x01 \x03(\x0b\x32\x1e.plugin.ReturnVal.HeadersEntry\x12-\n\x06params\x18\x02 \x03(\x0b\x32\x1d.plugin.ReturnVal.ParamsEntry\x12\r\n\x05value\x18\x03 \x01(\t\x1a\x42\n\x0cHeadersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12!\n\x05value\x18\x02 \x01(\x0b\x32\x12.plugin.StringList:\x02\x38\x01\x1a\x41\n\x0bParamsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12!\n\x05value\x18\x02 \x01(\x0b\x32\x12.plugin.StringList:\x02\x38\x01\"6\n\x0cRegisterArgs\x12\x0e\n\x06\x63onfig\x18\x01 \x01(\t\x12\x16\n\x0e\x64\x65\x66\x61ult_secure\x18\x02 \x01(\x08\":\n\rRegisterReply\x12)\n\tendpoints\x18\x01 \x03(\x0b\x32\x16.plugin.PluginEndpoint\"\x88\x01\n\x0ePluginEndpoint\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x0e\n\x06\x61\x63tion\x18\x03 \x01(\t\x12\x11\n\tuses_auth\x18\x04 \x01(\x08\x12\x15\n\rexpected_args\x18\x05 \x01(\t\x12\x15\n\rexpected_body\x18\x06 \x01(\t\x12\x17\n\x0f\x65xpected_output\x18\x07 \x01(\t\"\r\n\x0bLoggingArgs\"&\n\x08LogField\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"`\n\nLogMessage\x12\x1f\n\x05level\x18\x01 \x01(\x0e\x32\x10.plugin.LogLevel\x12\x0f\n\x07message\x18\x02 \x01(\t\x12 \n\x06\x66ields\x18\x03 \x03(\x0b\x32\x10.plugin.LogField*B\n\x08LogLevel\x12\t\n\x05\x44\x45\x42UG\x10\x00\x12\x08\n\x04INFO\x10\x01\x12\x0b\n\x07WARNING\x10\x02\x12\t\n\x05\x45RROR\x10\x03\x12\t\n\x05\x46\x41TAL\x10\x04\x32\xbb\x01\n\rPluginService\x12\x37\n\x08Register\x12\x14.plugin.RegisterArgs\x1a\x15.plugin.RegisterReply\x12\x35\n\x04\x43\x61ll\x12\x15.plugin.PluginRequest\x1a\x16.plugin.PluginResponse\x12:\n\rLoggingStream\x12\x13.plugin.LoggingArgs\x1a\x12.plugin.LogMessage0\x01\x42KZIgithub.com/intel-innersource/frameworks.automation.dtac.agent/api/grpc/gob\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -29,6 +29,8 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _RETURNVAL_HEADERSENTRY._serialized_options = b'8\001'
   _RETURNVAL_PARAMSENTRY._options = None
   _RETURNVAL_PARAMSENTRY._serialized_options = b'8\001'
+  _globals['_LOGLEVEL']._serialized_start=1137
+  _globals['_LOGLEVEL']._serialized_end=1203
   _globals['_PLUGINREQUEST']._serialized_start=24
   _globals['_PLUGINREQUEST']._serialized_end=94
   _globals['_PLUGINRESPONSE']._serialized_start=96
@@ -53,6 +55,12 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _globals['_REGISTERREPLY']._serialized_end=843
   _globals['_PLUGINENDPOINT']._serialized_start=846
   _globals['_PLUGINENDPOINT']._serialized_end=982
-  _globals['_PLUGINSERVICE']._serialized_start=984
-  _globals['_PLUGINSERVICE']._serialized_end=1111
+  _globals['_LOGGINGARGS']._serialized_start=984
+  _globals['_LOGGINGARGS']._serialized_end=997
+  _globals['_LOGFIELD']._serialized_start=999
+  _globals['_LOGFIELD']._serialized_end=1037
+  _globals['_LOGMESSAGE']._serialized_start=1039
+  _globals['_LOGMESSAGE']._serialized_end=1135
+  _globals['_PLUGINSERVICE']._serialized_start=1206
+  _globals['_PLUGINSERVICE']._serialized_end=1393
 # @@protoc_insertion_point(module_scope)

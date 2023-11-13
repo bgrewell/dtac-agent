@@ -20,7 +20,7 @@ func NewDiskDetails(name string, size string, model string) *DiskDetails {
 
 // GetPhysicalDisks returns the physical disks
 func GetPhysicalDisks() ([]*DiskDetails, error) {
-	ex := execute.NewExecutor(nil)
+	ex := execute.NewExecutor()
 	stdout, _, err := ex.ExecuteSeparate("lsblk -o NAME,TYPE,SIZE,MODEL")
 	if err != nil {
 		return nil, err

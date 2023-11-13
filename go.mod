@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/BGrewell/go-conversions v0.0.0-20211209224842-146e47cfb964
-	github.com/BGrewell/go-execute v0.0.0-20231012192536-99a5da333338
+	github.com/BGrewell/go-execute v0.0.0-20231113163100-51ec09072d2f
 	github.com/bgrewell/gin-plugins v0.0.0-20231010210718-77ec7d6d7d0a
 	github.com/boltdb/bolt v1.3.1
 	github.com/casbin/casbin/v2 v2.77.2

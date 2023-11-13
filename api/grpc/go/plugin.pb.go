@@ -20,6 +20,62 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Define log level as an enum for clarity and type safety
+type LogLevel int32
+
+const (
+	LogLevel_DEBUG   LogLevel = 0
+	LogLevel_INFO    LogLevel = 1
+	LogLevel_WARNING LogLevel = 2
+	LogLevel_ERROR   LogLevel = 3
+	LogLevel_FATAL   LogLevel = 4
+)
+
+// Enum value maps for LogLevel.
+var (
+	LogLevel_name = map[int32]string{
+		0: "DEBUG",
+		1: "INFO",
+		2: "WARNING",
+		3: "ERROR",
+		4: "FATAL",
+	}
+	LogLevel_value = map[string]int32{
+		"DEBUG":   0,
+		"INFO":    1,
+		"WARNING": 2,
+		"ERROR":   3,
+		"FATAL":   4,
+	}
+)
+
+func (x LogLevel) Enum() *LogLevel {
+	p := new(LogLevel)
+	*p = x
+	return p
+}
+
+func (x LogLevel) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (LogLevel) Descriptor() protoreflect.EnumDescriptor {
+	return file_plugin_proto_enumTypes[0].Descriptor()
+}
+
+func (LogLevel) Type() protoreflect.EnumType {
+	return &file_plugin_proto_enumTypes[0]
+}
+
+func (x LogLevel) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use LogLevel.Descriptor instead.
+func (LogLevel) EnumDescriptor() ([]byte, []int) {
+	return file_plugin_proto_rawDescGZIP(), []int{0}
+}
+
 type PluginRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -500,6 +556,165 @@ func (x *PluginEndpoint) GetExpectedOutput() string {
 	return ""
 }
 
+// Logging arguments which for now is empty
+type LoggingArgs struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *LoggingArgs) Reset() {
+	*x = LoggingArgs{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_plugin_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *LoggingArgs) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LoggingArgs) ProtoMessage() {}
+
+func (x *LoggingArgs) ProtoReflect() protoreflect.Message {
+	mi := &file_plugin_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LoggingArgs.ProtoReflect.Descriptor instead.
+func (*LoggingArgs) Descriptor() ([]byte, []int) {
+	return file_plugin_proto_rawDescGZIP(), []int{8}
+}
+
+// Key-value pair for structured data
+type LogField struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Key   string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"` // You can define more types if needed (e.g., int, float, etc.)
+}
+
+func (x *LogField) Reset() {
+	*x = LogField{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_plugin_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *LogField) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LogField) ProtoMessage() {}
+
+func (x *LogField) ProtoReflect() protoreflect.Message {
+	mi := &file_plugin_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LogField.ProtoReflect.Descriptor instead.
+func (*LogField) Descriptor() ([]byte, []int) {
+	return file_plugin_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *LogField) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *LogField) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
+// Main log message structure
+type LogMessage struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Level   LogLevel    `protobuf:"varint,1,opt,name=level,proto3,enum=plugin.LogLevel" json:"level,omitempty"`
+	Message string      `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	Fields  []*LogField `protobuf:"bytes,3,rep,name=fields,proto3" json:"fields,omitempty"` // Structured data
+}
+
+func (x *LogMessage) Reset() {
+	*x = LogMessage{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_plugin_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *LogMessage) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LogMessage) ProtoMessage() {}
+
+func (x *LogMessage) ProtoReflect() protoreflect.Message {
+	mi := &file_plugin_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LogMessage.ProtoReflect.Descriptor instead.
+func (*LogMessage) Descriptor() ([]byte, []int) {
+	return file_plugin_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *LogMessage) GetLevel() LogLevel {
+	if x != nil {
+		return x.Level
+	}
+	return LogLevel_DEBUG
+}
+
+func (x *LogMessage) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *LogMessage) GetFields() []*LogField {
+	if x != nil {
+		return x.Fields
+	}
+	return nil
+}
+
 var File_plugin_proto protoreflect.FileDescriptor
 
 var file_plugin_proto_rawDesc = []byte{
@@ -579,21 +794,40 @@ var file_plugin_proto_rawDesc = []byte{
 	0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c, 0x65, 0x78, 0x70, 0x65, 0x63, 0x74, 0x65, 0x64, 0x42,
 	0x6f, 0x64, 0x79, 0x12, 0x27, 0x0a, 0x0f, 0x65, 0x78, 0x70, 0x65, 0x63, 0x74, 0x65, 0x64, 0x5f,
 	0x6f, 0x75, 0x74, 0x70, 0x75, 0x74, 0x18, 0x07, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0e, 0x65, 0x78,
-	0x70, 0x65, 0x63, 0x74, 0x65, 0x64, 0x4f, 0x75, 0x74, 0x70, 0x75, 0x74, 0x32, 0x7f, 0x0a, 0x0d,
-	0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x37, 0x0a,
-	0x08, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x12, 0x14, 0x2e, 0x70, 0x6c, 0x75, 0x67,
-	0x69, 0x6e, 0x2e, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x41, 0x72, 0x67, 0x73, 0x1a,
-	0x15, 0x2e, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2e, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65,
-	0x72, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x35, 0x0a, 0x04, 0x43, 0x61, 0x6c, 0x6c, 0x12, 0x15,
-	0x2e, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2e, 0x50,
-	0x6c, 0x75, 0x67, 0x69, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x4b, 0x5a,
-	0x49, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x69, 0x6e, 0x74, 0x65,
-	0x6c, 0x2d, 0x69, 0x6e, 0x6e, 0x65, 0x72, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x2f, 0x66, 0x72,
-	0x61, 0x6d, 0x65, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x2e, 0x61, 0x75, 0x74, 0x6f, 0x6d, 0x61, 0x74,
-	0x69, 0x6f, 0x6e, 0x2e, 0x64, 0x74, 0x61, 0x63, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2f, 0x61,
-	0x70, 0x69, 0x2f, 0x67, 0x72, 0x70, 0x63, 0x2f, 0x67, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x33,
+	0x70, 0x65, 0x63, 0x74, 0x65, 0x64, 0x4f, 0x75, 0x74, 0x70, 0x75, 0x74, 0x22, 0x0d, 0x0a, 0x0b,
+	0x4c, 0x6f, 0x67, 0x67, 0x69, 0x6e, 0x67, 0x41, 0x72, 0x67, 0x73, 0x22, 0x32, 0x0a, 0x08, 0x4c,
+	0x6f, 0x67, 0x46, 0x69, 0x65, 0x6c, 0x64, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c,
+	0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22,
+	0x78, 0x0a, 0x0a, 0x4c, 0x6f, 0x67, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x26, 0x0a,
+	0x05, 0x6c, 0x65, 0x76, 0x65, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x10, 0x2e, 0x70,
+	0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2e, 0x4c, 0x6f, 0x67, 0x4c, 0x65, 0x76, 0x65, 0x6c, 0x52, 0x05,
+	0x6c, 0x65, 0x76, 0x65, 0x6c, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12,
+	0x28, 0x0a, 0x06, 0x66, 0x69, 0x65, 0x6c, 0x64, 0x73, 0x18, 0x03, 0x20, 0x03, 0x28, 0x0b, 0x32,
+	0x10, 0x2e, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2e, 0x4c, 0x6f, 0x67, 0x46, 0x69, 0x65, 0x6c,
+	0x64, 0x52, 0x06, 0x66, 0x69, 0x65, 0x6c, 0x64, 0x73, 0x2a, 0x42, 0x0a, 0x08, 0x4c, 0x6f, 0x67,
+	0x4c, 0x65, 0x76, 0x65, 0x6c, 0x12, 0x09, 0x0a, 0x05, 0x44, 0x45, 0x42, 0x55, 0x47, 0x10, 0x00,
+	0x12, 0x08, 0x0a, 0x04, 0x49, 0x4e, 0x46, 0x4f, 0x10, 0x01, 0x12, 0x0b, 0x0a, 0x07, 0x57, 0x41,
+	0x52, 0x4e, 0x49, 0x4e, 0x47, 0x10, 0x02, 0x12, 0x09, 0x0a, 0x05, 0x45, 0x52, 0x52, 0x4f, 0x52,
+	0x10, 0x03, 0x12, 0x09, 0x0a, 0x05, 0x46, 0x41, 0x54, 0x41, 0x4c, 0x10, 0x04, 0x32, 0xbb, 0x01,
+	0x0a, 0x0d, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12,
+	0x37, 0x0a, 0x08, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x12, 0x14, 0x2e, 0x70, 0x6c,
+	0x75, 0x67, 0x69, 0x6e, 0x2e, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x41, 0x72, 0x67,
+	0x73, 0x1a, 0x15, 0x2e, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2e, 0x52, 0x65, 0x67, 0x69, 0x73,
+	0x74, 0x65, 0x72, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x35, 0x0a, 0x04, 0x43, 0x61, 0x6c, 0x6c,
+	0x12, 0x15, 0x2e, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e,
+	0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
+	0x3a, 0x0a, 0x0d, 0x4c, 0x6f, 0x67, 0x67, 0x69, 0x6e, 0x67, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d,
+	0x12, 0x13, 0x2e, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2e, 0x4c, 0x6f, 0x67, 0x67, 0x69, 0x6e,
+	0x67, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x12, 0x2e, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2e, 0x4c,
+	0x6f, 0x67, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x30, 0x01, 0x42, 0x4b, 0x5a, 0x49, 0x67,
+	0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x69, 0x6e, 0x74, 0x65, 0x6c, 0x2d,
+	0x69, 0x6e, 0x6e, 0x65, 0x72, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x2f, 0x66, 0x72, 0x61, 0x6d,
+	0x65, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x2e, 0x61, 0x75, 0x74, 0x6f, 0x6d, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x2e, 0x64, 0x74, 0x61, 0x63, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2f, 0x61, 0x70, 0x69,
+	0x2f, 0x67, 0x72, 0x70, 0x63, 0x2f, 0x67, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -608,42 +842,51 @@ func file_plugin_proto_rawDescGZIP() []byte {
 	return file_plugin_proto_rawDescData
 }
 
-var file_plugin_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_plugin_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_plugin_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_plugin_proto_goTypes = []interface{}{
-	(*PluginRequest)(nil),  // 0: plugin.PluginRequest
-	(*PluginResponse)(nil), // 1: plugin.PluginResponse
-	(*StringList)(nil),     // 2: plugin.StringList
-	(*InputArgs)(nil),      // 3: plugin.InputArgs
-	(*ReturnVal)(nil),      // 4: plugin.ReturnVal
-	(*RegisterArgs)(nil),   // 5: plugin.RegisterArgs
-	(*RegisterReply)(nil),  // 6: plugin.RegisterReply
-	(*PluginEndpoint)(nil), // 7: plugin.PluginEndpoint
-	nil,                    // 8: plugin.InputArgs.HeadersEntry
-	nil,                    // 9: plugin.InputArgs.ParamsEntry
-	nil,                    // 10: plugin.ReturnVal.HeadersEntry
-	nil,                    // 11: plugin.ReturnVal.ParamsEntry
+	(LogLevel)(0),          // 0: plugin.LogLevel
+	(*PluginRequest)(nil),  // 1: plugin.PluginRequest
+	(*PluginResponse)(nil), // 2: plugin.PluginResponse
+	(*StringList)(nil),     // 3: plugin.StringList
+	(*InputArgs)(nil),      // 4: plugin.InputArgs
+	(*ReturnVal)(nil),      // 5: plugin.ReturnVal
+	(*RegisterArgs)(nil),   // 6: plugin.RegisterArgs
+	(*RegisterReply)(nil),  // 7: plugin.RegisterReply
+	(*PluginEndpoint)(nil), // 8: plugin.PluginEndpoint
+	(*LoggingArgs)(nil),    // 9: plugin.LoggingArgs
+	(*LogField)(nil),       // 10: plugin.LogField
+	(*LogMessage)(nil),     // 11: plugin.LogMessage
+	nil,                    // 12: plugin.InputArgs.HeadersEntry
+	nil,                    // 13: plugin.InputArgs.ParamsEntry
+	nil,                    // 14: plugin.ReturnVal.HeadersEntry
+	nil,                    // 15: plugin.ReturnVal.ParamsEntry
 }
 var file_plugin_proto_depIdxs = []int32{
-	3,  // 0: plugin.PluginRequest.input_args:type_name -> plugin.InputArgs
-	4,  // 1: plugin.PluginResponse.return_val:type_name -> plugin.ReturnVal
-	8,  // 2: plugin.InputArgs.headers:type_name -> plugin.InputArgs.HeadersEntry
-	9,  // 3: plugin.InputArgs.params:type_name -> plugin.InputArgs.ParamsEntry
-	10, // 4: plugin.ReturnVal.headers:type_name -> plugin.ReturnVal.HeadersEntry
-	11, // 5: plugin.ReturnVal.params:type_name -> plugin.ReturnVal.ParamsEntry
-	7,  // 6: plugin.RegisterReply.endpoints:type_name -> plugin.PluginEndpoint
-	2,  // 7: plugin.InputArgs.HeadersEntry.value:type_name -> plugin.StringList
-	2,  // 8: plugin.InputArgs.ParamsEntry.value:type_name -> plugin.StringList
-	2,  // 9: plugin.ReturnVal.HeadersEntry.value:type_name -> plugin.StringList
-	2,  // 10: plugin.ReturnVal.ParamsEntry.value:type_name -> plugin.StringList
-	5,  // 11: plugin.PluginService.Register:input_type -> plugin.RegisterArgs
-	0,  // 12: plugin.PluginService.Call:input_type -> plugin.PluginRequest
-	6,  // 13: plugin.PluginService.Register:output_type -> plugin.RegisterReply
-	1,  // 14: plugin.PluginService.Call:output_type -> plugin.PluginResponse
-	13, // [13:15] is the sub-list for method output_type
-	11, // [11:13] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	4,  // 0: plugin.PluginRequest.input_args:type_name -> plugin.InputArgs
+	5,  // 1: plugin.PluginResponse.return_val:type_name -> plugin.ReturnVal
+	12, // 2: plugin.InputArgs.headers:type_name -> plugin.InputArgs.HeadersEntry
+	13, // 3: plugin.InputArgs.params:type_name -> plugin.InputArgs.ParamsEntry
+	14, // 4: plugin.ReturnVal.headers:type_name -> plugin.ReturnVal.HeadersEntry
+	15, // 5: plugin.ReturnVal.params:type_name -> plugin.ReturnVal.ParamsEntry
+	8,  // 6: plugin.RegisterReply.endpoints:type_name -> plugin.PluginEndpoint
+	0,  // 7: plugin.LogMessage.level:type_name -> plugin.LogLevel
+	10, // 8: plugin.LogMessage.fields:type_name -> plugin.LogField
+	3,  // 9: plugin.InputArgs.HeadersEntry.value:type_name -> plugin.StringList
+	3,  // 10: plugin.InputArgs.ParamsEntry.value:type_name -> plugin.StringList
+	3,  // 11: plugin.ReturnVal.HeadersEntry.value:type_name -> plugin.StringList
+	3,  // 12: plugin.ReturnVal.ParamsEntry.value:type_name -> plugin.StringList
+	6,  // 13: plugin.PluginService.Register:input_type -> plugin.RegisterArgs
+	1,  // 14: plugin.PluginService.Call:input_type -> plugin.PluginRequest
+	9,  // 15: plugin.PluginService.LoggingStream:input_type -> plugin.LoggingArgs
+	7,  // 16: plugin.PluginService.Register:output_type -> plugin.RegisterReply
+	2,  // 17: plugin.PluginService.Call:output_type -> plugin.PluginResponse
+	11, // 18: plugin.PluginService.LoggingStream:output_type -> plugin.LogMessage
+	16, // [16:19] is the sub-list for method output_type
+	13, // [13:16] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_plugin_proto_init() }
@@ -748,19 +991,56 @@ func file_plugin_proto_init() {
 				return nil
 			}
 		}
+		file_plugin_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*LoggingArgs); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_plugin_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*LogField); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_plugin_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*LogMessage); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_plugin_proto_rawDesc,
-			NumEnums:      0,
-			NumMessages:   12,
+			NumEnums:      1,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_plugin_proto_goTypes,
 		DependencyIndexes: file_plugin_proto_depIdxs,
+		EnumInfos:         file_plugin_proto_enumTypes,
 		MessageInfos:      file_plugin_proto_msgTypes,
 	}.Build()
 	File_plugin_proto = out.File

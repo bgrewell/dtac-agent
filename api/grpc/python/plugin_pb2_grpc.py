@@ -24,6 +24,11 @@ class PluginServiceStub(object):
                 request_serializer=plugin__pb2.PluginRequest.SerializeToString,
                 response_deserializer=plugin__pb2.PluginResponse.FromString,
                 )
+        self.LoggingStream = channel.unary_stream(
+                '/plugin.PluginService/LoggingStream',
+                request_serializer=plugin__pb2.LoggingArgs.SerializeToString,
+                response_deserializer=plugin__pb2.LogMessage.FromString,
+                )
 
 
 class PluginServiceServicer(object):
@@ -41,6 +46,12 @@ class PluginServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def LoggingStream(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_PluginServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -53,6 +64,11 @@ def add_PluginServiceServicer_to_server(servicer, server):
                     servicer.Call,
                     request_deserializer=plugin__pb2.PluginRequest.FromString,
                     response_serializer=plugin__pb2.PluginResponse.SerializeToString,
+            ),
+            'LoggingStream': grpc.unary_stream_rpc_method_handler(
+                    servicer.LoggingStream,
+                    request_deserializer=plugin__pb2.LoggingArgs.FromString,
+                    response_serializer=plugin__pb2.LogMessage.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -95,5 +111,22 @@ class PluginService(object):
         return grpc.experimental.unary_unary(request, target, '/plugin.PluginService/Call',
             plugin__pb2.PluginRequest.SerializeToString,
             plugin__pb2.PluginResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def LoggingStream(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_stream(request, target, '/plugin.PluginService/LoggingStream',
+            plugin__pb2.LoggingArgs.SerializeToString,
+            plugin__pb2.LogMessage.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
