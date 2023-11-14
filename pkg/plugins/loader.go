@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/types/endpoint"
+	"go.uber.org/zap"
 	"os"
 	"strings"
 )
@@ -27,7 +28,7 @@ type PluginLoader interface {
 //	pluginDirectory: the directory that contains all the plugins
 //	cookie: the sanity cookie that is used to verify that what is being executed is the expected plugin
 //	routeGroup: the routeGroup that all the plugin routes will be placed inside
-func NewPluginLoader(pluginDirectory string, pluginRoot string, plugConfigs map[string]*PluginConfig, loadUnconfiguredPlugins bool, tlsCertFile *string, tlsKeyFile *string, tlsCAFile *string) PluginLoader {
+func NewPluginLoader(pluginDirectory string, pluginRoot string, plugConfigs map[string]*PluginConfig, loadUnconfiguredPlugins bool, tlsCertFile *string, tlsKeyFile *string, tlsCAFile *string, logger *zap.Logger) PluginLoader {
 	l := &DefaultPluginLoader{
 		PluginDirectory:         pluginDirectory,
 		PluginConfigs:           plugConfigs,
@@ -38,6 +39,7 @@ func NewPluginLoader(pluginDirectory string, pluginRoot string, plugConfigs map[
 		tlsCertFile:             tlsCertFile,
 		tlsKeyFile:              tlsKeyFile,
 		tlsCAFile:               tlsCAFile,
+		logger:                  logger,
 	}
 
 	return l

@@ -82,6 +82,13 @@ func (ph *DefaultPluginHost) Call(ctx context.Context, request *api.PluginReques
 	}, nil
 }
 
+// LoggingStream acts as a shim between the gRPC interface and the plugin interface. It handles setting up the logging
+// channel so the plugin can send structure logging messages back to the agent.
+func (ph *DefaultPluginHost) LoggingStream(req *api.LoggingArgs, stream api.PluginService_LoggingStreamServer) error {
+	// Client calls in to set up the logging then the server uses the stream as a channel to send logging messages
+	return ph.Plugin.LoggingStream(stream)
+}
+
 // Serve starts the plugin host
 func (ph *DefaultPluginHost) Serve() error {
 	// Hacky way to keep the net.rpc package from complaining about some method signatures

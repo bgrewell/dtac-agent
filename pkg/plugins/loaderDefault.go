@@ -12,12 +12,15 @@ import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins/utility"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/types/endpoint"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
+	"io"
 	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -44,6 +47,7 @@ type DefaultPluginLoader struct {
 	tlsKeyFile              *string
 	tlsCAFile               *string
 	defaultSecure           bool
+	logger                  *zap.Logger
 }
 
 // Initialize is used to initialize the plugin loader
@@ -150,6 +154,14 @@ func (pl *DefaultPluginLoader) RegisterPlugin(pluginName string) (err error) {
 	}
 	plug.RPC = api.NewPluginServiceClient(conn)
 
+	// Set up the logging stream
+	stream, err := plug.RPC.LoggingStream(context.Background(), &api.LoggingArgs{})
+	if err != nil {
+		return fmt.Errorf("error setting up plugin logging: %v", err)
+	}
+	plugLogger := pl.logger.With(zap.String("plugin", plug.Name))
+	go handleLoggingRequests(stream, plugLogger)
+
 	// Set up the configuration input
 	configJSON, err := json.Marshal(pl.plugins[pluginName].PluginConfig.Config)
 	if err != nil {
@@ -186,9 +198,9 @@ func (pl *DefaultPluginLoader) RegisterPlugin(pluginName string) (err error) {
 		if err != nil {
 			return err
 		}
-		ep.Path = path.Join(plug.RootPath, ep.Path)
+		fullPath := path.Join(plug.RootPath, ep.Path)
 		eep := &endpoint.Endpoint{ // Create an endpoint endpoint (vs a plugin endpoint)
-			Path:           ep.Path,
+			Path:           fullPath,
 			Action:         action,
 			UsesAuth:       ep.UsesAuth,
 			Function:       nil, // This function pointer isn't used in the plugins and the function sigs don't match
@@ -199,7 +211,7 @@ func (pl *DefaultPluginLoader) RegisterPlugin(pluginName string) (err error) {
 		endpoints = append(endpoints, eep)
 
 		// Record route map
-		key := fmt.Sprintf("%s:%s", ep.Action, ep.Path)
+		key := fmt.Sprintf("%s:%s", ep.Action, fullPath)
 		entry := &HandlerEntry{
 			PluginName: plug.Name,
 			HandleFunc: ep.Path,
@@ -209,6 +221,46 @@ func (pl *DefaultPluginLoader) RegisterPlugin(pluginName string) (err error) {
 	pl.endpoints = append(pl.endpoints, endpoints...)
 
 	return nil
+}
+
+func handleLoggingRequests(stream api.PluginService_LoggingStreamClient, plugLogger *zap.Logger) {
+	for {
+		logMsg, err := stream.Recv()
+		if err == io.EOF {
+			plugLogger.Warn("reached end of log stream. logging for this plugin has terminated", zap.String("source", "loader"))
+			return
+		}
+		if err != nil {
+			plugLogger.Error("failed to receive log message. logging for this plugin has terminated", zap.Error(err), zap.String("source", "loader"))
+			return
+		}
+
+		fields := make([]zap.Field, 0)
+		for _, field := range logMsg.Fields {
+			fields = append(fields, zap.Any(field.Key, field.Value))
+		}
+
+		switch logMsg.Level {
+		case api.LogLevel_DEBUG:
+			fields = append(fields, zap.String("source", "plugin"))
+			plugLogger.Debug(logMsg.Message, fields...)
+		case api.LogLevel_INFO:
+			fields = append(fields, zap.String("source", "plugin"))
+			plugLogger.Info(logMsg.Message, fields...)
+		case api.LogLevel_WARNING:
+			fields = append(fields, zap.String("source", "plugin"))
+			plugLogger.Warn(logMsg.Message, fields...)
+		case api.LogLevel_ERROR:
+			fields = append(fields, zap.String("source", "plugin"), zap.Bool("fatal", false))
+			plugLogger.Error(logMsg.Message, fields...)
+		case api.LogLevel_FATAL:
+			fields = append(fields, zap.String("source", "plugin"), zap.Bool("fatal", true))
+			plugLogger.Error(logMsg.Message, fields...)
+		default:
+			fields = append(fields, zap.String("source", "loader"), zap.String("level", logMsg.Level.String()), zap.String("message", logMsg.Message))
+			plugLogger.Error("received log message with invalid log level", fields...)
+		}
+	}
 }
 
 // UnregisterPlugin is used to unregister the plugin from Gin
@@ -422,6 +474,15 @@ func (pl *DefaultPluginLoader) executePlugin(config *PluginConfig) (info *Plugin
 		ExitChan:      exitChan,
 		ExitCode:      0,
 		PluginConfig:  config,
+	}
+
+	// if RootPath is empty, set it to the plugin file name minus ".plugin"
+	if info.RootPath == "" {
+		// Remove the directory path
+		filename := filepath.Base(config.PluginPath)
+
+		// Remove the .plugin extension
+		info.RootPath = strings.TrimSuffix(filename, ".plugin")
 	}
 
 	// Create a go routine to watch for the plugin to exit

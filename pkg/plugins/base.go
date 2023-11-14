@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	api "github.com/intel-innersource/frameworks.automation.dtac.agent/api/grpc/go"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/types/endpoint"
+	"net"
+	"runtime/debug"
 	"strings"
 )
 
@@ -13,6 +16,7 @@ type PluginMethod func(input *endpoint.InputArgs) (output *endpoint.ReturnVal, e
 
 // PluginBase is a base struct that all plugins should embed as it implements the common shared methods
 type PluginBase struct {
+	LogChan  chan LogMessage
 	Methods  map[string]endpoint.Func
 	rootPath string
 }
@@ -30,6 +34,33 @@ func (p *PluginBase) Call(method string, args *endpoint.InputArgs) (out *endpoin
 	}
 
 	return nil, fmt.Errorf("method %s not found", method)
+}
+
+// LoggingStream is a function that sets up the logging channel for plugins to use so that they can log messages back
+// to the agent. In advanced cases this could be overridden by the plugin to implement its own handling of the logging
+// stream but there likely isn't a good reason to do that.
+func (p *PluginBase) LoggingStream(stream api.PluginService_LoggingStreamServer) error {
+	if p.LogChan == nil {
+		p.LogChan = make(chan LogMessage, 4096)
+	}
+	for {
+		msg := <-p.LogChan
+		fields := make([]*api.LogField, 0)
+		for k, v := range msg.Fields {
+			fields = append(fields, &api.LogField{
+				Key:   k,
+				Value: v,
+			})
+		}
+		err := stream.Send(&api.LogMessage{
+			Level:   api.LogLevel(msg.Level),
+			Message: msg.Message,
+			Fields:  fields,
+		})
+		if err != nil {
+			return err
+		}
+	}
 }
 
 // RegisterMethods is used to create the call map for the plugin
@@ -55,6 +86,18 @@ func (p *PluginBase) RootPath() string {
 // SetRootPath sets the value of rootPath for the plugin
 func (p *PluginBase) SetRootPath(rootPath string) {
 	p.rootPath = rootPath
+}
+
+// Log logs a message to the logging channel
+func (p *PluginBase) Log(level LoggingLevel, message string, fields map[string]string) {
+	if p.LogChan == nil {
+		p.LogChan = make(chan LogMessage, 4096)
+	}
+	p.LogChan <- LogMessage{
+		Level:   level,
+		Message: message,
+		Fields:  fields,
+	}
 }
 
 // Serialize serializes the given interface to a string
@@ -88,5 +131,22 @@ func FromAPIEndpoint(ep *PluginEndpoint) *endpoint.Endpoint {
 		ExpectedArgs:   ep.ExpectedArgs,
 		ExpectedBody:   ep.ExpectedBody,
 		ExpectedOutput: ep.ExpectedOutput,
+	}
+}
+
+func sendErrorWithStackTrace(err error, address string) {
+	conn, udpErr := net.Dial("udp", address)
+	if udpErr != nil {
+		fmt.Printf("Failed to connect to UDP: %v\n", udpErr)
+		return
+	}
+	defer conn.Close()
+
+	stackTrace := debug.Stack()
+	message := fmt.Sprintf("Error: %v\nStack Trace:\n%s", err, stackTrace)
+
+	_, sendErr := conn.Write([]byte(message))
+	if sendErr != nil {
+		fmt.Printf("Failed to send error message: %v\n", sendErr)
 	}
 }

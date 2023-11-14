@@ -5,6 +5,7 @@ import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins/utility"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/types/endpoint"
 	"reflect"
+	"strconv"
 )
 
 // HelloMessage is just a simple helper struct to encapsulate the hello world message
@@ -82,6 +83,9 @@ func (h *HelloPlugin) Register(args plugins.RegisterArgs, reply *plugins.Registe
 	for _, ep := range endpoints {
 		reply.Endpoints = append(reply.Endpoints, plugins.ToAPIEndpoint(ep))
 	}
+
+	// Print out a log message
+	h.Log(plugins.LevelInfo, "hello plugin registered", map[string]string{"endpoint_count": strconv.Itoa(len(endpoints))})
 
 	// Return no error
 	return nil

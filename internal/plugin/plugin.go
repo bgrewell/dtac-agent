@@ -95,7 +95,7 @@ func (s *Subsystem) register() {
 		}
 	}
 
-	loader := plugins.NewPluginLoader(s.Config.Plugins.PluginDir, group, cm, s.Config.Plugins.LoadUnconfigured, tlsCert, tlsKey, tlsCACert)
+	loader := plugins.NewPluginLoader(s.Config.Plugins.PluginDir, group, cm, s.Config.Plugins.LoadUnconfigured, tlsCert, tlsKey, tlsCACert, s.Logger)
 	active, err := loader.Initialize(s.Config.Auth.DefaultSecure)
 	if err != nil {
 		s.Logger.Error("failed to initialize plugins", zap.Error(err))
