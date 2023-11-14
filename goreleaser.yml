@@ -20,7 +20,7 @@ builds:
       - -s -w -X github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version.version={{.Version}} -X github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version.rev={{.ShortCommit}} -X github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version.date={{.Date}} -X github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version.branch={{.Branch}}
 
   -
-    binary: hello.{{.Target}}.plugin
+    binary: hello.plugin
     main: ./cmd/plugins/hello/main.go
     id: "hello"
     goos:
@@ -61,6 +61,9 @@ nfpms:
       - dtac
     formats:
       - deb
+    dependencies:
+      - python3
+      - python3-pip
     bindir: /opt/dtac/bin
     vendor: Intel
     homepage: https://software.labs.intel.com

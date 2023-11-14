@@ -1,20 +1,5 @@
 #!/usr/bin/env bash
 
-# Ensure Python 3 and pip are installed
-if ! command -v python3 &> /dev/null
-then
-    echo "Python 3 is not installed. Installing Python 3..."
-    yum update -y
-    yum install -y python3
-fi
-
-if ! command -v pip3 &> /dev/null
-then
-    echo "pip for Python 3 is not installed. Installing pip3..."
-    yum update -y
-    yum install -y python3-pip
-fi
-
 # Install dtac-tools globally using pip3
 pip3 install dtac-tools
 
@@ -41,6 +26,10 @@ yq eval -i '.authn.pass = "'"$password"'"' /etc/dtac/config.yaml
 
 # Generate a link between the dtac config utility and /usr/bin
 ln -s /opt/dtac/bin/dtac /usr/bin/dtac
+
+# Move the plugins
+mkdir -p /opt/dtac/plugins
+mv /opt/dtac/bin/*.plugin /opt/dtac/plugins/.
 
 # Restart the service
 systemctl restart dtac-agentd.service
