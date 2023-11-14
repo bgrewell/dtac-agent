@@ -1,3 +1,9 @@
+## v1.0.2 (2023-11-14)
+
+### Fix
+
+- update post-installer scripts to install dtac-tools
+
 ## v1.0.1 (2023-11-14)
 
 ### Refactor
