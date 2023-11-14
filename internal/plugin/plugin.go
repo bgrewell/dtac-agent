@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/basic"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins"
@@ -15,11 +16,12 @@ import (
 )
 
 // NewSubsystem creates a new instance of the Subsystem struct
-func NewSubsystem(log *zap.Logger, cfg *config.Configuration) interfaces.Subsystem {
+func NewSubsystem(log *zap.Logger, cfg *config.Configuration, tls *map[string]basic.TLSInfo) interfaces.Subsystem {
 	name := "plugin"
 	ps := Subsystem{
 		Logger:  log.With(zap.String("module", name)),
 		Config:  cfg,
+		tls:     tls,
 		enabled: cfg.Plugins.Enabled,
 		name:    name,
 	}
@@ -31,6 +33,7 @@ func NewSubsystem(log *zap.Logger, cfg *config.Configuration) interfaces.Subsyst
 type Subsystem struct {
 	Logger    *zap.Logger
 	Config    *config.Configuration
+	tls       *map[string]basic.TLSInfo
 	enabled   bool
 	name      string // Subsystem name
 	endpoints []*endpoint.Endpoint
@@ -88,10 +91,10 @@ func (s *Subsystem) register() {
 	var tlsKey, tlsCert, tlsCACert *string
 	if s.Config.Plugins.TLS.Enabled {
 		profileName := s.Config.Plugins.TLS.Profile
-		if profile, ok := s.Config.TLS[profileName]; ok {
-			tlsCert = &profile.CertFile
-			tlsKey = &profile.KeyFile
-			tlsCACert = &profile.CAFile
+		if profile, ok := (*s.tls)[profileName]; ok {
+			tlsCert = &profile.CertFilename
+			tlsKey = &profile.KeyFilename
+			tlsCACert = &profile.CAFilename
 		}
 	}
 

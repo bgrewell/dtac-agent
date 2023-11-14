@@ -33,6 +33,7 @@ func NewTLSInfo(cfg *config.Configuration, log *zap.Logger) *map[string]TLSInfo 
 			Enabled:      c.Enabled,
 			CertFilename: c.CertFile,
 			KeyFilename:  c.KeyFile,
+			CAFilename:   c.CAFile,
 			Config:       c,
 			Logger:       log,
 		}
@@ -50,6 +51,7 @@ type TLSInfo struct {
 	Enabled      bool
 	CertFilename string
 	KeyFilename  string
+	CAFilename   string
 	Config       config.TLSConfigurationEntry
 	Logger       *zap.Logger
 }
@@ -58,9 +60,10 @@ type TLSInfo struct {
 func (tls *TLSInfo) Initialize() {
 	if tls.Config.Type == TLSTypeSelfSigned {
 		// Create default files if not specified and save to config
-		if tls.CertFilename == "" || tls.KeyFilename == "" {
+		if tls.CertFilename == "" || tls.KeyFilename == "" || (tls.CAFilename == "" && tls.Config.Type == TLSTypeSelfSigned) {
 			tls.CertFilename = config.DefaultTLSCertName
 			tls.KeyFilename = config.DefaultTLSKeyName
+			tls.CAFilename = config.DefaultTLSCACertName
 		}
 
 		// Ensure the directories exist and are secure
@@ -70,13 +73,17 @@ func (tls *TLSInfo) Initialize() {
 		if err := os.MkdirAll(filepath.Dir(tls.KeyFilename), 0700); err != nil {
 			tls.Logger.Fatal("failed to create certificate key directory", zap.Error(err))
 		}
+		if err := os.MkdirAll(filepath.Dir(tls.CAFilename), 0700); err != nil {
+			tls.Logger.Fatal("failed to create certificate CA directory", zap.Error(err))
+		}
 
 		// Ensure the files exist and create them if they do not
 		if _, err := os.Stat(tls.CertFilename); os.IsNotExist(err) {
 			if _, err := os.Stat(tls.KeyFilename); os.IsNotExist(err) {
 				tls.Logger.Info("generating self-signed certificate",
 					zap.String("cert", tls.CertFilename),
-					zap.String("key", tls.KeyFilename))
+					zap.String("key", tls.KeyFilename),
+					zap.String("ca", tls.CAFilename))
 
 				if err := GenerateSelfSignedCertKey(tls.Config); err != nil {
 					tls.Logger.Fatal("failed to generate self-signed certificate", zap.Error(err))

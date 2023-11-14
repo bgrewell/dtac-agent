@@ -253,6 +253,7 @@ func DefaultConfig() map[string]interface{} {
 		"apis.rest.port":                       8180,
 		"apis.rest.tls.enabled":                true,
 		"apis.rest.tls.profile":                "default",
+		"tls.default.enabled":                  true,
 		"tls.default.type":                     "self-signed",
 		"tls.default.ca":                       DefaultTLSCACertName,
 		"tls.default.cert":                     DefaultTLSCertName,
