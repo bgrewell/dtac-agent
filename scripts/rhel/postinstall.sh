@@ -1,5 +1,23 @@
 #!/usr/bin/env bash
 
+# Ensure Python 3 and pip are installed
+if ! command -v python3 &> /dev/null
+then
+    echo "Python 3 is not installed. Installing Python 3..."
+    yum update -y
+    yum install -y python3
+fi
+
+if ! command -v pip3 &> /dev/null
+then
+    echo "pip for Python 3 is not installed. Installing pip3..."
+    yum update -y
+    yum install -y python3-pip
+fi
+
+# Install dtac-tools globally using pip3
+pip3 install dtac-tools
+
 # install yq
 VERSION=v4.2.0
 BINARY=yq_linux_amd64

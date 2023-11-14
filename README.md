@@ -494,21 +494,30 @@ Below is an example code snippet of a functional example plugin written in Pytho
 #   Note-2: The plugin must be placed inside the DTAC Agent's plugin directory; default is /opt/dtac/plugins on Linux or C:\Program Files\Intel\dtac-agent\plugins on Windows
 ###################################################################################################################################################################################
 
-# You will import the PluginBase and BaseConfig types which will help to build your plugin
+# Import PluginBase and BaseConfig to assist in building your plugin.
+# - PluginBase: A base class for creating plugins.
+# - BaseConfig: A base configuration class for plugin settings.
 from dtac_tools.plugins.base import PluginBase, BaseConfig
 
-# You will import the PluginEndpoint type which is used to return information about the endpoints that your plugin will
-# serve. InputArgs and ReturnVal which are the type that plugins system uses for input arguments and return values and
-# finally LoggingLevel which is used by the centralized logging facilities
-from dtac_tools.plugins.types import PluginEndpoint, InputArgs, ReturnVal, LoggingLevel
+# Import various types used by the plugin system:
+# - PluginEndpoint: Defines the endpoints your plugin will serve, detailing each endpoint.
+# - InputArgs and ReturnVal: Types for input arguments and return values in the plugin system.
+# - LoggingLevel: Specifies log levels for the centralized logging facilities.
+# - EndpointAction: Enumerates possible actions an endpoint can perform.
+from dtac_tools.plugins.types import PluginEndpoint, InputArgs, ReturnVal, LoggingLevel, EndpointAction
 
-# You will import DefaultPluginhost to handle the hosting of your plugin
+# Import DefaultPluginHost for managing the hosting aspects of your plugin.
 from dtac_tools.host.default_host import DefaultPluginHost
 
-# If you have configuration options for your plugin you will want to create a class to assist in deserializing the config
-# during the registration phase. This needs to be composed of serializable types such as str, int, bool, etc.
+
+# Define the ExamplePluginConfig class to handle configuration options for your plugin.
+# This class is used for deserializing the configuration during the plugin's registration phase.
+# It should consist of serializable types such as str, int, bool, etc.
+# In this example, we define a configuration with a single 'message' field of type str.
+# This is optional and not needed if you do not have any configuration options.
 class ExamplePluginConfig(BaseConfig):
     message: str
+
 
 # ExamplePlugin here defines a plugin object and it inherits PluginBase
 class ExamplePlugin(PluginBase):
@@ -537,101 +546,111 @@ class ExamplePlugin(PluginBase):
         # This is where we hold our message string and we give it a defualt value (which will be overwritten if we get a confguration from the DTAC Agent at load time with the message value)
         self.message = "this is the default message which can be overridden by dtac"
 
-    # This helper function is not needed, it is only used if you want to override the path to your plugin. By default,
-    # the path will be the plugin filename without the extension. In this case it would be 'example' so methods exposed
-    # by this plugin would have the path 'example/<method_name>' such as 'example/message'. If you wanted to change that
-    # to something else you could do so by declaring this method here.
-    # For example in the REST API protocol would expose this then as 'http(s)://<host>:<port>/<plugins_root>/example/message'
+    # The `root_path` helper function is optional and allows you to customize the path to your plugin.
+    # By default, the path is derived from the plugin's filename, excluding its extension.
+    # For this plugin, the default path would be 'example', leading to endpoint paths like 'example/<method_name>', e.g., 'example/message'.
+    # If you wish to use a different root path, you can override it by implementing this method.
+    # For instance, using the REST API protocol, a custom path would be exposed as 'http(s)://<host>:<port>/<plugins_root>/example/message'.
     #
-    #def root_path(self) -> str:
-        #return "example"
+    # Uncomment and modify the following method to customize the plugin's root path:
+    # def root_path(self) -> str:
+    #     return "custom_path"  # Replace 'custom_path' with your desired root path
 
-    # register is a function that must be in all plugins with this signature. It is used to set up the handlers that the
-    # plugin will support. In this case it is a single handler called message that returns the message attribute for
-    # this class.
+
+    # The `register` function is essential in all plugins and should adhere to this signature.
+    # It's responsible for setting up the handlers that the plugin will support.
+    # In this example, there's a single handler named 'message' that returns the 'message' attribute of this class.
     def register(self, params) -> list[PluginEndpoint]:
-        # The params objects will pass through the configuration blob from the main DTAC Agent configuration file that was
-        # mentioned above. In the case of our example we will check to see if the configuration has been passed and if it
-        # has we will load it and set our internal message to the message value from the configuration.
-        if not params["config"] is None:
+        # The `params` object includes configuration data from the DTAC Agent's main configuration file.
+        # Here, we check if the configuration is provided and, if so, load it to set the internal 'message' attribute
+        # according to the 'message' value from the configuration.
+        if params["config"] is not None:
             config = self.load_config(params["config"], ExamplePluginConfig)
             self.message = config.message
 
-        # default_secure is passed in by the DTAC Agent and is a boolean that tells the plugin if it should use
-        # authenticated endpoints by default. The recommendation here is to always use this default value unless you
-        # specifically have endpoints that you want available without authentication. If you absolutely want endpoints
-        # to require authentication you could set the uses_auth field of them hardcoded to True however this is not
-        # recommended as there may be reasons the DTAC Agent administrator has default_secure set to false and manually
-        # hard coding them to True would break that.
+        # `default_secure` is a flag provided by the DTAC Agent indicating whether to use authenticated endpoints by default.
+        # The general recommendation is to adhere to this default unless there's a specific need for unauthenticated endpoints.
+        # Although you can force authentication by setting `uses_auth` to True for each endpoint, doing so might conflict
+        # with the DTAC Agent administrator's settings if `default_secure` is set to false.
         default_secure = True
-        if not params["default_secure"] is None:
+        if params["default_secure"] is not None:
             default_secure = params["default_secure"]
 
-        # Endpoints is a list of the endpoints that we support in the plugin.
-        # In this example it is just a single read endpoint that returns a message from the plugin.
-        # The supported actions are 'read', 'write', 'create' and 'delete'. In the case of REST these map to the HTTP
-        # methods GET, POST, PUT and DELETE respectively.
+        # `endpoints` is a list of supported endpoints in the plugin.
+        # This example includes a single 'read' endpoint that returns a message.
+        # The actions 'read', 'write', 'create', and 'delete' correspond to the HTTP methods GET, POST, PUT, and DELETE, respectively.
         endpoints = []
+
 
         # Create an endpoint for a 'read' request to example/message
         message_endpoint = PluginEndpoint(
-            function=self.print_message,  # function is the function that will be called when this endpoint is hit
-            path="message",               # path is the path that will be appended to the root_path to create the full path for this endpoint
-            action="read",                # action is the action that this endpoint will be registered as. This is used to determine what type of request this endpoint will handle
-            uses_auth=default_secure,     # uses_auth is a boolean that determines if this endpoint requires authentication or not. generally it should use default_secure which is a setting passed from the DTAC Agent
-            expected_args=None,           # expected args should be an object that represents the arguments you expect the client to pass into the endpoint
-            expected_body=None,           # expected body should represent the body of the request that you expect the client to pass into the endpoint
-            expected_output=None,         # expected output should represent the output that you expect the endpoint to return to the client
+            function=self.print_message,        # function is the function that will be called when this endpoint is hit
+            path="message",                     # path is the path that will be appended to the root_path to create the full path for this endpoint
+            action=EndpointAction.ActionRead,   # action is the action that this endpoint will be registered as. This is used to determine what type of request this endpoint will handle
+            uses_auth=default_secure,           # uses_auth is a boolean that determines if this endpoint requires authentication or not. generally it should use default_secure which is a setting passed from the DTAC Agent
+            expected_args=None,                 # expected args should be an object that represents the arguments you expect the client to pass into the endpoint
+            expected_body=None,                 # expected body should represent the body of the request that you expect the client to pass into the endpoint
+            expected_output=None,               # expected output should represent the output that you expect the endpoint to return to the client
         )
 
         # Add the endpoint to the endpoints collection
         endpoints.append(message_endpoint)
 
-        # This is just an example of how to use the centralized logging to output log messages through the agent, this
-        # is not required here and is simply here as an example. The logging should be available to use anywhere within
-        # your plugin. It is highly recommended to use the LevelFatal level if your plugin encounters an error and is
-        # going to exit. This ensures that the error is properly captured by the Agent and that the Agent understands
-        # that it was fatal and the plugin will be terminating.
+        # The following line demonstrate how to use centralized logging to output log messages via the agent.
+        # Note that this is only an example and not a requirement in this context. Centralized logging is accessible
+        # throughout your plugin.
+        # It's highly recommended to use the LevelFatal log level when your plugin encounters a critical error and
+        # needs to terminate. This ensures that the error is properly logged by the Agent, and it's clear that the
+        # error was fatal, indicating the plugin is about to shut down.
         self.log(LoggingLevel.LevelInfo, f"{self.name()} plugin registered", {"endpoint_count": str(len(endpoints))})
 
         # Return the endpoints collection
         return endpoints
 
-    # message is an example handler function.
-    # All handler functions take an InputArgs object as their input and return a ReturnVal object as their output.
+    # The `print_message` function serves as an example of a handler function.
+    # Handler functions accept an InputArgs object and return a ReturnVal object.
     def print_message(self, args: InputArgs) -> ReturnVal:
         return ReturnVal(
-            # Add any headers you want returned and added to the clients request. Where these actually end up depend on
-            # the API protocol in use in the DTAC Agent. For example with REST any of the headers here will be added to
-            # the response headers.
-            headers ={},
-            # Add any parameters you want returned here, these will be passed back to the client in the response. As with
-            # the headers where they end up depends on the API protocol in use in the DTAC Agent.
-            params ={},
-            # 'value' is the value that will be returned to the caller. In this case we are returning the message attribute
-            # from the plugin which is either the pre-set value or the value passed in from the DTAC Agent configuration.
-            # this can be any serializable type of data such as a string, int, list, dict, etc.
-            value = {"message": self.message},
+            # Specify any response headers to be added to the client's request.
+            # The final location of these headers depends on the API protocol used by the DTAC Agent.
+            # For instance, in REST, these headers will be part of the response headers.
+            headers={},
+
+            # Define any parameters to be returned in the response.
+            # These parameters are passed back to the client.
+            # Similar to headers, their location in the response depends on the DTAC Agent's API protocol.
+            params={},
+
+            # The 'value' field contains the data returned to the caller.
+            # Here, it returns the 'message' attribute, which could be a preset value or one from the DTAC Agent configuration.
+            # This field can hold any serializable data type, like a string, int, list, dict, etc.
+            value={"message": self.message},
         )
 
+
 def main():
-    # This is where you setup your plugin to be executed. When it is placed inside the plugins directory with the correct extension and shebang
-    # the DTAC Agent will find and execute it which will cause this main() method to be executed. This will create an instance of the plugin and
-    # register it with the plugin host which will relay the connection information back to the DTAC Agent and wait for a connection.
-    plugin = ExamplePlugin() # Get an instantiation of your plugin
-    host = DefaultPluginHost(plugin) # Create a host for your plugin
-    host.serve() # run the host
+    # This section initializes and sets up the plugin for execution.
+    # When placed in the plugins directory with the appropriate extension and shebang,
+    # the DTAC Agent will detect and run it, triggering this main() method.
+    # The process involves creating an instance of the plugin, registering it with the plugin host,
+    # and then waiting for a connection. The plugin host communicates the connection details back to the DTAC Agent.
 
-# Press the green button in the gutter to run the script.
+    plugin = ExamplePlugin()  # Instantiate your plugin
+    host = DefaultPluginHost(plugin)  # Create a host to manage your plugin
+    host.serve()  # Start the plugin host
+
+
 if __name__ == '__main__':
-    # When you run this you should see an output message about how you can't run a plugin directly, and it will exit
-    # if for some reason you want to run it without it exiting, for example to debug something you can do so by setting
-    # the env variable DTAC_PLUGINS=true which will allow the plugin to run, and you should see output like shown below.
-    # CONNECT{{ExamplePlugin:example:grpc:tcp:127.0.0.1:45985:plug_api_1.0:[enc=aNECin4i6qwaDMDVNRRs2n9wbJ603SdBjlwUUJ2fGNo%3D]}}
-    # which means things are working as expected as this is the output that tells the plugin loader how to talk to your
-    # plugin directly.
+     # Running this script directly will typically result in a message indicating that plugins cannot be run standalone,
+     # followed by an exit. This is the expected behavior in normal circumstances.
+     # However, if you wish to run the plugin for debugging purposes without it exiting, set the environment variable
+     # DTAC_PLUGINS=true. This allows the plugin to run, and you should see an output similar to:
+     # CONNECT{{ExamplePlugin:example:grpc:tcp:127.0.0.1:45985:plug_api_1.0:[enc=aNECin4i6qwaDMDVNRRs2n9wbJ603SdBjlwUUJ2fGNo%3D]}}
+     # This output is a positive indication, as it describes how the plugin loader communicates with your plugin.
 
-    # IMPORTANT: Make sure you plugin does not use standard out or standard error for anything as that could cause issues
-    # loading the plugin since the plugins output is used to negotiate the connection with the DTAC Agent plugin framework.
-    main()
+     # IMPORTANT: Avoid using standard output (stdout) or standard error (stderr) for any purpose within your plugin.
+     # The plugin's output is essential for negotiating connections with the DTAC Agent plugin framework, and any
+     # additional output could interfere with this process.
+     main()
+
 ```
