@@ -29,7 +29,7 @@ It is important to note that this project is under active development and as suc
 2. Open a terminal and navigate to the directory where the .deb package was downloaded.
 3. Run the following command to install the package:
    ```bash
-   sudo dpkg -i <package-name>.deb  
+   sudo apt install ./<package-name>.deb  
    ```
    *Replace `<package-name>` with the actual name of the package you downloaded.*
 
