@@ -1,3 +1,9 @@
+## v1.0.3 (2023-11-14)
+
+### Fix
+
+- modified goreleaser and scripts to handle python dependencies
+
 ## v1.0.2 (2023-11-14)
 
 ### Fix
