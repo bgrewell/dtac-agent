@@ -1,3 +1,10 @@
+## v1.0.4 (2023-11-14)
+
+### Fix
+
+- **config.go**: fix missing config value 'enabled' for default tls config
+- **postinstall.sh**: fix typo in config pass generation
+
 ## v1.0.3 (2023-11-14)
 
 ### Fix
