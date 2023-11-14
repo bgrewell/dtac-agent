@@ -6,8 +6,6 @@ import (
 	"fmt"
 	api "github.com/intel-innersource/frameworks.automation.dtac.agent/api/grpc/go"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/types/endpoint"
-	"net"
-	"runtime/debug"
 	"strings"
 )
 
@@ -131,22 +129,5 @@ func FromAPIEndpoint(ep *PluginEndpoint) *endpoint.Endpoint {
 		ExpectedArgs:   ep.ExpectedArgs,
 		ExpectedBody:   ep.ExpectedBody,
 		ExpectedOutput: ep.ExpectedOutput,
-	}
-}
-
-func sendErrorWithStackTrace(err error, address string) {
-	conn, udpErr := net.Dial("udp", address)
-	if udpErr != nil {
-		fmt.Printf("Failed to connect to UDP: %v\n", udpErr)
-		return
-	}
-	defer conn.Close()
-
-	stackTrace := debug.Stack()
-	message := fmt.Sprintf("Error: %v\nStack Trace:\n%s", err, stackTrace)
-
-	_, sendErr := conn.Write([]byte(message))
-	if sendErr != nil {
-		fmt.Printf("Failed to send error message: %v\n", sendErr)
 	}
 }
