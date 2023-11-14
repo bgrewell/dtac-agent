@@ -1,3 +1,18 @@
+## v1.0.0 (2023-11-14)
+
+### Feat
+
+- finish plugin rework and fixes
+- add logging support to plugins
+- add support for endpoints to describe their output
+
+### Refactor
+
+- remove .venv
+- moved types out of internal to pkg
+- **plugins**: simplify plugin creation
+- **scripts/rhel/postinstall.sh**: modify post-install
+
 ## v0.2.2 (2023-10-24)
 
 ### Refactor
