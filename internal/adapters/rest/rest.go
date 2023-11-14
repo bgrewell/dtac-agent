@@ -24,11 +24,18 @@ func NewAdapter(c *controller.Controller, tls *map[string]basic.TLSInfo) (adapte
 		return nil, errors.New("rest api is not enabled")
 	}
 
+	// Setup logger
 	name := "rest:api"
 	logger := c.Logger.With(zap.String("module", name))
+
+	// Setup gin logging
+	gin.SetMode(gin.ReleaseMode)
+	router := gin.Default()
+	router.Use(ginZapLoggerMiddleware(logger))
+
 	r := &Adapter{
 		controller: c,
-		router:     gin.Default(),
+		router:     router,
 		logger:     logger,
 		tls:        tls,
 		name:       name,
@@ -226,4 +233,23 @@ func (a *Adapter) createInputArgs(ctx *gin.Context) (*endpoint.InputArgs, error)
 	input.Body = body
 
 	return input, nil
+}
+
+// Custom middleware for Gin that uses Zap logger
+func ginZapLoggerMiddleware(logger *zap.Logger) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Start timer
+		start := time.Now()
+
+		// Process request
+		c.Next()
+
+		// Log request details
+		logger.Info("Request",
+			zap.String("method", c.Request.Method),
+			zap.String("path", c.Request.URL.Path),
+			zap.Int("status", c.Writer.Status()),
+			zap.Duration("duration", time.Since(start)),
+		)
+	}
 }
