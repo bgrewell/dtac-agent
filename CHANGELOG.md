@@ -1,3 +1,14 @@
+## v1.0.5 (2023-11-14)
+
+### Fix
+
+- fix plugin loading issues
+
+### Refactor
+
+- change formatting of some logging
+- **rest.go**: refactor REST adapter to use default logging framework
+
 ## v1.0.4 (2023-11-14)
 
 ### Fix
