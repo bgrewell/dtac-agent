@@ -25,12 +25,12 @@ func NewAdapter(c *controller.Controller, tls *map[string]basic.TLSInfo) (adapte
 	}
 
 	// Setup logger
-	name := "rest:api"
+	name := "api/rest"
 	logger := c.Logger.With(zap.String("module", name))
 
 	// Setup gin logging
 	gin.SetMode(gin.ReleaseMode)
-	router := gin.Default()
+	router := gin.New()
 	router.Use(ginZapLoggerMiddleware(logger))
 
 	r := &Adapter{
