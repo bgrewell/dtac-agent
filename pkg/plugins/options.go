@@ -11,6 +11,7 @@ import (
 type Options struct {
 	Encryption    bool
 	EncryptionKey string
+	TLSEnabled    bool
 }
 
 // ParseOptions parses the options string into an Options struct
@@ -43,6 +44,12 @@ func ParseOptions(optionsStr string) (options *Options, err error) {
 
 			switch key {
 			// Supported key=value pairs
+			case "tls":
+				enabled := false
+				if strings.ToLower(value) == "true" {
+					enabled = true
+				}
+				opts.TLSEnabled = enabled
 			case "enc":
 				opts.Encryption = true
 				decodedKey, err := url.QueryUnescape(value)

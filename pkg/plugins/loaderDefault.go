@@ -431,10 +431,6 @@ func (pl *DefaultPluginLoader) executePlugin(config *PluginConfig) (info *Plugin
 		return nil, err
 	}
 
-	// Try to clean up any key material that may be in memory
-	envs = nil
-	runtime.GC()
-
 	// Wait for command to execute and output to be available - TODO: Expose timeout as a config option
 	reader := bufio.NewReader(stdout)
 	ready, err := execute.SignalRead(reader, 2*time.Second)
@@ -445,6 +441,7 @@ func (pl *DefaultPluginLoader) executePlugin(config *PluginConfig) (info *Plugin
 	scanner := bufio.NewScanner(reader)
 	scanner.Scan()
 	output := scanner.Text()
+	pl.logger.Info("plugin output", zap.String("output", output))
 	output = strings.Replace(output, "CONNECT{{", "", 1)
 	output = strings.Replace(output, "}}", "", 1)
 	fields := strings.Split(output, ":")
@@ -457,6 +454,10 @@ func (pl *DefaultPluginLoader) executePlugin(config *PluginConfig) (info *Plugin
 	if err != nil {
 		return nil, err
 	}
+
+	// Try to clean up any key material that may be in memory
+	envs = nil
+	runtime.GC()
 
 	info = &PluginInfo{
 		Path:          config.PluginPath,

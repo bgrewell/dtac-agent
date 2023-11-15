@@ -141,6 +141,7 @@ func (ph *DefaultPluginHost) Serve() error {
 	// Setup any options
 	options := []string{
 		fmt.Sprintf("enc=%s", url.QueryEscape(ph.encryptor.KeyString())), // Set up the option to enable encryption
+		fmt.Sprintf("tls=%t", cert != "" && key != ""),                   // Set up the option to show if TLS is enabled
 	}
 	// Output connection information ( format: CONNECT{{NAME:ROOT_PATH:RPC_PROTO:TRANS_PROTO:IP:PORT:VER:OPTIONS}} )
 	fmt.Printf("CONNECT{{%s:%s:%s:%s:%s:%d:%s:[%s]}}\n", ph.Plugin.Name(), ph.Plugin.RootPath(), rpcProto, ph.Proto, ph.IP, ph.port, ph.APIVersion, strings.Join(options, ","))
