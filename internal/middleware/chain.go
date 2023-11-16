@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/types/endpoint"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
 	"sort"
 )
 

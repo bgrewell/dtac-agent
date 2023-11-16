@@ -1,7 +1,7 @@
 package interfaces
 
 import (
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/types/endpoint"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
 )
 
 // Subsystem is the interface for the subsystems

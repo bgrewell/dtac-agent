@@ -15,7 +15,7 @@ import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/middleware"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/types/endpoint"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
 	"github.com/twinj/uuid"
 	"go.uber.org/zap"
 	"os"

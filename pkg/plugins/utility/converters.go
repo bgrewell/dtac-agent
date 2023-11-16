@@ -3,7 +3,7 @@ package utility
 import (
 	"encoding/json"
 	api "github.com/intel-innersource/frameworks.automation.dtac.agent/api/grpc/go"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/types/endpoint"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
 )
 
 // ConvertToAPIInputArgs converts an endpoint InputArgs to an API InputArgs

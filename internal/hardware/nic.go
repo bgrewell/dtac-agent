@@ -3,7 +3,7 @@ package hardware
 import (
 	"fmt"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/types/endpoint"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
 	"github.com/shirou/gopsutil/net"
 	"go.uber.org/zap"
 )

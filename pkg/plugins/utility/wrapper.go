@@ -1,7 +1,7 @@
 package utility
 
 import (
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/types/endpoint"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
 )
 
 // PluginHandleWrapperWithHeaders is a generic handler that is used to help add additional context and measurements to calls without

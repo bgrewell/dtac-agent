@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/types/endpoint"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
 )
 
 func (s *Subsystem) getRoutesHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {

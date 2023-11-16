@@ -2,7 +2,7 @@ package network
 
 import (
 	"fmt"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/types/endpoint"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
 	"github.com/shirou/gopsutil/net"
 
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
