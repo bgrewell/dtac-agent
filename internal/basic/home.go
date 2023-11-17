@@ -1,6 +1,7 @@
 package basic
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
@@ -47,8 +48,9 @@ func (hps *HomePageSubsystem) register() {
 	// Routes
 	base := ""
 	secure := hps.Controller.Config.Auth.DefaultSecure
+	authz := endpoint.AuthGroupAdmin.String()
 	hps.endpoints = []*endpoint.Endpoint{
-		{Path: fmt.Sprintf("%s/", base), Action: endpoint.ActionRead, Function: hps.homeHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: HomeOutput{}},
+		endpoint.NewEndpoint(fmt.Sprintf("%s/", base), endpoint.ActionRead, hps.homeHandler, secure, authz, endpoint.WithOutput(HomeOutput{})),
 	}
 }
 
@@ -67,13 +69,13 @@ func (hps *HomePageSubsystem) Endpoints() []*endpoint.Endpoint {
 	return hps.endpoints
 }
 
-func (hps *HomePageSubsystem) homeHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
-	return helpers.HandleWrapper(in, func() (interface{}, error) {
+func (hps *HomePageSubsystem) homeHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		response := HomeOutput{
 			Message:   fmt.Sprintf("welcome to the %s", hps.Controller.Config.Internal.ProductName),
 			Version:   version.Current().String(),
 			Endpoints: hps.Controller.EndpointList.Endpoints,
 		}
-		return response, nil
+		return json.Marshal(response)
 	}, "dtac-agentd information")
 }

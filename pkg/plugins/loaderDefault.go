@@ -82,14 +82,15 @@ func (pl *DefaultPluginLoader) Initialize(secure bool) (loadedPlugins []*PluginI
 		}
 	}
 
-	// TODO: Need a better way to handle the secure flag
+	authz := endpoint.AuthGroupAdmin.String()
 	// Register control routes GET methods are just there for ease of use
 	endpoints := []*endpoint.Endpoint{
-		{Path: "load", Action: endpoint.ActionRead, UsesAuth: secure, Function: pl.Load, ExpectedArgs: LoadUnloadArgs{}, ExpectedBody: nil, ExpectedOutput: nil},
-		{Path: "load", Action: endpoint.ActionCreate, UsesAuth: secure, Function: pl.Load, ExpectedArgs: LoadUnloadArgs{}, ExpectedBody: nil, ExpectedOutput: nil},
-		{Path: "unload", Action: endpoint.ActionRead, UsesAuth: secure, Function: pl.Unload, ExpectedArgs: LoadUnloadArgs{}, ExpectedBody: nil, ExpectedOutput: nil},
-		{Path: "unload", Action: endpoint.ActionCreate, UsesAuth: secure, Function: pl.Unload, ExpectedArgs: LoadUnloadArgs{}, ExpectedBody: nil, ExpectedOutput: nil},
+		endpoint.NewEndpoint("load", endpoint.ActionRead, pl.Load, secure, authz, endpoint.WithParameters(LoadUnloadArgs{})),
+		endpoint.NewEndpoint("load", endpoint.ActionCreate, pl.Load, secure, authz, endpoint.WithParameters(LoadUnloadArgs{})),
+		endpoint.NewEndpoint("unload", endpoint.ActionRead, pl.Unload, secure, authz, endpoint.WithParameters(LoadUnloadArgs{})),
+		endpoint.NewEndpoint("unload", endpoint.ActionCreate, pl.Unload, secure, authz, endpoint.WithParameters(LoadUnloadArgs{})),
 	}
+
 	pl.endpoints = append(pl.endpoints, endpoints...)
 
 	return loadedPlugins, nil
@@ -169,7 +170,7 @@ func (pl *DefaultPluginLoader) RegisterPlugin(pluginName string) (err error) {
 		return err
 	}
 
-	ra := &api.RegisterArgs{
+	ra := &api.RegisterRequest{
 		Config:        string(configJSON),
 		DefaultSecure: pl.defaultSecure,
 	}
@@ -181,40 +182,28 @@ func (pl *DefaultPluginLoader) RegisterPlugin(pluginName string) (err error) {
 	}
 
 	// Convert the endpoints
-	plug.Endpoints = make([]*PluginEndpoint, 0)
-	for _, ep := range reply.Endpoints {
-		convertedEp, err := convertProtoToEndpoints(ep)
-		if err != nil {
-			return err
-		}
-		plug.Endpoints = append(plug.Endpoints, convertedEp)
-	}
+	plug.Endpoints = reply.Endpoints
 
 	// Record routes
 	endpoints := make([]*endpoint.Endpoint, 0)
-	for _, ep := range plug.Endpoints {
-		// Register endpoints
-		action, err := endpoint.ParseAction(ep.Action)
+	for _, aep := range plug.Endpoints {
+		// Ensure action is valid
+		_, err := endpoint.ParseAction(aep.Action)
 		if err != nil {
 			return err
 		}
-		fullPath := path.Join(plug.RootPath, ep.Path)
-		eep := &endpoint.Endpoint{ // Create an endpoint endpoint (vs a plugin endpoint)
-			Path:           fullPath,
-			Action:         action,
-			UsesAuth:       ep.UsesAuth,
-			Function:       nil, // This function pointer isn't used in the plugins and the function sigs don't match
-			ExpectedArgs:   ep.ExpectedArgs,
-			ExpectedBody:   ep.ExpectedBody,
-			ExpectedOutput: ep.ExpectedOutput,
-		}
-		endpoints = append(endpoints, eep)
+
+		// Register endpoints
+		handleFuncName := aep.Path
+		aep.Path = path.Join(plug.RootPath, aep.Path)
+		ep := utility.ConvertPluginEndpointToEndpoint(aep)
+		endpoints = append(endpoints, ep)
 
 		// Record route map
-		key := fmt.Sprintf("%s:%s", ep.Action, fullPath)
+		key := fmt.Sprintf("%s:%s", aep.Action, aep.Path)
 		entry := &HandlerEntry{
 			PluginName: plug.Name,
-			HandleFunc: ep.Path,
+			HandleFunc: handleFuncName,
 		}
 		pl.routeMap[key] = entry
 	}
@@ -284,9 +273,9 @@ func (pl *DefaultPluginLoader) ClosePlugin(pluginName string) (err error) {
 }
 
 // Load is used to load a plugin by name
-func (pl *DefaultPluginLoader) Load(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
-	return helpers.HandleWrapper(in, func() (interface{}, error) {
-		if m := in.Params["name"]; m[0] != "" {
+func (pl *DefaultPluginLoader) Load(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+	return helpers.HandleWrapper(in, func() ([]byte, error) {
+		if m := in.Parameters["name"]; m[0] != "" {
 			name := m[0]
 			if plug, ok := pl.plugins[name]; ok {
 				if !plug.HasExited {
@@ -304,7 +293,7 @@ func (pl *DefaultPluginLoader) Load(in *endpoint.InputArgs) (out *endpoint.Retur
 				return nil, fmt.Errorf("no plugin with the name %s found", name)
 			}
 
-			return "plugin loaded", nil
+			return []byte("plugin loaded"), nil
 		}
 
 		return nil, errors.New("missing 'name' parameter specifying the plugin name")
@@ -313,9 +302,9 @@ func (pl *DefaultPluginLoader) Load(in *endpoint.InputArgs) (out *endpoint.Retur
 }
 
 // Unload is used to unload a plugin by name
-func (pl *DefaultPluginLoader) Unload(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
-	return helpers.HandleWrapper(in, func() (interface{}, error) {
-		if m := in.Params["name"]; m[0] != "" {
+func (pl *DefaultPluginLoader) Unload(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+	return helpers.HandleWrapper(in, func() ([]byte, error) {
+		if m := in.Parameters["name"]; m[0] != "" {
 			name := m[0]
 			if plug, ok := pl.plugins[name]; ok {
 				if plug.HasExited {
@@ -333,7 +322,7 @@ func (pl *DefaultPluginLoader) Unload(in *endpoint.InputArgs) (out *endpoint.Ret
 				return nil, fmt.Errorf("no plugin with the name %s found", name)
 			}
 
-			return "plugin unloaded", nil
+			return []byte("plugin unloaded"), nil
 		}
 
 		return nil, errors.New("missing 'name' parameter specifying the plugin name")
@@ -348,7 +337,7 @@ func (pl *DefaultPluginLoader) Endpoints() []*endpoint.Endpoint {
 
 // CallShim is used to make a call into a plugins function. It acts as a shim between the main internal API and the
 // plugin.
-func (pl *DefaultPluginLoader) CallShim(ep *endpoint.Endpoint, in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+func (pl *DefaultPluginLoader) CallShim(ep *endpoint.Endpoint, in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
 
 	// Extract the RouteKey
 	keyPath := strings.TrimLeft(strings.Replace(ep.Path, pl.pluginRoot, "", 1), "/")
@@ -369,24 +358,20 @@ func (pl *DefaultPluginLoader) CallShim(ep *endpoint.Endpoint, in *endpoint.Inpu
 	// Get the plugin
 	plug := pl.plugins[handler.PluginName]
 
-	// Clear the context from the input object as it can't be carried across an RPC call
-	storedCtx := in.Context
-	in.Context = nil
-
-	// Make the rpc call pass in *endpoint.InputArgs and a *endpoint.ReturnVal for the reply
-	apiReq := &api.PluginRequest{
-		Method:    handler.HandleFunc,
-		InputArgs: utility.ConvertToAPIInputArgs(in),
+	// Setup the request message
+	erm := &api.EndpointRequestMessage{
+		Method:  handler.HandleFunc,
+		Request: utility.EndpointRequestToAPIEndpointRequest(in),
 	}
-	apiRes, err := plug.RPC.Call(context.Background(), apiReq)
+
+	// Make the rpc call
+	ret, err := plug.RPC.Call(context.Background(), erm)
 	if err != nil {
 		return nil, fmt.Errorf("failed to call plugin function: %s", err)
 	}
-	out = utility.ConvertToEndpointReturnVal(apiRes.ReturnVal)
-	out.Context = storedCtx
+	out = utility.APIEndpointResponseToEndpointResponse(ret.Response)
 
 	return out, nil
-
 }
 
 // executePlugin is called to launch a plugin
@@ -493,41 +478,4 @@ func (pl *DefaultPluginLoader) executePlugin(config *PluginConfig) (info *Plugin
 		info.HasExited = true
 	}()
 	return info, nil
-}
-
-func convertProtoToEndpoints(protoEP *api.PluginEndpoint) (*PluginEndpoint, error) {
-	var args, body, output interface{}
-	var err error
-	if protoEP.ExpectedArgs == "" || protoEP.ExpectedArgs == "null" {
-		args = nil
-	} else {
-		err = json.Unmarshal([]byte(protoEP.ExpectedArgs), &args)
-		if err != nil {
-			return nil, err
-		}
-	}
-	if protoEP.ExpectedBody == "" || protoEP.ExpectedBody == "null" {
-		body = nil
-	} else {
-		err = json.Unmarshal([]byte(protoEP.ExpectedBody), &body)
-		if err != nil {
-			return nil, err
-		}
-	}
-	if protoEP.ExpectedOutput == "" || protoEP.ExpectedOutput == "null" {
-		output = nil
-	} else {
-		err = json.Unmarshal([]byte(protoEP.ExpectedOutput), &output)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return &PluginEndpoint{
-		Path:           protoEP.Path,
-		Action:         protoEP.Action,
-		UsesAuth:       protoEP.UsesAuth,
-		ExpectedArgs:   args,
-		ExpectedBody:   body,
-		ExpectedOutput: output,
-	}, nil
 }

@@ -25,22 +25,21 @@ type JSONResponseFormatter struct {
 }
 
 // WriteResponse writes a response in JSON format
-func (f *JSONResponseFormatter) WriteResponse(c *gin.Context, duration time.Duration, obj interface{}) {
+func (f *JSONResponseFormatter) WriteResponse(c *gin.Context, duration time.Duration, obj []byte) {
 	var response interface{}
 
-	rawData, err := json.Marshal(obj)
-	if err != nil {
+	var js json.RawMessage
+	if err := json.Unmarshal(obj, &js); err != nil {
 		f.WriteError(c, err)
 		return
 	}
-	rawMsg := json.RawMessage(rawData)
 
-	c.Header("X-Exec-Duration", duration.String())
-	c.Header("X-Exec-Status", "success")
-	c.Header("X-Exec-Time", time.Now().Format(time.RFC3339Nano))
+	c.Header("X-DTAC-Duration", duration.String())
+	c.Header("X-DTAC-Status", "success")
+	c.Header("X-DTAC-Time", time.Now().Format(time.RFC3339Nano))
 
 	response = ResponseWrapper{
-		Response: rawMsg,
+		Response: js,
 	}
 
 	jout, err := json.Marshal(response)

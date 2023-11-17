@@ -1,6 +1,7 @@
 package hardware
 
 import (
+	"encoding/json"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
 	"github.com/shirou/gopsutil/disk"
@@ -74,31 +75,31 @@ func (ni *LiveDiskInfo) Info() *DiskReport {
 	return ni.DiskReport
 }
 
-func (s *Subsystem) diskRootHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
-	return helpers.HandleWrapper(in, func() (interface{}, error) {
+func (s *Subsystem) diskRootHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		s.disk.Update()
-		return s.disk.Info(), nil
+		return json.Marshal(s.disk.Info())
 	}, "disk information")
 }
 
-func (s *Subsystem) diskPartitionHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
-	return helpers.HandleWrapper(in, func() (interface{}, error) {
+func (s *Subsystem) diskPartitionHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		s.disk.Update()
-		return s.disk.Info().Partitions, nil
+		return json.Marshal(s.disk.Info().Partitions)
 	}, "disk partition information")
 }
 
-func (s *Subsystem) diskPhysicalDisksHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
-	return helpers.HandleWrapper(in, func() (interface{}, error) {
+func (s *Subsystem) diskPhysicalDisksHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		s.disk.Update()
-		return s.disk.Info().Disks, nil
+		return json.Marshal(s.disk.Info().Disks)
 	}, "physical disk information")
 }
 
-func (s *Subsystem) diskUsageHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
-	return helpers.HandleWrapper(in, func() (interface{}, error) {
+func (s *Subsystem) diskUsageHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		path := ""
-		if v, ok := in.Params["path"]; ok {
+		if v, ok := in.Parameters["path"]; ok {
 			path = v[0]
 		}
 		du := make([]*disk.UsageStat, 0)
@@ -112,7 +113,7 @@ func (s *Subsystem) diskUsageHandler(in *endpoint.InputArgs) (out *endpoint.Retu
 				}
 			}
 		}
-		return du, nil
+		return json.Marshal(du)
 
 	}, "disk usage information")
 }

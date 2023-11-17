@@ -28,8 +28,8 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PluginServiceClient interface {
-	Register(ctx context.Context, in *RegisterArgs, opts ...grpc.CallOption) (*RegisterReply, error)
-	Call(ctx context.Context, in *PluginRequest, opts ...grpc.CallOption) (*PluginResponse, error)
+	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
+	Call(ctx context.Context, in *EndpointRequestMessage, opts ...grpc.CallOption) (*EndpointResponseMessage, error)
 	LoggingStream(ctx context.Context, in *LoggingArgs, opts ...grpc.CallOption) (PluginService_LoggingStreamClient, error)
 }
 
@@ -41,8 +41,8 @@ func NewPluginServiceClient(cc grpc.ClientConnInterface) PluginServiceClient {
 	return &pluginServiceClient{cc}
 }
 
-func (c *pluginServiceClient) Register(ctx context.Context, in *RegisterArgs, opts ...grpc.CallOption) (*RegisterReply, error) {
-	out := new(RegisterReply)
+func (c *pluginServiceClient) Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error) {
+	out := new(RegisterResponse)
 	err := c.cc.Invoke(ctx, PluginService_Register_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -50,8 +50,8 @@ func (c *pluginServiceClient) Register(ctx context.Context, in *RegisterArgs, op
 	return out, nil
 }
 
-func (c *pluginServiceClient) Call(ctx context.Context, in *PluginRequest, opts ...grpc.CallOption) (*PluginResponse, error) {
-	out := new(PluginResponse)
+func (c *pluginServiceClient) Call(ctx context.Context, in *EndpointRequestMessage, opts ...grpc.CallOption) (*EndpointResponseMessage, error) {
+	out := new(EndpointResponseMessage)
 	err := c.cc.Invoke(ctx, PluginService_Call_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -95,8 +95,8 @@ func (x *pluginServiceLoggingStreamClient) Recv() (*LogMessage, error) {
 // All implementations must embed UnimplementedPluginServiceServer
 // for forward compatibility
 type PluginServiceServer interface {
-	Register(context.Context, *RegisterArgs) (*RegisterReply, error)
-	Call(context.Context, *PluginRequest) (*PluginResponse, error)
+	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
+	Call(context.Context, *EndpointRequestMessage) (*EndpointResponseMessage, error)
 	LoggingStream(*LoggingArgs, PluginService_LoggingStreamServer) error
 	mustEmbedUnimplementedPluginServiceServer()
 }
@@ -105,10 +105,10 @@ type PluginServiceServer interface {
 type UnimplementedPluginServiceServer struct {
 }
 
-func (UnimplementedPluginServiceServer) Register(context.Context, *RegisterArgs) (*RegisterReply, error) {
+func (UnimplementedPluginServiceServer) Register(context.Context, *RegisterRequest) (*RegisterResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
 }
-func (UnimplementedPluginServiceServer) Call(context.Context, *PluginRequest) (*PluginResponse, error) {
+func (UnimplementedPluginServiceServer) Call(context.Context, *EndpointRequestMessage) (*EndpointResponseMessage, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Call not implemented")
 }
 func (UnimplementedPluginServiceServer) LoggingStream(*LoggingArgs, PluginService_LoggingStreamServer) error {
@@ -128,7 +128,7 @@ func RegisterPluginServiceServer(s grpc.ServiceRegistrar, srv PluginServiceServe
 }
 
 func _PluginService_Register_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RegisterArgs)
+	in := new(RegisterRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -140,13 +140,13 @@ func _PluginService_Register_Handler(srv interface{}, ctx context.Context, dec f
 		FullMethod: PluginService_Register_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PluginServiceServer).Register(ctx, req.(*RegisterArgs))
+		return srv.(PluginServiceServer).Register(ctx, req.(*RegisterRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _PluginService_Call_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PluginRequest)
+	in := new(EndpointRequestMessage)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -158,7 +158,7 @@ func _PluginService_Call_Handler(srv interface{}, ctx context.Context, dec func(
 		FullMethod: PluginService_Call_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PluginServiceServer).Call(ctx, req.(*PluginRequest))
+		return srv.(PluginServiceServer).Call(ctx, req.(*EndpointRequestMessage))
 	}
 	return interceptor(ctx, in, info, handler)
 }

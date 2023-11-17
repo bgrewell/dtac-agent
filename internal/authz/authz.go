@@ -1,7 +1,9 @@
 package authz
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/casbin/casbin/v2"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/authndb"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
@@ -70,7 +72,7 @@ func (s *Subsystem) Endpoints() []*endpoint.Endpoint {
 // Handler handles the authentication middleware
 func (s *Subsystem) Handler(ep endpoint.Endpoint) endpoint.Func {
 	// Bypass authentication for endpoints that don't use auth
-	if !ep.UsesAuth {
+	if !ep.Secure {
 		return ep.Function
 	}
 	return s.AuthorizationHandler(ep.Function)
@@ -83,20 +85,30 @@ func (s *Subsystem) Priority() middleware.Priority {
 
 // AuthorizationHandler is the handler for authorization
 func (s *Subsystem) AuthorizationHandler(next endpoint.Func) endpoint.Func {
-	return func(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return func(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
 		s.Logger.Debug("authorization middleware called")
-		userCtx := in.Context.Value(types.ContextAuthUser)
-		if userCtx == nil {
+
+		// Check for metadata that is needed for authorization
+		if _, ok := in.Metadata[types.ContextAuthUser.String()]; !ok {
 			return nil, errors.New("user is not logged in")
 		}
-		user, ok := userCtx.(*authndb.User)
-		if !ok {
-			return nil, errors.New("error retrieving user from context")
+		if _, ok := in.Metadata[types.ContextResourceAction.String()]; !ok {
+			return nil, errors.New("resource action is not specified")
+		}
+		if _, ok := in.Metadata[types.ContextResourcePath.String()]; !ok {
+			return nil, errors.New("resource path is not specified")
+		}
+
+		var user authndb.User
+		userJson := in.Metadata[types.ContextAuthUser.String()]
+		err = json.Unmarshal([]byte(userJson), &user)
+		if err != nil {
+			return nil, fmt.Errorf("error retrieving user from context: %v", err)
 		}
 
 		// Extract action and path from context
-		action := in.Context.Value(types.ContextResourceAction).(endpoint.Action)
-		path := in.Context.Value(types.ContextResourcePath).(string)
+		action := in.Metadata[types.ContextResourceAction.String()]
+		path := in.Metadata[types.ContextResourcePath.String()]
 
 		s.Logger.Debug("Username", zap.String("username", user.Username))
 

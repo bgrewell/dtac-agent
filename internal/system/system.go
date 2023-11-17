@@ -1,6 +1,7 @@
 package system
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
@@ -46,12 +47,14 @@ func (s *Subsystem) register() {
 
 	// Endpoints
 	secure := s.Controller.Config.Auth.DefaultSecure
+	authz := endpoint.AuthGroupAdmin.String()
 	s.endpoints = []*endpoint.Endpoint{
-		{Path: fmt.Sprintf("%s/", base), Action: endpoint.ActionRead, Function: s.rootHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: &Info{}},
-		{Path: fmt.Sprintf("%s/uuid", base), Action: endpoint.ActionRead, Function: s.uuidHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: Info{}.UUID},
-		{Path: fmt.Sprintf("%s/product", base), Action: endpoint.ActionRead, Function: s.productHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: Info{}.ProductName},
-		{Path: fmt.Sprintf("%s/os", base), Action: endpoint.ActionRead, Function: s.osHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: nil},
+		endpoint.NewEndpoint(fmt.Sprintf("%s/", base), endpoint.ActionRead, s.rootHandler, secure, authz, endpoint.WithOutput(&Info{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/uuid", base), endpoint.ActionRead, s.uuidHandler, secure, authz, endpoint.WithOutput(Info{}.UUID)),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/product", base), endpoint.ActionRead, s.productHandler, secure, authz, endpoint.WithOutput(Info{}.ProductName)),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/os", base), endpoint.ActionRead, s.osHandler, secure, authz),
 	}
+
 }
 
 // Enabled returns true if the subsystem is enabled
@@ -69,26 +72,26 @@ func (s *Subsystem) Endpoints() []*endpoint.Endpoint {
 	return s.endpoints
 }
 
-func (s *Subsystem) rootHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
-	return helpers.HandleWrapper(in, func() (interface{}, error) {
-		return s.info, nil
+func (s *Subsystem) rootHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+	return helpers.HandleWrapper(in, func() ([]byte, error) {
+		return json.Marshal(s.info)
 	}, "system information")
 }
 
-func (s *Subsystem) uuidHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
-	return helpers.HandleWrapper(in, func() (interface{}, error) {
-		return s.info.UUID, nil
+func (s *Subsystem) uuidHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+	return helpers.HandleWrapper(in, func() ([]byte, error) {
+		return json.Marshal(s.info.UUID)
 	}, "system uuid identifier")
 }
 
-func (s *Subsystem) productHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
-	return helpers.HandleWrapper(in, func() (interface{}, error) {
-		return s.info.ProductName, nil
+func (s *Subsystem) productHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+	return helpers.HandleWrapper(in, func() ([]byte, error) {
+		return json.Marshal(s.info.ProductName)
 	}, "system product name")
 }
 
-func (s *Subsystem) osHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
-	return helpers.HandleWrapper(in, func() (interface{}, error) {
-		return s.info.serializeOs(), nil
+func (s *Subsystem) osHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+	return helpers.HandleWrapper(in, func() ([]byte, error) {
+		return json.Marshal(s.info.serializeOs())
 	}, "system operation system information")
 }

@@ -10,7 +10,7 @@ import (
 )
 
 // PluginMethod declares the signature of plugin endpoint methods
-type PluginMethod func(input *endpoint.InputArgs) (output *endpoint.ReturnVal, err error)
+type PluginMethod func(input *endpoint.EndpointRequest) (output *endpoint.EndpointResponse, err error)
 
 // PluginBase is a base struct that all plugins should embed as it implements the common shared methods
 type PluginBase struct {
@@ -20,12 +20,12 @@ type PluginBase struct {
 }
 
 // Register is a default implementation of the Register method that must be implemented by the plugin therefor this one returns an error
-func (p *PluginBase) Register(args RegisterArgs, reply *RegisterReply) error {
+func (p *PluginBase) Register(request *api.RegisterRequest, reply *api.RegisterResponse) error {
 	return errors.New("this method must be implemented by the plugin")
 }
 
 // Call is a shim that calls the appropriate method on the plugin
-func (p *PluginBase) Call(method string, args *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+func (p *PluginBase) Call(method string, args *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
 	key := strings.TrimPrefix(method, p.RootPath()+"/")
 	if f, exists := p.Methods[key]; exists {
 		return f(args)
@@ -105,29 +105,4 @@ func (p *PluginBase) Serialize(v interface{}) (string, error) {
 		return "", e
 	}
 	return string(b), nil
-}
-
-// ToAPIEndpoint converts an endpoint to the API PluginEndpoint type
-func ToAPIEndpoint(ep *endpoint.Endpoint) *PluginEndpoint {
-	return &PluginEndpoint{
-		Path:           ep.Path,
-		Action:         ep.Action.String(),
-		UsesAuth:       ep.UsesAuth,
-		ExpectedArgs:   ep.ExpectedArgs,
-		ExpectedBody:   ep.ExpectedBody,
-		ExpectedOutput: ep.ExpectedOutput,
-	}
-}
-
-// FromAPIEndpoint converts an API PluginEndpoint to an endpoint
-func FromAPIEndpoint(ep *PluginEndpoint) *endpoint.Endpoint {
-	action, _ := endpoint.ParseAction(ep.Action)
-	return &endpoint.Endpoint{
-		Path:           ep.Path,
-		Action:         action,
-		UsesAuth:       ep.UsesAuth,
-		ExpectedArgs:   ep.ExpectedArgs,
-		ExpectedBody:   ep.ExpectedBody,
-		ExpectedOutput: ep.ExpectedOutput,
-	}
 }

@@ -16,13 +16,13 @@ class PluginServiceStub(object):
         """
         self.Register = channel.unary_unary(
                 '/plugin.PluginService/Register',
-                request_serializer=plugin__pb2.RegisterArgs.SerializeToString,
-                response_deserializer=plugin__pb2.RegisterReply.FromString,
+                request_serializer=plugin__pb2.RegisterRequest.SerializeToString,
+                response_deserializer=plugin__pb2.RegisterResponse.FromString,
                 )
         self.Call = channel.unary_unary(
                 '/plugin.PluginService/Call',
-                request_serializer=plugin__pb2.PluginRequest.SerializeToString,
-                response_deserializer=plugin__pb2.PluginResponse.FromString,
+                request_serializer=plugin__pb2.EndpointRequestMessage.SerializeToString,
+                response_deserializer=plugin__pb2.EndpointResponseMessage.FromString,
                 )
         self.LoggingStream = channel.unary_stream(
                 '/plugin.PluginService/LoggingStream',
@@ -57,13 +57,13 @@ def add_PluginServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'Register': grpc.unary_unary_rpc_method_handler(
                     servicer.Register,
-                    request_deserializer=plugin__pb2.RegisterArgs.FromString,
-                    response_serializer=plugin__pb2.RegisterReply.SerializeToString,
+                    request_deserializer=plugin__pb2.RegisterRequest.FromString,
+                    response_serializer=plugin__pb2.RegisterResponse.SerializeToString,
             ),
             'Call': grpc.unary_unary_rpc_method_handler(
                     servicer.Call,
-                    request_deserializer=plugin__pb2.PluginRequest.FromString,
-                    response_serializer=plugin__pb2.PluginResponse.SerializeToString,
+                    request_deserializer=plugin__pb2.EndpointRequestMessage.FromString,
+                    response_serializer=plugin__pb2.EndpointResponseMessage.SerializeToString,
             ),
             'LoggingStream': grpc.unary_stream_rpc_method_handler(
                     servicer.LoggingStream,
@@ -92,8 +92,8 @@ class PluginService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/plugin.PluginService/Register',
-            plugin__pb2.RegisterArgs.SerializeToString,
-            plugin__pb2.RegisterReply.FromString,
+            plugin__pb2.RegisterRequest.SerializeToString,
+            plugin__pb2.RegisterResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -109,8 +109,8 @@ class PluginService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/plugin.PluginService/Call',
-            plugin__pb2.PluginRequest.SerializeToString,
-            plugin__pb2.PluginResponse.FromString,
+            plugin__pb2.EndpointRequestMessage.SerializeToString,
+            plugin__pb2.EndpointResponseMessage.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

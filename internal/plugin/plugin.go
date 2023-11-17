@@ -124,7 +124,7 @@ func (s *Subsystem) register() {
 		}
 
 		// Ensure all functions point to the plugin loaders shim
-		ep.Function = func(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+		ep.Function = func(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
 			return loader.CallShim(ep, in)
 		}
 	}

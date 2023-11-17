@@ -1,6 +1,7 @@
 package diag
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/endpoints"
@@ -47,11 +48,14 @@ func (s *Subsystem) register() {
 
 	// Endpoints
 	secure := s.Controller.Config.Auth.DefaultSecure
+	authz := endpoint.AuthGroupAdmin.String()
+
 	s.endpoints = []*endpoint.Endpoint{
-		{Path: fmt.Sprintf("%s/", base), Action: endpoint.ActionRead, Function: s.rootHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: version.Info{}},
-		{Path: fmt.Sprintf("%s/endpoints", base), Action: endpoint.ActionRead, Function: s.endpointListPrintHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: endpoints.EndpointList{}},
-		{Path: fmt.Sprintf("%s/runningas", base), Action: endpoint.ActionRead, Function: s.runningAsHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: types.UserGroup{}},
+		endpoint.NewEndpoint(fmt.Sprintf("%s/", base), endpoint.ActionRead, s.rootHandler, secure, authz, endpoint.WithOutput(version.Info{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/endpoints", base), endpoint.ActionRead, s.endpointListPrintHandler, secure, authz, endpoint.WithOutput(endpoints.EndpointList{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/runningas", base), endpoint.ActionRead, s.runningAsHandler, secure, authz, endpoint.WithOutput(types.UserGroup{})),
 	}
+
 }
 
 // Enabled returns true if this module is enabled otherwise it returns false
@@ -70,22 +74,26 @@ func (s *Subsystem) Endpoints() []*endpoint.Endpoint {
 }
 
 // rootHandler handles requests for the root path for this subsystem
-func (s *Subsystem) rootHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
-	return helpers.HandleWrapper(in, func() (interface{}, error) {
-		return version.Current(), nil
+func (s *Subsystem) rootHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+	return helpers.HandleWrapper(in, func() ([]byte, error) {
+		return json.Marshal(version.Current())
 	}, "diagnostic information")
 }
 
 // endpointListPrintHandler handles requests for the supported endpoints
-func (s *Subsystem) endpointListPrintHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
-	return helpers.HandleWrapper(in, func() (interface{}, error) {
-		return s.Controller.EndpointList, nil
+func (s *Subsystem) endpointListPrintHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+	return helpers.HandleWrapper(in, func() ([]byte, error) {
+		return json.Marshal(s.Controller.EndpointList)
 	}, "enabled api endpoints")
 }
 
 // runningAsHandler returns information about the user and group context the application is running as
-func (s *Subsystem) runningAsHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
-	return helpers.HandleWrapper(in, func() (interface{}, error) {
-		return AgentRunningAsUser()
+func (s *Subsystem) runningAsHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+	return helpers.HandleWrapper(in, func() ([]byte, error) {
+		user, err := AgentRunningAsUser()
+		if err != nil {
+			return nil, err
+		}
+		return json.Marshal(user)
 	}, "application running as user/group information")
 }

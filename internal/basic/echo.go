@@ -1,6 +1,7 @@
 package basic
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
@@ -54,8 +55,9 @@ func (es *EchoSubsystem) register() {
 
 	// Routes
 	secure := es.Controller.Config.Auth.DefaultSecure
+	authz := endpoint.AuthGroupAdmin.String()
 	es.endpoints = []*endpoint.Endpoint{
-		{Path: fmt.Sprintf("%s/", base), Action: endpoint.ActionRead, Function: es.rootHandler, UsesAuth: secure, ExpectedArgs: EchoArgs{}, ExpectedBody: nil, ExpectedOutput: EchoOutput{}},
+		endpoint.NewEndpoint(fmt.Sprintf("%s/", base), endpoint.ActionRead, es.rootHandler, secure, authz, endpoint.WithParameters(EchoArgs{}), endpoint.WithOutput(EchoOutput{})),
 	}
 }
 
@@ -74,10 +76,11 @@ func (es *EchoSubsystem) Endpoints() []*endpoint.Endpoint {
 	return es.endpoints
 }
 
-func (es *EchoSubsystem) rootHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
-	return helpers.HandleWrapper(in, func() (interface{}, error) {
-		if m := in.Params["msg"]; m[0] != "" {
-			return EchoOutput{Message: m[0]}, nil
+func (es *EchoSubsystem) rootHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+	return helpers.HandleWrapper(in, func() ([]byte, error) {
+		if m := in.Parameters["msg"]; m[0] != "" {
+			msg, err := json.Marshal(EchoOutput{Message: m[0]})
+			return msg, err
 		}
 
 		return nil, errors.New("missing parameter 'msg'")

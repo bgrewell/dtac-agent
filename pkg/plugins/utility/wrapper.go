@@ -2,37 +2,33 @@ package utility
 
 import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
+	"time"
 )
 
 // PluginHandleWrapperWithHeaders is a generic handler that is used to help add additional context and measurements to calls without
 // requiring the duplication of this code into every handler.
-func PluginHandleWrapperWithHeaders(in *endpoint.InputArgs, f func() (headers map[string][]string, retval interface{}, err error), description string) (out *endpoint.ReturnVal, err error) {
-	//start := time.Now()
+func PluginHandleWrapperWithHeaders(in *endpoint.EndpointRequest, f func() (headers map[string][]string, retval []byte, err error), description string) (out *endpoint.EndpointResponse, err error) {
+	start := time.Now()
 	headers, value, err := f()
 	if err != nil {
 		return nil, err
 	}
-	response := value
-	// TODO: Disabled for now, think more about if/how this is exposed later
-	//response := types.AnnotatedStruct{
-	//	Description: description,
-	//	Value:       value,
-	//}
-	//duration := time.Since(start) //TODO: Can't pass contexts through the RPC layer, so this is disabled for now
+
+	duration := time.Since(start) //TODO: Can't pass contexts through the RPC layer, so this is disabled for now
 	//ctx := context.WithValue(in.Context, types.ContextExecDuration, -1)
-	out = &endpoint.ReturnVal{
-		Context: nil,
-		Headers: headers,
-		Value:   response,
+	out = &endpoint.EndpointResponse{
+		Metadata: map[string]string{"duration": duration.String()},
+		Headers:  headers,
+		Value:    value,
 	}
 	return out, nil
 }
 
 // PluginHandleWrapper is a generic handler that is used to help add additional context and measurements to calls without
 // requiring the duplication of this code into every handler.
-func PluginHandleWrapper(in *endpoint.InputArgs, f func() (retval interface{}, err error), description string) (out *endpoint.ReturnVal, err error) {
+func PluginHandleWrapper(in *endpoint.EndpointRequest, f func() (retval []byte, err error), description string) (out *endpoint.EndpointResponse, err error) {
 	// Define a new function that matches the signature of the function expected by HandleWrapperWithHeaders
-	newFunc := func() (headers map[string][]string, retval interface{}, err error) {
+	newFunc := func() (headers map[string][]string, retval []byte, err error) {
 		retval, err = f()
 		// returning nil for headers map
 		return nil, retval, err

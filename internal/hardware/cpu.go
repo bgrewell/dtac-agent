@@ -1,6 +1,7 @@
 package hardware
 
 import (
+	"encoding/json"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
 	"github.com/shirou/gopsutil/cpu"
@@ -51,24 +52,27 @@ func (i *LiveCPUInfo) Percent(interval time.Duration, perCPU bool) ([]float64, e
 	return cpu.Percent(interval, perCPU)
 }
 
-func (s *Subsystem) cpuInfoHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
-	return helpers.HandleWrapper(in, func() (interface{}, error) {
+func (s *Subsystem) cpuInfoHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		s.cpu.Update()
-		return s.cpu.Info(), nil
+		return json.Marshal(s.cpu.Info())
 	}, "cpu information")
 }
 
-func (s *Subsystem) cpuUsageHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
-	return helpers.HandleWrapper(in, func() (interface{}, error) {
+func (s *Subsystem) cpuUsageHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		perCore := true
-		if v, ok := in.Params["per_core"]; ok {
+		if v, ok := in.Parameters["per_core"]; ok {
 			if v[0] != "" && strings.ToLower(v[0]) == "false" {
 				perCore = false
 			}
 		}
 		usage, err := cpu.Percent(time.Millisecond*100, perCore)
-		return CPUUsageOutput{
+		if err != nil {
+			return nil, err
+		}
+		return json.Marshal(CPUUsageOutput{
 			Usage: usage,
-		}, err
+		})
 	}, "cpu usage information")
 }

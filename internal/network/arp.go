@@ -1,6 +1,7 @@
 package network
 
 import (
+	"encoding/json"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
 )
@@ -15,12 +16,12 @@ type ArpEntry struct {
 	Iface     string `json:"device"`
 }
 
-func (s *Subsystem) arpTableHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
-	return helpers.HandleWrapper(in, func() (interface{}, error) {
+func (s *Subsystem) arpTableHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		arpData, err := GetArpTable()
 		if err != nil {
 			return nil, err
 		}
-		return arpData, nil
+		return json.Marshal(arpData)
 	}, "returns ARP table information from the system")
 }

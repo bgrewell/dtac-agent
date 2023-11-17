@@ -8,8 +8,8 @@ import (
 // Plugin interface that all plugins must implement
 type Plugin interface {
 	Name() string
-	Register(args RegisterArgs, reply *RegisterReply) error
-	Call(method string, args *endpoint.InputArgs) (out *endpoint.ReturnVal, err error)
+	Register(args *api.RegisterRequest, reply *api.RegisterResponse) error
+	Call(method string, args *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error)
 	RootPath() string
 	LoggingStream(stream api.PluginService_LoggingStreamServer) error
 }
