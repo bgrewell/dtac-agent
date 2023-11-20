@@ -484,6 +484,24 @@ func main() {
 }
 ```
 
+It is important to note that debugging plugins can be tricky and there are some good standard procedures to make this process a bit easier. ... TODO: Add code to dtac agent to help with debug attachment timing ... finish writing this section...
+
+This code at the start of the constructor for your plugin will enable you to attach a go debugger like the one in Goland to the running process.
+```go
+"net/http"
+_ "net/http/pprof"
+
+go func() {
+	log.Println(http.ListenAndServe("localhost:6060", nil))
+}()
+```
+
+To help keep code debuggable make sure you compile your plugin like this
+
+```bash
+go build -gcflags="all=-N -l" -o bin/plugins/hello.plugin cmd/plugins/hello/main.go 
+```
+
 #### Python
 
 Below is an example code snippet of a functional example plugin written in Python. The code is heavily commented to explain the process. 
