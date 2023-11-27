@@ -50,7 +50,7 @@ func (hps *HomePageSubsystem) register() {
 	secure := hps.Controller.Config.Auth.DefaultSecure
 	authz := endpoint.AuthGroupAdmin.String()
 	hps.endpoints = []*endpoint.Endpoint{
-		endpoint.NewEndpoint(fmt.Sprintf("%s/", base), endpoint.ActionRead, hps.homeHandler, secure, authz, endpoint.WithOutput(HomeOutput{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/", base), endpoint.ActionRead, "general dtac agent information", hps.homeHandler, secure, authz, endpoint.WithOutput(HomeOutput{})),
 	}
 }
 

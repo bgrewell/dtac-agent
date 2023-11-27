@@ -80,7 +80,7 @@ func (s *Subsystem) register() {
 	// Endpoints
 	authz := endpoint.AuthGroupGuest.String()
 	s.endpoints = []*endpoint.Endpoint{
-		endpoint.NewEndpoint(fmt.Sprintf("%s/login", base), endpoint.ActionCreate, s.loginHandler, false, authz, endpoint.WithBody(authndb.UserArgs{}), endpoint.WithOutput(AuthOutput{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/login", base), endpoint.ActionCreate, "login handler", s.loginHandler, false, authz, endpoint.WithBody(authndb.UserArgs{}), endpoint.WithOutput(AuthOutput{})),
 	}
 }
 

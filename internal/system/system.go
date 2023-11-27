@@ -49,10 +49,10 @@ func (s *Subsystem) register() {
 	secure := s.Controller.Config.Auth.DefaultSecure
 	authz := endpoint.AuthGroupAdmin.String()
 	s.endpoints = []*endpoint.Endpoint{
-		endpoint.NewEndpoint(fmt.Sprintf("%s/", base), endpoint.ActionRead, s.rootHandler, secure, authz, endpoint.WithOutput(&Info{})),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/uuid", base), endpoint.ActionRead, s.uuidHandler, secure, authz, endpoint.WithOutput(Info{}.UUID)),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/product", base), endpoint.ActionRead, s.productHandler, secure, authz, endpoint.WithOutput(Info{}.ProductName)),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/os", base), endpoint.ActionRead, s.osHandler, secure, authz),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/", base), endpoint.ActionRead, "general system information", s.rootHandler, secure, authz, endpoint.WithOutput(&Info{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/uuid", base), endpoint.ActionRead, "system uuid", s.uuidHandler, secure, authz, endpoint.WithOutput(Info{}.UUID)),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/product", base), endpoint.ActionRead, "system product", s.productHandler, secure, authz, endpoint.WithOutput(Info{}.ProductName)),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/os", base), endpoint.ActionRead, "operating system", s.osHandler, secure, authz),
 	}
 
 }

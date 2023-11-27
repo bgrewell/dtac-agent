@@ -51,9 +51,9 @@ func (s *Subsystem) register() {
 	authz := endpoint.AuthGroupAdmin.String()
 
 	s.endpoints = []*endpoint.Endpoint{
-		endpoint.NewEndpoint(fmt.Sprintf("%s/", base), endpoint.ActionRead, s.rootHandler, secure, authz, endpoint.WithOutput(version.Info{})),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/endpoints", base), endpoint.ActionRead, s.endpointListPrintHandler, secure, authz, endpoint.WithOutput(endpoints.EndpointList{})),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/runningas", base), endpoint.ActionRead, s.runningAsHandler, secure, authz, endpoint.WithOutput(types.UserGroup{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/", base), endpoint.ActionRead, "general diagnostic information", s.rootHandler, secure, authz, endpoint.WithOutput(version.Info{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/endpoints", base), endpoint.ActionRead, "list of endpoints", s.endpointListPrintHandler, secure, authz, endpoint.WithOutput(endpoints.EndpointList{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/runningas", base), endpoint.ActionRead, "information on current execution context", s.runningAsHandler, secure, authz, endpoint.WithOutput(types.UserGroup{})),
 	}
 
 }

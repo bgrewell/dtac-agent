@@ -74,20 +74,22 @@ message PluginEndpoint {
   string path = 1;
   // Action represents the type of operation this endpoint performs.
   string action = 2;
+  // Description is a human-readable description of the endpoint.
+  string description = 3;
   // Secure indicates whether this endpoint requires authentication and authorization.
-  bool secure = 3;
+  bool secure = 4;
   // AuthGroup specifies the minimum authorization group required to access this endpoint.
-  string auth_group = 4;
+  string auth_group = 5;
   // ExpectedMetadataSchema defines the JSON Schema for the expected metadata structure in the request.
-  string expected_metadata_schema = 5;
+  string expected_metadata_schema = 6;
   // ExpectedHeadersSchema defines the JSON Schema for the expected headers structure in the request.
-  string expected_headers_schema = 6;
+  string expected_headers_schema = 7;
   // ExpectedParametersSchema defines the JSON Schema for the expected parameters structure in the request.
-  string expected_parameters_schema = 7;
+  string expected_parameters_schema = 8;
   // ExpectedBodySchema defines the JSON Schema for the expected body structure in the request.
-  string expected_body_schema = 8;
+  string expected_body_schema = 9;
   // ExpectedOutputSchema defines the JSON Schema for the expected output structure in the response.
-  string expected_output_schema = 9;
+  string expected_output_schema = 10;
 }
 
 // Logging arguments which for now is empty

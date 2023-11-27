@@ -124,9 +124,10 @@ class RegisterResponse(_message.Message):
     def __init__(self, endpoints: _Optional[_Iterable[_Union[PluginEndpoint, _Mapping]]] = ...) -> None: ...
 
 class PluginEndpoint(_message.Message):
-    __slots__ = ["path", "action", "secure", "auth_group", "expected_metadata_schema", "expected_headers_schema", "expected_parameters_schema", "expected_body_schema", "expected_output_schema"]
+    __slots__ = ["path", "action", "description", "secure", "auth_group", "expected_metadata_schema", "expected_headers_schema", "expected_parameters_schema", "expected_body_schema", "expected_output_schema"]
     PATH_FIELD_NUMBER: _ClassVar[int]
     ACTION_FIELD_NUMBER: _ClassVar[int]
+    DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
     SECURE_FIELD_NUMBER: _ClassVar[int]
     AUTH_GROUP_FIELD_NUMBER: _ClassVar[int]
     EXPECTED_METADATA_SCHEMA_FIELD_NUMBER: _ClassVar[int]
@@ -136,6 +137,7 @@ class PluginEndpoint(_message.Message):
     EXPECTED_OUTPUT_SCHEMA_FIELD_NUMBER: _ClassVar[int]
     path: str
     action: str
+    description: str
     secure: bool
     auth_group: str
     expected_metadata_schema: str
@@ -143,7 +145,7 @@ class PluginEndpoint(_message.Message):
     expected_parameters_schema: str
     expected_body_schema: str
     expected_output_schema: str
-    def __init__(self, path: _Optional[str] = ..., action: _Optional[str] = ..., secure: bool = ..., auth_group: _Optional[str] = ..., expected_metadata_schema: _Optional[str] = ..., expected_headers_schema: _Optional[str] = ..., expected_parameters_schema: _Optional[str] = ..., expected_body_schema: _Optional[str] = ..., expected_output_schema: _Optional[str] = ...) -> None: ...
+    def __init__(self, path: _Optional[str] = ..., action: _Optional[str] = ..., description: _Optional[str] = ..., secure: bool = ..., auth_group: _Optional[str] = ..., expected_metadata_schema: _Optional[str] = ..., expected_headers_schema: _Optional[str] = ..., expected_parameters_schema: _Optional[str] = ..., expected_body_schema: _Optional[str] = ..., expected_output_schema: _Optional[str] = ...) -> None: ...
 
 class LoggingArgs(_message.Message):
     __slots__ = []

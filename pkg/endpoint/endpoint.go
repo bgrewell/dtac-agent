@@ -2,18 +2,18 @@ package endpoint
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/invopop/jsonschema"
 )
 
-func NewEndpoint(path string, action Action, function Func, secure bool, authGroup string, validators ...Validators) *Endpoint {
+func NewEndpoint(path string, action Action, description string, function Func, secure bool, authGroup string, validators ...Validators) *Endpoint {
 	ep := Endpoint{
-		Path:      path,
-		Action:    action,
-		Function:  function,
-		Secure:    secure,
-		AuthGroup: authGroup,
+		Path:        path,
+		Action:      action,
+		Description: description,
+		Function:    function,
+		Secure:      secure,
+		AuthGroup:   authGroup,
 	}
 
 	// Handle any input/output validation options
@@ -38,6 +38,9 @@ type Endpoint struct {
 
 	// Function is the actual function to be executed when this endpoint is called.
 	Function Func `json:"-" yaml:"-" toml:"-" mapstructure:"-"`
+
+	// Description is a text based description of the endpoint that is shown in documentation and help output.
+	Description string `json:"description,omitempty" yaml:"description,omitempty" toml:"description,omitempty" mapstructure:"description,omitempty"`
 
 	// Secure indicates whether this endpoint requires authentication and authorization.
 	Secure bool `json:"secure" yaml:"secure" toml:"secure" mapstructure:"secure"`
@@ -147,10 +150,14 @@ func (e *Endpoint) SetExpectedOutputSchema(data interface{}) error {
 
 // ValidateArgs validates the arguments of the request against the expected arguments
 func (e *Endpoint) ValidateArgs(request *EndpointRequest) error {
-	return errors.New("this method has not been implemented")
+	//TODO: Return errors until implemented. Currently just return nil to allow development/testing to continue
+	return nil
+	//return errors.New("this method has not been implemented")
 }
 
 // ValidateBody validates the body of the request against the expected body
 func (e *Endpoint) ValidateBody(request *EndpointRequest) error {
-	return errors.New("this method has not been implemented")
+	//TODO: Return errors until implemented. Currently just return nil to allow development/testing to continue
+	return nil
+	//return errors.New("this method has not been implemented")
 }

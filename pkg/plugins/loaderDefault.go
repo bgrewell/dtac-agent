@@ -17,7 +17,6 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"io"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -64,19 +63,22 @@ func (pl *DefaultPluginLoader) Initialize(secure bool) (loadedPlugins []*PluginI
 	}
 
 	for _, plug := range plugs {
-
+		// Inside here we don't return errors because we want to continue loading other plugins. Instead, we log the
+		// error and continue
 		if config, exists := pl.PluginConfigs[plug]; exists && config.Enabled || pl.loadUnconfiguredPlugins {
 
 			// Launch plugins
 			info, err := pl.LaunchPlugin(pl.PluginConfigs[plug])
 			if err != nil {
-				return nil, err
+				pl.logger.Error("failed to launch plugin", zap.String("plugin", plug), zap.Error(err))
+				continue
 			}
 
 			// Register plugins
 			err = pl.RegisterPlugin(info.Name)
 			if err != nil {
-				return nil, err
+				pl.logger.Error("failed to register plugin", zap.String("plugin", plug), zap.Error(err))
+				continue
 			}
 			loadedPlugins = append(loadedPlugins, info)
 		}
@@ -85,10 +87,10 @@ func (pl *DefaultPluginLoader) Initialize(secure bool) (loadedPlugins []*PluginI
 	authz := endpoint.AuthGroupAdmin.String()
 	// Register control routes GET methods are just there for ease of use
 	endpoints := []*endpoint.Endpoint{
-		endpoint.NewEndpoint("load", endpoint.ActionRead, pl.Load, secure, authz, endpoint.WithParameters(LoadUnloadArgs{})),
-		endpoint.NewEndpoint("load", endpoint.ActionCreate, pl.Load, secure, authz, endpoint.WithParameters(LoadUnloadArgs{})),
-		endpoint.NewEndpoint("unload", endpoint.ActionRead, pl.Unload, secure, authz, endpoint.WithParameters(LoadUnloadArgs{})),
-		endpoint.NewEndpoint("unload", endpoint.ActionCreate, pl.Unload, secure, authz, endpoint.WithParameters(LoadUnloadArgs{})),
+		endpoint.NewEndpoint("load", endpoint.ActionRead, "load a plugin", pl.Load, secure, authz, endpoint.WithParameters(LoadUnloadArgs{})),
+		endpoint.NewEndpoint("load", endpoint.ActionCreate, "load a plugin", pl.Load, secure, authz, endpoint.WithParameters(LoadUnloadArgs{})),
+		endpoint.NewEndpoint("unload", endpoint.ActionRead, "unload a plugin", pl.Unload, secure, authz, endpoint.WithParameters(LoadUnloadArgs{})),
+		endpoint.NewEndpoint("unload", endpoint.ActionCreate, "unload a plugin", pl.Unload, secure, authz, endpoint.WithParameters(LoadUnloadArgs{})),
 	}
 
 	pl.endpoints = append(pl.endpoints, endpoints...)
@@ -383,18 +385,25 @@ func (pl *DefaultPluginLoader) executePlugin(config *PluginConfig) (info *Plugin
 		}
 	}
 
+	// ensure that the plugin is writable only to root or the current process user
+	if onlyWriteable, err := utility.IsOnlyWritableByUserOrRoot(config.PluginPath); err != nil {
+		return nil, fmt.Errorf("failed to check if plugin is only writeable by root or self: %v", err)
+	} else if !onlyWriteable {
+		return nil, fmt.Errorf("plugin has incorrect file permissions. Only root or the current process user should have write access")
+	}
+
 	// Set the environment variables for TLS if configuration is present
 	envs := []string{"DTAC_PLUGINS=true"}
 
 	if pl.tlsCertFile != nil && pl.tlsKeyFile != nil {
 		certBytes, err := os.ReadFile(*pl.tlsCertFile)
 		if err != nil {
-			log.Fatalf("failed to read TLS cert file: %s", err.Error())
+			return nil, fmt.Errorf("failed to read TLS cert file: %s", err.Error())
 		}
 
 		keyBytes, err := os.ReadFile(*pl.tlsKeyFile)
 		if err != nil {
-			log.Fatalf("failed to read TLS key file: %s", err.Error())
+			return nil, fmt.Errorf("failed to read TLS key file: %s", err.Error())
 		}
 		cert := string(certBytes)
 		key := string(keyBytes)

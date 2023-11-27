@@ -58,15 +58,15 @@ func (s *Subsystem) register() {
 	secure := s.Controller.Config.Auth.DefaultSecure
 	authz := endpoint.AuthGroupAdmin.String() // Assuming this is the default authorization group
 	s.endpoints = []*endpoint.Endpoint{
-		endpoint.NewEndpoint(fmt.Sprintf("%s/cpu", base), endpoint.ActionRead, s.cpuInfoHandler, secure, authz, endpoint.WithOutput([]cpu.InfoStat{})),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/cpu/usage", base), endpoint.ActionRead, s.cpuUsageHandler, secure, authz, endpoint.WithParameters(CPUUsageArgs{}), endpoint.WithOutput(CPUUsageOutput{})),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/memory", base), endpoint.ActionRead, s.memInfoHandler, secure, authz, endpoint.WithOutput(&mem.VirtualMemoryStat{})),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/disk", base), endpoint.ActionRead, s.diskRootHandler, secure, authz, endpoint.WithOutput(&DiskReport{})),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/disk/partitions", base), endpoint.ActionRead, s.diskPartitionHandler, secure, authz, endpoint.WithOutput([]disk.PartitionStat{})),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/disk/disks", base), endpoint.ActionRead, s.diskPhysicalDisksHandler, secure, authz, endpoint.WithOutput([]*DiskDetails{})),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/disk/usage", base), endpoint.ActionRead, s.diskUsageHandler, secure, authz, endpoint.WithParameters(DiskUsageArgs{}), endpoint.WithOutput([]*disk.UsageStat{})),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/network", base), endpoint.ActionRead, s.nicRootHandler, secure, authz, endpoint.WithOutput([]net.InterfaceStat{})),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/network/interfaces", base), endpoint.ActionRead, s.nicRootHandler, secure, authz, endpoint.WithParameters(NicInfoArgs{}), endpoint.WithOutput([]net.InterfaceStat{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/cpu", base), endpoint.ActionRead, "cpu information", s.cpuInfoHandler, secure, authz, endpoint.WithOutput([]cpu.InfoStat{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/cpu/usage", base), endpoint.ActionRead, "cpu usage information", s.cpuUsageHandler, secure, authz, endpoint.WithParameters(CPUUsageArgs{}), endpoint.WithOutput(CPUUsageOutput{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/memory", base), endpoint.ActionRead, "memory information", s.memInfoHandler, secure, authz, endpoint.WithOutput(&mem.VirtualMemoryStat{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/disk", base), endpoint.ActionRead, "disk information", s.diskRootHandler, secure, authz, endpoint.WithOutput(&DiskReport{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/disk/partitions", base), endpoint.ActionRead, "disk partition information", s.diskPartitionHandler, secure, authz, endpoint.WithOutput([]disk.PartitionStat{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/disk/disks", base), endpoint.ActionRead, "list of physical disks", s.diskPhysicalDisksHandler, secure, authz, endpoint.WithOutput([]*DiskDetails{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/disk/usage", base), endpoint.ActionRead, "disk usage", s.diskUsageHandler, secure, authz, endpoint.WithParameters(DiskUsageArgs{}), endpoint.WithOutput([]*disk.UsageStat{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/network", base), endpoint.ActionRead, "network information", s.nicRootHandler, secure, authz, endpoint.WithOutput([]net.InterfaceStat{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/network/interfaces", base), endpoint.ActionRead, "network interface information", s.nicRootHandler, secure, authz, endpoint.WithParameters(NicInfoArgs{}), endpoint.WithOutput([]net.InterfaceStat{})),
 	}
 
 }

@@ -11,6 +11,7 @@ func ConvertPluginEndpointToEndpoint(ep *api.PluginEndpoint) *endpoint.Endpoint 
 	eep := &endpoint.Endpoint{ // Create an endpoint endpoint (vs a plugin endpoint)
 		Path:                     ep.Path,
 		Action:                   action,
+		Description:              ep.Description,
 		Secure:                   ep.Secure,
 		Function:                 nil,
 		AuthGroup:                ep.AuthGroup,
@@ -28,6 +29,7 @@ func ConvertEndpointToPluginEndpoint(ep *endpoint.Endpoint) *api.PluginEndpoint 
 	aep := &api.PluginEndpoint{
 		Path:                     ep.Path,
 		Action:                   ep.Action.String(),
+		Description:              ep.Description,
 		Secure:                   ep.Secure,
 		AuthGroup:                ep.AuthGroup,
 		ExpectedMetadataSchema:   ep.ExpectedMetadataSchema,

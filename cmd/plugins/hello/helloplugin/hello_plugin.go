@@ -6,6 +6,7 @@ import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins/utility"
+	_ "net/http/pprof"
 	"reflect"
 	"strconv"
 )
@@ -23,6 +24,12 @@ var _ plugins.Plugin = &HelloPlugin{}
 
 // NewHelloPlugin is a constructor that returns a new instance of the HelloPlugin
 func NewHelloPlugin() *HelloPlugin {
+	// Uncommenting the following anonymous function will allow remote debugging of the plugin by attaching a debugger
+	// like the one built into goland. This is useful for debugging plugins.
+	//go func() {
+	//	log.Println(http.ListenAndServe("localhost:6060", nil))
+	//}()
+
 	// Create a new instance of the plugin
 	hp := &HelloPlugin{
 		PluginBase: plugins.PluginBase{
@@ -75,7 +82,7 @@ func (h *HelloPlugin) Register(request *api.RegisterRequest, reply *api.Register
 	// Declare our endpoint(s)
 	authz := endpoint.AuthGroupAdmin.String()
 	endpoints := []*endpoint.Endpoint{
-		endpoint.NewEndpoint("hello", endpoint.ActionRead, h.Hello, request.DefaultSecure, authz, endpoint.WithOutput(&HelloMessage{}), nil),
+		endpoint.NewEndpoint("hello", endpoint.ActionRead, "this endpoint returns a hello world message", h.Hello, request.DefaultSecure, authz, endpoint.WithOutput(&HelloMessage{})),
 	}
 
 	// Register them with the plugin
