@@ -7,7 +7,7 @@ import (
 )
 
 // IsOnlyWritableByUserOrRoot checks if the file is only writable by the user or root.
-func IsOnlyWritableByUserOrRoot(filename string) bool {
+func IsOnlyWritableByUserOrRoot(filename string) (onlyWritable bool, err error) {
 	fileInfo, err := os.Stat(filename)
 	if err != nil {
 		return false, err
