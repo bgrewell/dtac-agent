@@ -1,3 +1,9 @@
+## v1.0.6 (2023-11-27)
+
+### Refactor
+
+- refactor endpoint struct locations and update code as needed
+
 ## v1.0.5 (2023-11-14)
 
 ### Fix
