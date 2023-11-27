@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# Install dtac-tools globally using pip3
-pip3 install dtac-tools
-
 # install yq
 VERSION=v4.2.0
 BINARY=yq_linux_amd64

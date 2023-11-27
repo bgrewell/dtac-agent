@@ -65,7 +65,7 @@ func (pl *DefaultPluginLoader) Initialize(secure bool) (loadedPlugins []*PluginI
 	for _, plug := range plugs {
 		// Inside here we don't return errors because we want to continue loading other plugins. Instead, we log the
 		// error and continue
-		if config, exists := pl.PluginConfigs[plug]; exists && config.Enabled || pl.loadUnconfiguredPlugins {
+		if config, exists := pl.PluginConfigs[plug]; (exists && config.Enabled) || (!exists && pl.loadUnconfiguredPlugins) {
 
 			// Launch plugins
 			info, err := pl.LaunchPlugin(pl.PluginConfigs[plug])
