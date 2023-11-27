@@ -1,3 +1,13 @@
+## v1.0.7 (2023-11-27)
+
+### Fix
+
+- **ownership_windows.go**: disable support for plugin ownership checks on Windows
+
+### Refactor
+
+- fix plugin writeable check
+
 ## v1.0.6 (2023-11-27)
 
 ### Refactor
