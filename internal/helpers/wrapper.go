@@ -8,7 +8,7 @@ import (
 
 // HandleWrapperWithHeaders is a generic handler that is used to help add additional context and measurements to calls without
 // requiring the duplication of this code into every handler.
-func HandleWrapperWithHeaders(in *endpoint.EndpointRequest, f func() (headers map[string][]string, retval []byte, err error), description string) (out *endpoint.EndpointResponse, err error) {
+func HandleWrapperWithHeaders(in *endpoint.Request, f func() (headers map[string][]string, retval []byte, err error), description string) (out *endpoint.Response, err error) {
 	start := time.Now()
 	headers, value, err := f()
 	if err != nil {
@@ -16,7 +16,7 @@ func HandleWrapperWithHeaders(in *endpoint.EndpointRequest, f func() (headers ma
 	}
 
 	duration := time.Since(start)
-	out = &endpoint.EndpointResponse{
+	out = &endpoint.Response{
 		Metadata: map[string]string{types.ContextExecDuration.String(): duration.String()},
 		Headers:  headers,
 		Value:    value,
@@ -26,7 +26,7 @@ func HandleWrapperWithHeaders(in *endpoint.EndpointRequest, f func() (headers ma
 
 // HandleWrapper is a generic handler that is used to help add additional context and measurements to calls without
 // requiring the duplication of this code into every handler.
-func HandleWrapper(in *endpoint.EndpointRequest, f func() (retval []byte, err error), description string) (out *endpoint.EndpointResponse, err error) {
+func HandleWrapper(in *endpoint.Request, f func() (retval []byte, err error), description string) (out *endpoint.Response, err error) {
 	// Define a new function that matches the signature of the function expected by HandleWrapperWithHeaders
 	newFunc := func() (headers map[string][]string, retval []byte, err error) {
 		retval, err = f()

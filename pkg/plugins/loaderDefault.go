@@ -275,7 +275,7 @@ func (pl *DefaultPluginLoader) ClosePlugin(pluginName string) (err error) {
 }
 
 // Load is used to load a plugin by name
-func (pl *DefaultPluginLoader) Load(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (pl *DefaultPluginLoader) Load(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		if m := in.Parameters["name"]; m[0] != "" {
 			name := m[0]
@@ -304,7 +304,7 @@ func (pl *DefaultPluginLoader) Load(in *endpoint.EndpointRequest) (out *endpoint
 }
 
 // Unload is used to unload a plugin by name
-func (pl *DefaultPluginLoader) Unload(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (pl *DefaultPluginLoader) Unload(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		if m := in.Parameters["name"]; m[0] != "" {
 			name := m[0]
@@ -339,7 +339,7 @@ func (pl *DefaultPluginLoader) Endpoints() []*endpoint.Endpoint {
 
 // CallShim is used to make a call into a plugins function. It acts as a shim between the main internal API and the
 // plugin.
-func (pl *DefaultPluginLoader) CallShim(ep *endpoint.Endpoint, in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (pl *DefaultPluginLoader) CallShim(ep *endpoint.Endpoint, in *endpoint.Request) (out *endpoint.Response, err error) {
 
 	// Extract the RouteKey
 	keyPath := strings.TrimLeft(strings.Replace(ep.Path, pl.pluginRoot, "", 1), "/")

@@ -109,7 +109,7 @@ func (s *Subsystem) Handler(ep endpoint.Endpoint) endpoint.Func {
 }
 
 // TODO: Need to make sure this function can access the context used for logging in
-func (s *Subsystem) loginHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (s *Subsystem) loginHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapperWithHeaders(in, func() (map[string][]string, []byte, error) {
 		var u authndb.User
 
@@ -163,8 +163,8 @@ func (s *Subsystem) loginHandler(in *endpoint.EndpointRequest) (out *endpoint.En
 		headers := map[string][]string{
 			"Authorization": {fmt.Sprintf("Bearer %s", token.AccessToken)},
 		}
-		tokensJson, err := json.Marshal(tokens)
-		return headers, tokensJson, nil
+		tokensJSON, err := json.Marshal(tokens)
+		return headers, tokensJSON, err
 	}, "authentication tokens")
 }
 
@@ -236,27 +236,29 @@ func (s *Subsystem) Priority() middleware.Priority {
 
 // AuthenticationHandler is the middleware function that is called before every secure request
 func (s *Subsystem) AuthenticationHandler(next endpoint.Func) endpoint.Func {
-	return func(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+	return func(in *endpoint.Request) (out *endpoint.Response, err error) {
 		// The AuthenticationHandler is a middleware function that is called before every secure request
 		// that is used to get the user_id from the JWT token and store it in the request context to be
 		// used by the Authorization handler
 		s.Logger.Debug("authentication middleware called")
-		if auth, ok := in.Metadata[types.ContextAuthHeader.String()]; !ok {
+		var ok bool
+		var auth string
+		if auth, ok = in.Metadata[types.ContextAuthHeader.String()]; !ok {
 			// Return error, API adapter should do a check to provide user with a more specific error
 			return nil, errors.New("unable to authenticate user")
-		} else {
-			user, err := s.authorizeUser(auth)
-			if err != nil {
-				return nil, err
-			}
-
-			userJson, err := json.Marshal(user)
-			if err != nil {
-				return nil, err
-			}
-			in.Metadata[types.ContextAuthUser.String()] = string(userJson)
-			return next(in)
 		}
+
+		user, err := s.authorizeUser(auth)
+		if err != nil {
+			return nil, err
+		}
+
+		userJSON, err := json.Marshal(user)
+		if err != nil {
+			return nil, err
+		}
+		in.Metadata[types.ContextAuthUser.String()] = string(userJSON)
+		return next(in)
 	}
 }
 

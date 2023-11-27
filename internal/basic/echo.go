@@ -76,7 +76,7 @@ func (es *EchoSubsystem) Endpoints() []*endpoint.Endpoint {
 	return es.endpoints
 }
 
-func (es *EchoSubsystem) rootHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (es *EchoSubsystem) rootHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		if m := in.Parameters["msg"]; m[0] != "" {
 			msg, err := json.Marshal(EchoOutput{Message: m[0]})

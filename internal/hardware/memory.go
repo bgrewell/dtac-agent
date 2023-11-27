@@ -34,7 +34,7 @@ func (i *LiveMemoryInfo) Info() *mem.VirtualMemoryStat {
 	return i.MemStats
 }
 
-func (s *Subsystem) memInfoHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (s *Subsystem) memInfoHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		s.mem.Update()
 		return json.Marshal(s.mem.Info())

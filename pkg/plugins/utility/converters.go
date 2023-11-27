@@ -41,8 +41,8 @@ func ConvertEndpointToPluginEndpoint(ep *endpoint.Endpoint) *api.PluginEndpoint 
 	return aep
 }
 
-// EndpointRequestToAPIEndpointRequest converts an endpoint.EndpointRequest to an api.EndpointRequest
-func EndpointRequestToAPIEndpointRequest(er *endpoint.EndpointRequest) *api.EndpointRequest {
+// EndpointRequestToAPIEndpointRequest converts an endpoint.Request to an api.Request
+func EndpointRequestToAPIEndpointRequest(er *endpoint.Request) *api.EndpointRequest {
 	headers := convertSliceToStringList(er.Headers)
 	params := convertSliceToStringList(er.Parameters)
 
@@ -54,12 +54,12 @@ func EndpointRequestToAPIEndpointRequest(er *endpoint.EndpointRequest) *api.Endp
 	}
 }
 
-// APIEndpointRequestToEndpointRequest converts an api.EndpointRequest to an endpoint.EndpointRequest
-func APIEndpointRequestToEndpointRequest(aer *api.EndpointRequest) *endpoint.EndpointRequest {
+// APIEndpointRequestToEndpointRequest converts an api.Request to an endpoint.Request
+func APIEndpointRequestToEndpointRequest(aer *api.EndpointRequest) *endpoint.Request {
 	headers := convertStringListToSlice(aer.Headers)
 	params := convertStringListToSlice(aer.Parameters)
 
-	return &endpoint.EndpointRequest{
+	return &endpoint.Request{
 		Metadata:   aer.Metadata,
 		Headers:    headers,
 		Parameters: params,
@@ -67,8 +67,8 @@ func APIEndpointRequestToEndpointRequest(aer *api.EndpointRequest) *endpoint.End
 	}
 }
 
-// EndpointResponseToAPIEndpointResponse converts an endpoint.EndpointResponse to an api.EndpointResponse
-func EndpointResponseToAPIEndpointResponse(er *endpoint.EndpointResponse) *api.EndpointResponse {
+// EndpointResponseToAPIEndpointResponse converts an endpoint.Response to an api.Response
+func EndpointResponseToAPIEndpointResponse(er *endpoint.Response) *api.EndpointResponse {
 	headers := convertSliceToStringList(er.Headers)
 	params := convertSliceToStringList(er.Parameters)
 
@@ -80,12 +80,12 @@ func EndpointResponseToAPIEndpointResponse(er *endpoint.EndpointResponse) *api.E
 	}
 }
 
-// APIEndpointResponseToEndpointResponse converts an api.EndpointResponse to an endpoint.EndpointResponse
-func APIEndpointResponseToEndpointResponse(aer *api.EndpointResponse) *endpoint.EndpointResponse {
+// APIEndpointResponseToEndpointResponse converts an api.Response to an endpoint.Response
+func APIEndpointResponseToEndpointResponse(aer *api.EndpointResponse) *endpoint.Response {
 	headers := convertStringListToSlice(aer.Headers)
 	params := convertStringListToSlice(aer.Parameters)
 
-	return &endpoint.EndpointResponse{
+	return &endpoint.Response{
 		Metadata:   aer.Metadata,
 		Headers:    headers,
 		Parameters: params,

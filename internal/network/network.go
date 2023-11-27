@@ -84,7 +84,7 @@ func (s *Subsystem) Endpoints() []*endpoint.Endpoint {
 	return s.endpoints
 }
 
-func (s *Subsystem) networkInfoHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (s *Subsystem) networkInfoHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		return json.Marshal(s.NicInfo.Info())
 	}, "basic information about the network interfaces on the system")

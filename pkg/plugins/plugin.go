@@ -9,7 +9,7 @@ import (
 type Plugin interface {
 	Name() string
 	Register(args *api.RegisterRequest, reply *api.RegisterResponse) error
-	Call(method string, args *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error)
+	Call(method string, args *endpoint.Request) (out *endpoint.Response, err error)
 	RootPath() string
 	LoggingStream(stream api.PluginService_LoggingStreamServer) error
 }

@@ -10,7 +10,7 @@ import (
 )
 
 // PluginMethod declares the signature of plugin endpoint methods
-type PluginMethod func(input *endpoint.EndpointRequest) (output *endpoint.EndpointResponse, err error)
+type PluginMethod func(input *endpoint.Request) (output *endpoint.Response, err error)
 
 // PluginBase is a base struct that all plugins should embed as it implements the common shared methods
 type PluginBase struct {
@@ -25,7 +25,7 @@ func (p *PluginBase) Register(request *api.RegisterRequest, reply *api.RegisterR
 }
 
 // Call is a shim that calls the appropriate method on the plugin
-func (p *PluginBase) Call(method string, args *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (p *PluginBase) Call(method string, args *endpoint.Request) (out *endpoint.Response, err error) {
 	key := strings.TrimPrefix(method, p.RootPath()+"/")
 	if f, exists := p.Methods[key]; exists {
 		return f(args)

@@ -85,7 +85,7 @@ func (s *Subsystem) Priority() middleware.Priority {
 
 // AuthorizationHandler is the handler for authorization
 func (s *Subsystem) AuthorizationHandler(next endpoint.Func) endpoint.Func {
-	return func(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+	return func(in *endpoint.Request) (out *endpoint.Response, err error) {
 		s.Logger.Debug("authorization middleware called")
 
 		// Check for metadata that is needed for authorization
@@ -100,8 +100,8 @@ func (s *Subsystem) AuthorizationHandler(next endpoint.Func) endpoint.Func {
 		}
 
 		var user authndb.User
-		userJson := in.Metadata[types.ContextAuthUser.String()]
-		err = json.Unmarshal([]byte(userJson), &user)
+		userJSON := in.Metadata[types.ContextAuthUser.String()]
+		err = json.Unmarshal([]byte(userJSON), &user)
 		if err != nil {
 			return nil, fmt.Errorf("error retrieving user from context: %v", err)
 		}

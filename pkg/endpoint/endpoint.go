@@ -6,6 +6,7 @@ import (
 	"github.com/invopop/jsonschema"
 )
 
+// NewEndpoint creates a new instance of the Endpoint struct
 func NewEndpoint(path string, action Action, description string, function Func, secure bool, authGroup string, validators ...Validators) *Endpoint {
 	ep := Endpoint{
 		Path:        path,
@@ -149,14 +150,14 @@ func (e *Endpoint) SetExpectedOutputSchema(data interface{}) error {
 }
 
 // ValidateArgs validates the arguments of the request against the expected arguments
-func (e *Endpoint) ValidateArgs(request *EndpointRequest) error {
+func (e *Endpoint) ValidateArgs(request *Request) error {
 	//TODO: Return errors until implemented. Currently just return nil to allow development/testing to continue
 	return nil
 	//return errors.New("this method has not been implemented")
 }
 
 // ValidateBody validates the body of the request against the expected body
-func (e *Endpoint) ValidateBody(request *EndpointRequest) error {
+func (e *Endpoint) ValidateBody(request *Request) error {
 	//TODO: Return errors until implemented. Currently just return nil to allow development/testing to continue
 	return nil
 	//return errors.New("this method has not been implemented")

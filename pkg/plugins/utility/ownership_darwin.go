@@ -6,6 +6,7 @@ import (
 	"syscall"
 )
 
+// IsOnlyWritableByUserOrRoot checks if the file is only writable by the user or root.
 func IsOnlyWritableByUserOrRoot(filename string) bool {
 	fileInfo, err := os.Stat(filename)
 	if err != nil {

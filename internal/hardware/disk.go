@@ -75,28 +75,28 @@ func (ni *LiveDiskInfo) Info() *DiskReport {
 	return ni.DiskReport
 }
 
-func (s *Subsystem) diskRootHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (s *Subsystem) diskRootHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		s.disk.Update()
 		return json.Marshal(s.disk.Info())
 	}, "disk information")
 }
 
-func (s *Subsystem) diskPartitionHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (s *Subsystem) diskPartitionHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		s.disk.Update()
 		return json.Marshal(s.disk.Info().Partitions)
 	}, "disk partition information")
 }
 
-func (s *Subsystem) diskPhysicalDisksHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (s *Subsystem) diskPhysicalDisksHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		s.disk.Update()
 		return json.Marshal(s.disk.Info().Disks)
 	}, "physical disk information")
 }
 
-func (s *Subsystem) diskUsageHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (s *Subsystem) diskUsageHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		path := ""
 		if v, ok := in.Parameters["path"]; ok {

@@ -69,7 +69,7 @@ func (hps *HomePageSubsystem) Endpoints() []*endpoint.Endpoint {
 	return hps.endpoints
 }
 
-func (hps *HomePageSubsystem) homeHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (hps *HomePageSubsystem) homeHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		response := HomeOutput{
 			Message:   fmt.Sprintf("welcome to the %s", hps.Controller.Config.Internal.ProductName),

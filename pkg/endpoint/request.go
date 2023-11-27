@@ -1,8 +1,8 @@
 package endpoint
 
-// EndpointRequest represents the data structure for a request made to an endpoint in the framework.
+// Request represents the data structure for a request made to an endpoint in the framework.
 // It encapsulates all the necessary information that an endpoint might need to process a request.
-type EndpointRequest struct {
+type Request struct {
 	// Metadata holds additional data that might be relevant to the processing of the request.
 	// This can include things like authentication tokens, trace IDs, etc.
 	Metadata map[string]string `json:"metadata,omitempty"`

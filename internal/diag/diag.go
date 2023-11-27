@@ -74,21 +74,21 @@ func (s *Subsystem) Endpoints() []*endpoint.Endpoint {
 }
 
 // rootHandler handles requests for the root path for this subsystem
-func (s *Subsystem) rootHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (s *Subsystem) rootHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		return json.Marshal(version.Current())
 	}, "diagnostic information")
 }
 
 // endpointListPrintHandler handles requests for the supported endpoints
-func (s *Subsystem) endpointListPrintHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (s *Subsystem) endpointListPrintHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		return json.Marshal(s.Controller.EndpointList)
 	}, "enabled api endpoints")
 }
 
 // runningAsHandler returns information about the user and group context the application is running as
-func (s *Subsystem) runningAsHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (s *Subsystem) runningAsHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		user, err := AgentRunningAsUser()
 		if err != nil {

@@ -6,7 +6,7 @@ import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins/utility"
-	_ "net/http/pprof"
+	_ "net/http/pprof" // Used for remote debugging of the plugin
 	"reflect"
 	"strconv"
 )
@@ -102,7 +102,7 @@ func (h *HelloPlugin) Register(request *api.RegisterRequest, reply *api.Register
 }
 
 // Hello is the handler for the hello world route
-func (h *HelloPlugin) Hello(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (h *HelloPlugin) Hello(in *endpoint.Request) (out *endpoint.Response, err error) {
 	// Here we use the utility wrapper to help us add some additional context to the call and simplify the
 	// code by having a helper function build the ReturnVal object for us.
 	return utility.PluginHandleWrapperWithHeaders(in, func() (map[string][]string, []byte, error) {

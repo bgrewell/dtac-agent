@@ -7,7 +7,7 @@ import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
 )
 
-func (s *Subsystem) getRoutesHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (s *Subsystem) getRoutesHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		rt, err := GetRouteTable()
 		if err != nil {
@@ -18,13 +18,13 @@ func (s *Subsystem) getRoutesHandler(in *endpoint.EndpointRequest) (out *endpoin
 	}, "route table entries")
 }
 
-func (s *Subsystem) getRouteHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (s *Subsystem) getRouteHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		return nil, errors.New("this function has not been migrated yet")
 	}, "")
 }
 
-func (s *Subsystem) createRouteHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (s *Subsystem) createRouteHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		var row RouteTableRow
 
@@ -48,7 +48,7 @@ func (s *Subsystem) createRouteHandler(in *endpoint.EndpointRequest) (out *endpo
 	}, "route has been created")
 }
 
-func (s *Subsystem) updateRouteHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (s *Subsystem) updateRouteHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		var row RouteTableRow
 
@@ -72,7 +72,7 @@ func (s *Subsystem) updateRouteHandler(in *endpoint.EndpointRequest) (out *endpo
 	}, "route has been updated")
 }
 
-func (s *Subsystem) deleteRouteHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (s *Subsystem) deleteRouteHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		var row RouteTableRow
 
@@ -95,30 +95,30 @@ func (s *Subsystem) deleteRouteHandler(in *endpoint.EndpointRequest) (out *endpo
 	}, "route has been deleted")
 }
 
-func (s *Subsystem) getRoutesUnifiedHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (s *Subsystem) getRoutesUnifiedHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		return nil, errors.New("this function has not been migrated yet")
 	}, "")
 }
 
-func (s *Subsystem) getRouteUnifiedHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (s *Subsystem) getRouteUnifiedHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		return nil, errors.New("this function has not been migrated yet")
 	}, "")
 }
 
-func (s *Subsystem) createRouteUnifiedHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (s *Subsystem) createRouteUnifiedHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		return nil, errors.New("this function has not been migrated yet")
 	}, "")
 }
 
-func (s *Subsystem) updateRouteUnifiedHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (s *Subsystem) updateRouteUnifiedHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		return nil, errors.New("this function has not been migrated yet")
 	}, "")
 }
-func (s *Subsystem) deleteRouteUnifiedHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (s *Subsystem) deleteRouteUnifiedHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		return nil, errors.New("this function has not been migrated yet")
 	}, "")

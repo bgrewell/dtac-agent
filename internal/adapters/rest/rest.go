@@ -211,8 +211,8 @@ func (a *Adapter) shim(method string, ep *endpoint.Endpoint) {
 	})
 }
 
-func (a *Adapter) createInputArgs(ctx *gin.Context) (*endpoint.EndpointRequest, error) {
-	input := &endpoint.EndpointRequest{
+func (a *Adapter) createInputArgs(ctx *gin.Context) (*endpoint.Request, error) {
+	input := &endpoint.Request{
 		Metadata:   make(map[string]string),
 		Headers:    make(map[string][]string),
 		Parameters: make(map[string][]string),

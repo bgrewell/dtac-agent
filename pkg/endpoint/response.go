@@ -1,8 +1,8 @@
 package endpoint
 
-// EndpointResponse represents the data structure for the response returned from an endpoint.
+// Response represents the data structure for the response returned from an endpoint.
 // It contains all the data that an endpoint would return in response to a request.
-type EndpointResponse struct {
+type Response struct {
 	// Metadata holds additional data about the response, similar to the request metadata.
 	// This can include things like execution time, server information, etc.
 	Metadata map[string]string `json:"metadata,omitempty"`

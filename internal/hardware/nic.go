@@ -41,7 +41,7 @@ func (ni *LiveNicInfo) Info() []net.InterfaceStat {
 }
 
 // rootHandler handles requests for the root path for this subsystem
-func (s *Subsystem) nicRootHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (s *Subsystem) nicRootHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		name := ""
 		if v, ok := in.Parameters["name"]; ok {

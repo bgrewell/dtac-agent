@@ -52,14 +52,14 @@ func (i *LiveCPUInfo) Percent(interval time.Duration, perCPU bool) ([]float64, e
 	return cpu.Percent(interval, perCPU)
 }
 
-func (s *Subsystem) cpuInfoHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (s *Subsystem) cpuInfoHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		s.cpu.Update()
 		return json.Marshal(s.cpu.Info())
 	}, "cpu information")
 }
 
-func (s *Subsystem) cpuUsageHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (s *Subsystem) cpuUsageHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		perCore := true
 		if v, ok := in.Parameters["per_core"]; ok {

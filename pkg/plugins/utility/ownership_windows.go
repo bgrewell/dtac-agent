@@ -4,6 +4,7 @@ import (
 	"golang.org/x/sys/windows"
 )
 
+// IsOnlyWritableByUserOrRoot checks if the file is only writable by the user or root.
 func IsOnlyWritableByUserOrRoot(filename string) (onlyWritable bool, err error) {
 	// Get the Windows SID of the current user
 	user, err := windows.CurrentUser()

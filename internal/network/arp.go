@@ -16,7 +16,7 @@ type ArpEntry struct {
 	Iface     string `json:"device"`
 }
 
-func (s *Subsystem) arpTableHandler(in *endpoint.EndpointRequest) (out *endpoint.EndpointResponse, err error) {
+func (s *Subsystem) arpTableHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		arpData, err := GetArpTable()
 		if err != nil {
