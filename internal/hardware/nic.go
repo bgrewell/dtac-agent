@@ -1,6 +1,7 @@
 package hardware
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
@@ -40,21 +41,21 @@ func (ni *LiveNicInfo) Info() []net.InterfaceStat {
 }
 
 // rootHandler handles requests for the root path for this subsystem
-func (s *Subsystem) nicRootHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
-	return helpers.HandleWrapper(in, func() (interface{}, error) {
+func (s *Subsystem) nicRootHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
+	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		name := ""
-		if v, ok := in.Params["name"]; ok {
+		if v, ok := in.Parameters["name"]; ok {
 			name = v[0]
 		}
 
 		s.nic.Update()
 		if name == "" {
-			return s.nic.Info(), nil
+			return json.Marshal(s.nic.Info())
 		}
 
 		for _, info := range s.nic.Info() {
 			if info.Name == name {
-				return info, nil
+				return json.Marshal(info)
 			}
 		}
 

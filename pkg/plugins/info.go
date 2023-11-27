@@ -10,7 +10,7 @@ type PluginInfo struct {
 	Path          string
 	Name          string
 	RootPath      string
-	Endpoints     []*PluginEndpoint
+	Endpoints     []*api.PluginEndpoint
 	Pid           int
 	RPCProto      string
 	Proto         string

@@ -20,7 +20,7 @@ type PluginLoader interface {
 	UnregisterPlugin(pluginName string) (err error)
 	ClosePlugin(pluginName string) (err error)
 	Endpoints() []*endpoint.Endpoint
-	CallShim(ep *endpoint.Endpoint, in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error)
+	CallShim(ep *endpoint.Endpoint, in *endpoint.Request) (out *endpoint.Response, err error)
 }
 
 // NewPluginLoader takes in the plugin directory, the sanity cookie and the routeGroup.

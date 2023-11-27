@@ -1,6 +1,7 @@
 package hardware
 
 import (
+	"encoding/json"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
 	"github.com/shirou/gopsutil/mem"
@@ -33,9 +34,9 @@ func (i *LiveMemoryInfo) Info() *mem.VirtualMemoryStat {
 	return i.MemStats
 }
 
-func (s *Subsystem) memInfoHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
-	return helpers.HandleWrapper(in, func() (interface{}, error) {
+func (s *Subsystem) memInfoHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
+	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		s.mem.Update()
-		return s.mem.Info(), nil
+		return json.Marshal(s.mem.Info())
 	}, "memory information")
 }

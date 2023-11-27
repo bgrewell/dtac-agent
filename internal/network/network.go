@@ -1,6 +1,7 @@
 package network
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
 	"github.com/shirou/gopsutil/net"
@@ -48,22 +49,24 @@ func (s *Subsystem) register() {
 
 	// Endpoints
 	secure := s.Controller.Config.Auth.DefaultSecure
+	authz := endpoint.AuthGroupAdmin.String() // Assuming this is the default authorization group
 	s.endpoints = []*endpoint.Endpoint{
-		// OS Specific Endpoints
-		{Path: fmt.Sprintf("%s/", base), Action: endpoint.ActionRead, Function: s.networkInfoHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: []net.InterfaceStat{}},
-		{Path: fmt.Sprintf("%s/arp", base), Action: endpoint.ActionRead, Function: s.arpTableHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: []ArpEntry{}},
-		{Path: fmt.Sprintf("%s/routes", base), Action: endpoint.ActionRead, Function: s.getRoutesHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: []RouteTableRow{}},
-		{Path: fmt.Sprintf("%s/route", base), Action: endpoint.ActionRead, Function: s.getRouteHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: nil},
-		{Path: fmt.Sprintf("%s/route", base), Action: endpoint.ActionWrite, Function: s.updateRouteHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: RouteTableRowArgs{}, ExpectedOutput: []RouteTableRow{}},
-		{Path: fmt.Sprintf("%s/route", base), Action: endpoint.ActionCreate, Function: s.createRouteHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: RouteTableRowArgs{}, ExpectedOutput: []RouteTableRow{}},
-		{Path: fmt.Sprintf("%s/route", base), Action: endpoint.ActionDelete, Function: s.deleteRouteHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: RouteTableRowArgs{}, ExpectedOutput: []RouteTableRow{}},
+		endpoint.NewEndpoint(fmt.Sprintf("%s/", base), endpoint.ActionRead, "network information", s.networkInfoHandler, secure, authz, endpoint.WithOutput([]net.InterfaceStat{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/arp", base), endpoint.ActionRead, "arp table information", s.arpTableHandler, secure, authz, endpoint.WithOutput([]ArpEntry{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/routes", base), endpoint.ActionRead, "route table information", s.getRoutesHandler, secure, authz, endpoint.WithOutput([]RouteTableRow{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/route", base), endpoint.ActionRead, "route information", s.getRouteHandler, secure, authz),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/route", base), endpoint.ActionWrite, "update existing route", s.updateRouteHandler, secure, authz, endpoint.WithBody(RouteTableRowArgs{}), endpoint.WithOutput([]RouteTableRow{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/route", base), endpoint.ActionCreate, "create new route", s.createRouteHandler, secure, authz, endpoint.WithBody(RouteTableRowArgs{}), endpoint.WithOutput([]RouteTableRow{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/route", base), endpoint.ActionDelete, "delete route", s.deleteRouteHandler, secure, authz, endpoint.WithBody(RouteTableRowArgs{}), endpoint.WithOutput([]RouteTableRow{})),
+
 		// Unified Endpoints
-		{Path: fmt.Sprintf("%s/routes", unified), Action: endpoint.ActionRead, Function: s.getRoutesUnifiedHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: nil},
-		{Path: fmt.Sprintf("%s/route", unified), Action: endpoint.ActionRead, Function: s.getRouteUnifiedHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: nil},
-		{Path: fmt.Sprintf("%s/route", unified), Action: endpoint.ActionWrite, Function: s.updateRouteUnifiedHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: nil},
-		{Path: fmt.Sprintf("%s/route", unified), Action: endpoint.ActionCreate, Function: s.createRouteUnifiedHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: nil},
-		{Path: fmt.Sprintf("%s/route", unified), Action: endpoint.ActionDelete, Function: s.deleteRouteUnifiedHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: nil},
+		endpoint.NewEndpoint(fmt.Sprintf("%s/routes", unified), endpoint.ActionRead, "os agnostic route table information", s.getRoutesUnifiedHandler, secure, authz),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/route", unified), endpoint.ActionRead, "os agnostic route information", s.getRouteUnifiedHandler, secure, authz),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/route", unified), endpoint.ActionWrite, "os agnostic update exiting route", s.updateRouteUnifiedHandler, secure, authz),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/route", unified), endpoint.ActionCreate, "os agnostic create new route", s.createRouteUnifiedHandler, secure, authz),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/route", unified), endpoint.ActionDelete, "os agnostic delete route", s.deleteRouteUnifiedHandler, secure, authz),
 	}
+
 }
 
 // Enabled returns true if the subsystem is enabled
@@ -81,8 +84,8 @@ func (s *Subsystem) Endpoints() []*endpoint.Endpoint {
 	return s.endpoints
 }
 
-func (s *Subsystem) networkInfoHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
-	return helpers.HandleWrapper(in, func() (interface{}, error) {
-		return s.NicInfo.Info(), nil
+func (s *Subsystem) networkInfoHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
+	return helpers.HandleWrapper(in, func() ([]byte, error) {
+		return json.Marshal(s.NicInfo.Info())
 	}, "basic information about the network interfaces on the system")
 }

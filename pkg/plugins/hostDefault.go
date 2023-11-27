@@ -31,7 +31,7 @@ type DefaultPluginHost struct {
 
 // Register acts as a shim between the gRPC interface and the plugin interface. It handles conversion then calls the
 // plugin's Register method.
-func (ph *DefaultPluginHost) Register(ctx context.Context, request *api.RegisterArgs) (*api.RegisterReply, error) {
+func (ph *DefaultPluginHost) Register(ctx context.Context, request *api.RegisterRequest) (*api.RegisterResponse, error) {
 	// Convert the config
 	var config map[string]interface{}
 	err := json.Unmarshal([]byte(request.Config), &config)
@@ -40,45 +40,31 @@ func (ph *DefaultPluginHost) Register(ctx context.Context, request *api.Register
 	}
 
 	// Register the plugin
-	req := RegisterArgs{
-		DefaultSecure: request.DefaultSecure,
-		Config:        config,
-	}
-	rep := RegisterReply{}
-	err = ph.Plugin.Register(req, &rep)
+	response := &api.RegisterResponse{}
+	err = ph.Plugin.Register(request, response)
 	if err != nil {
 		return nil, err
 	}
 
-	eps := make([]*api.PluginEndpoint, 0)
-	for _, ep := range rep.Endpoints {
-		protoEp, err := convertEndpointToProto(ep)
-		if err != nil {
-			return nil, err
-		}
-		eps = append(eps, protoEp)
-	}
-	reply := &api.RegisterReply{
-		Endpoints: eps,
-	}
-	return reply, nil
+	return response, nil
 }
 
 // Call acts as a shim between the gRPC interface and the plugin interface. It handles conversion then calls the
 // plugin's Call method.
-func (ph *DefaultPluginHost) Call(ctx context.Context, request *api.PluginRequest) (*api.PluginResponse, error) {
-	// Convert the input args
-	in := utility.ConvertToEndpointInputArgs(request.InputArgs)
-	out, err := ph.Plugin.Call(request.Method, in)
+func (ph *DefaultPluginHost) Call(ctx context.Context, request *api.EndpointRequestMessage) (*api.EndpointResponseMessage, error) {
+	// Call the plugin
+	in := utility.APIEndpointRequestToEndpointRequest(request.Request)
+	ret, err := ph.Plugin.Call(request.Method, in)
 	if err != nil {
 		return nil, err
 	}
 
-	outAPI := utility.ConvertToAPIReturnVal(out)
-	return &api.PluginResponse{
-		Id:        1,  // Unused
-		Error:     "", // Unused - hold-over from previous implementation doesn't make sense here since we return an actual error object
-		ReturnVal: outAPI,
+	// Return result
+	out := utility.EndpointResponseToAPIEndpointResponse(ret)
+	return &api.EndpointResponseMessage{
+		Id:       1,  // Unused
+		Error:    "", // Unused - hold-over from previous implementation doesn't make sense here since we return an actual error object
+		Response: out,
 	}, nil
 }
 
@@ -169,27 +155,4 @@ func (ph *DefaultPluginHost) Serve() error {
 // GetPort returns the port the plugin host is listening on
 func (ph *DefaultPluginHost) GetPort() int {
 	return ph.port
-}
-
-func convertEndpointToProto(endpoint *PluginEndpoint) (*api.PluginEndpoint, error) {
-	argsJSON, err := json.Marshal(endpoint.ExpectedArgs)
-	if err != nil {
-		return nil, err
-	}
-	bodyJSON, err := json.Marshal(endpoint.ExpectedBody)
-	if err != nil {
-		return nil, err
-	}
-	outputJSON, err := json.Marshal(endpoint.ExpectedOutput)
-	if err != nil {
-		return nil, err
-	}
-	return &api.PluginEndpoint{
-		Path:           endpoint.Path,
-		Action:         endpoint.Action,
-		UsesAuth:       endpoint.UsesAuth,
-		ExpectedArgs:   string(argsJSON),
-		ExpectedBody:   string(bodyJSON),
-		ExpectedOutput: string(outputJSON),
-	}, nil
 }

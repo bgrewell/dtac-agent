@@ -1,7 +1,6 @@
 package authn
 
 import (
-	"context"
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/base64"
@@ -79,8 +78,9 @@ func (s *Subsystem) register() {
 	base := s.name
 
 	// Endpoints
+	authz := endpoint.AuthGroupGuest.String()
 	s.endpoints = []*endpoint.Endpoint{
-		{Path: fmt.Sprintf("%s/login", base), Action: endpoint.ActionCreate, Function: s.loginHandler, UsesAuth: false, ExpectedArgs: nil, ExpectedBody: authndb.UserArgs{}, ExpectedOutput: AuthOutput{}},
+		endpoint.NewEndpoint(fmt.Sprintf("%s/login", base), endpoint.ActionCreate, "login handler", s.loginHandler, false, authz, endpoint.WithBody(authndb.UserArgs{}), endpoint.WithOutput(AuthOutput{})),
 	}
 }
 
@@ -102,15 +102,15 @@ func (s *Subsystem) Endpoints() []*endpoint.Endpoint {
 // Handler handles the authentication middleware
 func (s *Subsystem) Handler(ep endpoint.Endpoint) endpoint.Func {
 	// Bypass authentication for endpoints that don't use auth
-	if !ep.UsesAuth {
+	if !ep.Secure {
 		return ep.Function
 	}
 	return s.AuthenticationHandler(ep.Function)
 }
 
 // TODO: Need to make sure this function can access the context used for logging in
-func (s *Subsystem) loginHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
-	return helpers.HandleWrapperWithHeaders(in, func() (map[string][]string, interface{}, error) {
+func (s *Subsystem) loginHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
+	return helpers.HandleWrapperWithHeaders(in, func() (map[string][]string, []byte, error) {
 		var u authndb.User
 
 		// Transform the body into a RouteTableRow
@@ -163,8 +163,8 @@ func (s *Subsystem) loginHandler(in *endpoint.InputArgs) (out *endpoint.ReturnVa
 		headers := map[string][]string{
 			"Authorization": {fmt.Sprintf("Bearer %s", token.AccessToken)},
 		}
-
-		return headers, tokens, nil
+		tokensJSON, err := json.Marshal(tokens)
+		return headers, tokensJSON, err
 	}, "authentication tokens")
 }
 
@@ -236,21 +236,28 @@ func (s *Subsystem) Priority() middleware.Priority {
 
 // AuthenticationHandler is the middleware function that is called before every secure request
 func (s *Subsystem) AuthenticationHandler(next endpoint.Func) endpoint.Func {
-	return func(in *endpoint.InputArgs) (out *endpoint.ReturnVal, err error) {
+	return func(in *endpoint.Request) (out *endpoint.Response, err error) {
 		// The AuthenticationHandler is a middleware function that is called before every secure request
 		// that is used to get the user_id from the JWT token and store it in the request context to be
 		// used by the Authorization handler
 		s.Logger.Debug("authentication middleware called")
-		auth := in.Context.Value(types.ContextAuthHeader)
-		if auth == nil {
+		var ok bool
+		var auth string
+		if auth, ok = in.Metadata[types.ContextAuthHeader.String()]; !ok {
 			// Return error, API adapter should do a check to provide user with a more specific error
 			return nil, errors.New("unable to authenticate user")
 		}
-		user, err := s.authorizeUser(auth.(string))
+
+		user, err := s.authorizeUser(auth)
 		if err != nil {
 			return nil, err
 		}
-		in.Context = context.WithValue(in.Context, types.ContextAuthUser, user)
+
+		userJSON, err := json.Marshal(user)
+		if err != nil {
+			return nil, err
+		}
+		in.Metadata[types.ContextAuthUser.String()] = string(userJSON)
 		return next(in)
 	}
 }

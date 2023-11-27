@@ -153,35 +153,35 @@ func (a *Adapter) shim(method string, ep *endpoint.Endpoint) {
 		}
 
 		// TODO: Look at moving validation somewhere central so API's don't have to do it
-		err = ep.ValidateArgs(in)
-		if err != nil {
-			a.logger.Error("failed to validate input args", zap.Error(err))
-			a.formatter.WriteError(c, err)
-			return
-		}
-
-		// TODO: Look at moving validation somewhere central so API's don't have to do it
-		// TODO: Look at deserialization of body and storage in a central manner to ease endpoint dup code
-		err = ep.ValidateBody(in)
-		if err != nil {
-			a.logger.Error("failed to validate input body", zap.Error(err))
-			a.formatter.WriteError(c, err)
-			return
-		}
+		//err = ep.ValidateArgs(in)
+		//if err != nil {
+		//	a.logger.Error("failed to validate input args", zap.Error(err))
+		//	a.formatter.WriteError(c, err)
+		//	return
+		//}
+		//
+		//// TODO: Look at moving validation somewhere central so API's don't have to do it
+		//// TODO: Look at deserialization of body and storage in a central manner to ease endpoint dup code
+		//err = ep.ValidateBody(in)
+		//if err != nil {
+		//	a.logger.Error("failed to validate input body", zap.Error(err))
+		//	a.formatter.WriteError(c, err)
+		//	return
+		//}
 
 		// If this is a secured endpoint check for the authorization header
-		if ep.UsesAuth {
+		if ep.Secure {
 			auth := c.GetHeader("Authorization")
 			if auth == "" {
 				a.formatter.WriteUnauthorizedError(c, errors.New("authorization header is missing"))
 				return
 			}
-			in.Context = context.WithValue(in.Context, types.ContextAuthHeader, auth)
+			in.Metadata[types.ContextAuthHeader.String()] = auth
 		}
 
 		// Add additional context
-		in.Context = context.WithValue(in.Context, types.ContextResourceAction, ep.Action)
-		in.Context = context.WithValue(in.Context, types.ContextResourcePath, ep.Path)
+		in.Metadata[types.ContextResourceAction.String()] = ep.Action.String()
+		in.Metadata[types.ContextResourcePath.String()] = ep.Path
 
 		out, err := ep.Function(in)
 		if err != nil {
@@ -198,8 +198,12 @@ func (a *Adapter) shim(method string, ep *endpoint.Endpoint) {
 		}
 
 		// If timing information is present then write it out
-		if et, ok := out.Context.Value(types.ContextExecDuration).(time.Duration); ok {
-			a.formatter.WriteResponse(c, et, out.Value)
+		if et, ok := out.Metadata[types.ContextExecDuration.String()]; ok {
+			duration, err := time.ParseDuration(et)
+			if err != nil {
+				duration = -1
+			}
+			a.formatter.WriteResponse(c, duration, out.Value)
 		} else {
 			a.formatter.WriteResponse(c, -1, out.Value)
 		}
@@ -207,12 +211,12 @@ func (a *Adapter) shim(method string, ep *endpoint.Endpoint) {
 	})
 }
 
-func (a *Adapter) createInputArgs(ctx *gin.Context) (*endpoint.InputArgs, error) {
-	input := &endpoint.InputArgs{
-		Context: ctx.Request.Context(),
-		Headers: make(map[string][]string),
-		Params:  make(map[string][]string),
-		Body:    nil,
+func (a *Adapter) createInputArgs(ctx *gin.Context) (*endpoint.Request, error) {
+	input := &endpoint.Request{
+		Metadata:   make(map[string]string),
+		Headers:    make(map[string][]string),
+		Parameters: make(map[string][]string),
+		Body:       nil,
 	}
 
 	// Populate headers
@@ -222,7 +226,7 @@ func (a *Adapter) createInputArgs(ctx *gin.Context) (*endpoint.InputArgs, error)
 
 	// Populate query parameters
 	for k, v := range ctx.Request.URL.Query() {
-		input.Params[k] = v
+		input.Parameters[k] = v
 	}
 
 	// Read request body

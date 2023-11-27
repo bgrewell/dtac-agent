@@ -1,99 +1,110 @@
 package utility
 
 import (
-	"encoding/json"
 	api "github.com/intel-innersource/frameworks.automation.dtac.agent/api/grpc/go"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
 )
 
-// ConvertToAPIInputArgs converts an endpoint InputArgs to an API InputArgs
-func ConvertToAPIInputArgs(ea *endpoint.InputArgs) *api.InputArgs {
-	headers := make(map[string]*api.StringList)
-	for key, values := range ea.Headers {
-		headers[key] = &api.StringList{Values: values}
+// ConvertPluginEndpointToEndpoint converts an api.PluginEndpoint to an endpoint.Endpoint
+func ConvertPluginEndpointToEndpoint(ep *api.PluginEndpoint) *endpoint.Endpoint {
+	action, _ := endpoint.ParseAction(ep.Action)
+	eep := &endpoint.Endpoint{ // Create an endpoint endpoint (vs a plugin endpoint)
+		Path:                     ep.Path,
+		Action:                   action,
+		Description:              ep.Description,
+		Secure:                   ep.Secure,
+		Function:                 nil,
+		AuthGroup:                ep.AuthGroup,
+		ExpectedMetadataSchema:   ep.ExpectedMetadataSchema,
+		ExpectedHeadersSchema:    ep.ExpectedHeadersSchema,
+		ExpectedParametersSchema: ep.ExpectedParametersSchema,
+		ExpectedBodySchema:       ep.ExpectedBodySchema,
+		ExpectedOutputSchema:     ep.ExpectedOutputSchema,
 	}
+	return eep
+}
 
-	params := make(map[string]*api.StringList)
-	for key, values := range ea.Params {
-		params[key] = &api.StringList{Values: values}
+// ConvertEndpointToPluginEndpoint converts an endpoint.Endpoint to an api.PluginEndpoint
+func ConvertEndpointToPluginEndpoint(ep *endpoint.Endpoint) *api.PluginEndpoint {
+	aep := &api.PluginEndpoint{
+		Path:                     ep.Path,
+		Action:                   ep.Action.String(),
+		Description:              ep.Description,
+		Secure:                   ep.Secure,
+		AuthGroup:                ep.AuthGroup,
+		ExpectedMetadataSchema:   ep.ExpectedMetadataSchema,
+		ExpectedHeadersSchema:    ep.ExpectedHeadersSchema,
+		ExpectedParametersSchema: ep.ExpectedParametersSchema,
+		ExpectedBodySchema:       ep.ExpectedBodySchema,
+		ExpectedOutputSchema:     ep.ExpectedOutputSchema,
 	}
+	return aep
+}
 
-	return &api.InputArgs{
-		Headers: headers,
-		Params:  params,
-		Body:    ea.Body,
+// EndpointRequestToAPIEndpointRequest converts an endpoint.Request to an api.Request
+func EndpointRequestToAPIEndpointRequest(er *endpoint.Request) *api.EndpointRequest {
+	headers := convertSliceToStringList(er.Headers)
+	params := convertSliceToStringList(er.Parameters)
+
+	return &api.EndpointRequest{
+		Metadata:   er.Metadata,
+		Headers:    headers,
+		Parameters: params,
+		Body:       er.Body,
 	}
 }
 
-// ConvertToEndpointInputArgs converts an API InputArgs to an endpoint InputArgs
-func ConvertToEndpointInputArgs(ia *api.InputArgs) *endpoint.InputArgs {
-	headers := make(map[string][]string)
-	for key, values := range ia.Headers {
-		headers[key] = values.Values
-	}
+// APIEndpointRequestToEndpointRequest converts an api.Request to an endpoint.Request
+func APIEndpointRequestToEndpointRequest(aer *api.EndpointRequest) *endpoint.Request {
+	headers := convertStringListToSlice(aer.Headers)
+	params := convertStringListToSlice(aer.Parameters)
 
-	params := make(map[string][]string)
-	for key, values := range ia.Params {
-		params[key] = values.Values
-	}
-
-	return &endpoint.InputArgs{
-		Headers: headers,
-		Params:  params,
-		Body:    ia.Body,
+	return &endpoint.Request{
+		Metadata:   aer.Metadata,
+		Headers:    headers,
+		Parameters: params,
+		Body:       aer.Body,
 	}
 }
 
-// ConvertToAPIReturnVal converts an endpoint ReturnVal to an API ReturnVal
-func ConvertToAPIReturnVal(ev *endpoint.ReturnVal) *api.ReturnVal {
-	headers := make(map[string]*api.StringList)
-	for key, values := range ev.Headers {
-		headers[key] = &api.StringList{Values: values}
-	}
+// EndpointResponseToAPIEndpointResponse converts an endpoint.Response to an api.Response
+func EndpointResponseToAPIEndpointResponse(er *endpoint.Response) *api.EndpointResponse {
+	headers := convertSliceToStringList(er.Headers)
+	params := convertSliceToStringList(er.Parameters)
 
-	params := make(map[string]*api.StringList)
-	for key, values := range ev.Params {
-		params[key] = &api.StringList{Values: values}
-	}
-
-	valueJSON, err := json.Marshal(ev.Value)
-	if err != nil {
-		// Handle error. For now, we just return nil.
-		return nil
-	}
-
-	return &api.ReturnVal{
-		Headers: headers,
-		Params:  params,
-		Value:   string(valueJSON),
+	return &api.EndpointResponse{
+		Metadata:   er.Metadata,
+		Headers:    headers,
+		Parameters: params,
+		Value:      er.Value,
 	}
 }
 
-// ConvertToEndpointReturnVal converts an API ReturnVal to an endpoint ReturnVal
-func ConvertToEndpointReturnVal(rv *api.ReturnVal) *endpoint.ReturnVal {
-	headers := make(map[string][]string)
-	for key, value := range rv.Headers {
-		values := make([]string, 0)
-		values = append(values, value.Values...)
-		headers[key] = values
-	}
+// APIEndpointResponseToEndpointResponse converts an api.Response to an endpoint.Response
+func APIEndpointResponseToEndpointResponse(aer *api.EndpointResponse) *endpoint.Response {
+	headers := convertStringListToSlice(aer.Headers)
+	params := convertStringListToSlice(aer.Parameters)
 
-	params := make(map[string][]string)
-	for key, value := range rv.Params {
-		values := make([]string, 0)
-		values = append(values, value.Values...)
-		params[key] = values
+	return &endpoint.Response{
+		Metadata:   aer.Metadata,
+		Headers:    headers,
+		Parameters: params,
+		Value:      aer.Value,
 	}
+}
 
-	var value interface{}
-	if err := json.Unmarshal([]byte(rv.Value), &value); err != nil {
-		// Handle error. For now, we just return nil.
-		return nil
+func convertSliceToStringList(headers map[string][]string) map[string]*api.StringList {
+	output := make(map[string]*api.StringList)
+	for key, values := range headers {
+		output[key] = &api.StringList{Values: values}
 	}
+	return output
+}
 
-	return &endpoint.ReturnVal{
-		Headers: headers,
-		Params:  params,
-		Value:   value,
+func convertStringListToSlice(headers map[string]*api.StringList) map[string][]string {
+	output := make(map[string][]string)
+	for key, values := range headers {
+		output[key] = values.Values
 	}
+	return output
 }

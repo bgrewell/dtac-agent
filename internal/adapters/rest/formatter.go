@@ -28,7 +28,7 @@ type ErrorResponse struct {
 
 // ResponseFormatter is the interface for the response formatters used to write responses to the API service(s)
 type ResponseFormatter interface {
-	WriteResponse(c *gin.Context, duration time.Duration, obj interface{})
+	WriteResponse(c *gin.Context, duration time.Duration, obj []byte)
 	WriteError(c *gin.Context, err error)
 	WriteNotImplementedError(c *gin.Context, err error)
 	WriteUnauthorizedError(c *gin.Context, err error)

@@ -56,17 +56,19 @@ func (s *Subsystem) register() {
 
 	// Endpoints
 	secure := s.Controller.Config.Auth.DefaultSecure
+	authz := endpoint.AuthGroupAdmin.String() // Assuming this is the default authorization group
 	s.endpoints = []*endpoint.Endpoint{
-		{Path: fmt.Sprintf("%s/cpu", base), Action: endpoint.ActionRead, Function: s.cpuInfoHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: []cpu.InfoStat{}},
-		{Path: fmt.Sprintf("%s/cpu/usage", base), Action: endpoint.ActionRead, Function: s.cpuUsageHandler, UsesAuth: secure, ExpectedArgs: CPUUsageArgs{}, ExpectedBody: nil, ExpectedOutput: CPUUsageOutput{}},
-		{Path: fmt.Sprintf("%s/memory", base), Action: endpoint.ActionRead, Function: s.memInfoHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: &mem.VirtualMemoryStat{}},
-		{Path: fmt.Sprintf("%s/disk", base), Action: endpoint.ActionRead, Function: s.diskRootHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: &DiskReport{}},
-		{Path: fmt.Sprintf("%s/disk/partitions", base), Action: endpoint.ActionRead, Function: s.diskPartitionHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: []disk.PartitionStat{}},
-		{Path: fmt.Sprintf("%s/disk/disks", base), Action: endpoint.ActionRead, Function: s.diskPhysicalDisksHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: []*DiskDetails{}},
-		{Path: fmt.Sprintf("%s/disk/usage", base), Action: endpoint.ActionRead, Function: s.diskUsageHandler, UsesAuth: secure, ExpectedArgs: DiskUsageArgs{}, ExpectedBody: nil, ExpectedOutput: []*disk.UsageStat{}},
-		{Path: fmt.Sprintf("%s/network", base), Action: endpoint.ActionRead, Function: s.nicRootHandler, UsesAuth: secure, ExpectedArgs: nil, ExpectedBody: nil, ExpectedOutput: []net.InterfaceStat{}},
-		{Path: fmt.Sprintf("%s/network/interfaces", base), Action: endpoint.ActionRead, Function: s.nicRootHandler, UsesAuth: secure, ExpectedArgs: NicInfoArgs{}, ExpectedBody: nil, ExpectedOutput: []net.InterfaceStat{}},
+		endpoint.NewEndpoint(fmt.Sprintf("%s/cpu", base), endpoint.ActionRead, "cpu information", s.cpuInfoHandler, secure, authz, endpoint.WithOutput([]cpu.InfoStat{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/cpu/usage", base), endpoint.ActionRead, "cpu usage information", s.cpuUsageHandler, secure, authz, endpoint.WithParameters(CPUUsageArgs{}), endpoint.WithOutput(CPUUsageOutput{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/memory", base), endpoint.ActionRead, "memory information", s.memInfoHandler, secure, authz, endpoint.WithOutput(&mem.VirtualMemoryStat{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/disk", base), endpoint.ActionRead, "disk information", s.diskRootHandler, secure, authz, endpoint.WithOutput(&DiskReport{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/disk/partitions", base), endpoint.ActionRead, "disk partition information", s.diskPartitionHandler, secure, authz, endpoint.WithOutput([]disk.PartitionStat{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/disk/disks", base), endpoint.ActionRead, "list of physical disks", s.diskPhysicalDisksHandler, secure, authz, endpoint.WithOutput([]*DiskDetails{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/disk/usage", base), endpoint.ActionRead, "disk usage", s.diskUsageHandler, secure, authz, endpoint.WithParameters(DiskUsageArgs{}), endpoint.WithOutput([]*disk.UsageStat{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/network", base), endpoint.ActionRead, "network information", s.nicRootHandler, secure, authz, endpoint.WithOutput([]net.InterfaceStat{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/network/interfaces", base), endpoint.ActionRead, "network interface information", s.nicRootHandler, secure, authz, endpoint.WithParameters(NicInfoArgs{}), endpoint.WithOutput([]net.InterfaceStat{})),
 	}
+
 }
 
 // Enabled returns true if this module is enabled otherwise it returns false

@@ -5,54 +5,91 @@ package plugin;
 option go_package = "github.com/intel-innersource/frameworks.automation.dtac.agent/api/grpc/go";
 
 service PluginService {
-  rpc Register(RegisterArgs) returns (RegisterReply);
-  rpc Call (PluginRequest) returns (PluginResponse);
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  rpc Call (EndpointRequestMessage) returns (EndpointResponseMessage);
   rpc LoggingStream(LoggingArgs) returns (stream LogMessage);
 }
 
-message PluginRequest {
+// EndpointRequestMessage represents a gRPC message for a request made to an endpoint.
+// It encapsulates the method being called and the necessary request data.
+message EndpointRequestMessage {
+  // Method is the name of the method or action being invoked on the endpoint.
   string method = 1;
-  InputArgs input_args = 2;
+  // Request captures all the inputs that are available to be sent to the endpoint.
+  EndpointRequest request = 2;
 }
 
-message PluginResponse {
+// EndpointResponseMessage represents a gRPC message for a response returned from an endpoint.
+// It contains the response data and any error that might have occurred during processing.
+message EndpointResponseMessage {
+  // ID is a unique identifier for the response, typically used for correlating requests and responses.
   int32 id = 1;
-  ReturnVal return_val = 2;
+  // Response captures all the output that is returned from the endpoint.
+  EndpointResponse response = 2;
+  // Error is a string representing any error that might have occurred during the endpoint's processing.
   string error = 3;
 }
 
+// EndpointRequest represents the data structure for a request made to an endpoint in the framework.
+message EndpointRequest {
+  // Metadata holds additional data relevant to the processing of the request.
+  map<string, string> metadata = 1;
+  // Headers represent HTTP-style headers accompanying the request.
+  map<string, StringList> headers = 2;
+  // Parameters are query or path parameters used by the endpoint to process the request.
+  map<string, StringList> parameters = 3;
+  // Body holds the raw data of the request in binary format.
+  bytes body = 4;
+}
+
+// EndpointResponse represents the data structure for the response returned from an endpoint.
+message EndpointResponse {
+  // Metadata holds additional data about the response.
+  map<string, string> metadata = 1;
+  // Headers represent HTTP-style headers accompanying the response.
+  map<string, StringList> headers = 2;
+  // Parameters may include additional data returned from the endpoint.
+  map<string, StringList> parameters = 3;
+  // Value is the primary data of the response in binary format.
+  bytes value = 4;
+}
+
+// StringList is a message type that encapsulates a list of strings.
 message StringList {
   repeated string values = 1;
 }
 
-message InputArgs {
-  map<string, StringList> headers = 1;
-  map<string, StringList> params = 2;
-  bytes body = 3;
-}
-
-message ReturnVal {
-  map<string, StringList> headers = 1;
-  map<string, StringList> params = 2;
-  string value = 3;
-}
-
-message RegisterArgs {
+message RegisterRequest {
   string config = 1;
   bool default_secure = 2;
 }
 
-message RegisterReply {
+message RegisterResponse {
   repeated PluginEndpoint endpoints = 1;
 }
 
+// PluginEndpoint represents a configuration for an API endpoint in a plugin.
 message PluginEndpoint {
-  string path = 2;
-  string action = 3;
-  bool uses_auth = 4;
-  string expected_args = 5;
-  string expected_body = 6;
-  string expected_output = 7;
+  // Path specifies the endpoint's unique path or identifier.
+  string path = 1;
+  // Action represents the type of operation this endpoint performs.
+  string action = 2;
+  // Description is a human-readable description of the endpoint.
+  string description = 3;
+  // Secure indicates whether this endpoint requires authentication and authorization.
+  bool secure = 4;
+  // AuthGroup specifies the minimum authorization group required to access this endpoint.
+  string auth_group = 5;
+  // ExpectedMetadataSchema defines the JSON Schema for the expected metadata structure in the request.
+  string expected_metadata_schema = 6;
+  // ExpectedHeadersSchema defines the JSON Schema for the expected headers structure in the request.
+  string expected_headers_schema = 7;
+  // ExpectedParametersSchema defines the JSON Schema for the expected parameters structure in the request.
+  string expected_parameters_schema = 8;
+  // ExpectedBodySchema defines the JSON Schema for the expected body structure in the request.
+  string expected_body_schema = 9;
+  // ExpectedOutputSchema defines the JSON Schema for the expected output structure in the response.
+  string expected_output_schema = 10;
 }
 
 // Logging arguments which for now is empty
