@@ -1,3 +1,15 @@
+## v1.1.0 (2023-11-27)
+
+### Feat
+
+- update endpoints to be self-describing and support finer grained access controls
+- refactor for improved plugin data handling
+
+### Refactor
+
+- fix lint errors
+- refactor endpoint struct locations and update code as needed
+
 ## v1.0.5 (2023-11-14)
 
 ### Fix
