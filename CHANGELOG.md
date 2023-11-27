@@ -1,3 +1,9 @@
+## v1.0.8 (2023-11-27)
+
+### Fix
+
+- fix issue with plugin configurations
+
 ## v1.0.7 (2023-11-27)
 
 ### Fix
