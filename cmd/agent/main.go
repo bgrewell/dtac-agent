@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/adapters/grpc"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/adapters/rest"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/authn"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/authndb"
@@ -76,6 +77,13 @@ func Setup(params AdapterParams) {
 		}
 	}
 
+	// Build the endpoint list
+	params.Controller.Logger.Debug("building endpoint list")
+	for _, subsystem := range params.Subsystems {
+		params.Controller.EndpointList.AddEndpoints(subsystem.Endpoints())
+	}
+
+	// Setup API Adapters
 	params.Controller.Logger.Debug("setting up API adapters", zap.Int("count", len(params.Adapters)))
 	for _, adapter := range params.Adapters {
 		params.Controller.Logger.Debug("registering adapter")
@@ -129,6 +137,14 @@ func AsAdapter(f any) any {
 		fx.ResultTags(`group:"adapters"`))
 }
 
+// NewLogger returns a new instance of the zap.Logger
+func NewLogger() (*zap.Logger, error) {
+	zapCFG := zap.NewDevelopmentConfig()
+	zapCFG.DisableStacktrace = true
+
+	return zapCFG.Build()
+}
+
 func main() {
 
 	if !helpers.IsRunningAsRoot() {
@@ -147,14 +163,15 @@ func main() {
 		}),
 		// Set up the providers
 		fx.Provide(
+			NewLogger,                               // Structured Logger
 			config.NewConfiguration,                 // Configuration
-			zap.NewDevelopment,                      // Structured Logger
 			basic.NewTLSInfo,                        // Tls Cert Handler
 			rest.NewJSONResponseFormatter,           // Response Formatter
 			endpoints.NewEndpointList,               // Endpoint List
 			NewController,                           // Wrapper around common subsystem input components
 			authndb.NewAuthDB,                       // Authentication database
 			AsAdapter(rest.NewAdapter),              // Rest API Interface
+			AsAdapter(grpc.NewAdapter),              // gRPC API Interface
 			AsSubsystem(basic.NewHomePageSubsystem), // Homepage handler
 			AsSubsystem(basic.NewEchoSubsystem),     // Demo Subsystem
 			AsSubsystem(diag.NewSubsystem),          // Diagnostic Subsystem

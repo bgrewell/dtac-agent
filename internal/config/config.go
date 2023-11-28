@@ -132,6 +132,7 @@ type TLSSelection struct {
 type APIEntries struct {
 	REST RESTAPIEntry `json:"rest" yaml:"rest" mapstructure:"rest"`
 	GRPC GRPCAPIEntry `json:"grpc" yaml:"grpc" mapstructure:"grpc"`
+	JSON JSONAPIEntry `json:"json" yaml:"json" mapstructure:"json"`
 }
 
 // RESTAPIEntry is the struct for an api entry
@@ -141,11 +142,19 @@ type RESTAPIEntry struct {
 	TLS     TLSSelection `json:"tls" yaml:"tls" mapstructure:"tls"`
 }
 
-// GRPCAPIEntry is the struct for an api entry
-type GRPCAPIEntry struct {
+// JSONAPIEntry is the struct for an api entry
+type JSONAPIEntry struct {
 	Enabled bool         `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 	Port    int          `json:"port" yaml:"port" mapstructure:"port"`
 	TLS     TLSSelection `json:"tls" yaml:"tls" mapstructure:"tls"`
+}
+
+// GRPCAPIEntry is the struct for an api entry
+type GRPCAPIEntry struct {
+	Enabled    bool         `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	Port       int          `json:"port" yaml:"port" mapstructure:"port"`
+	Reflection bool         `json:"reflection" yaml:"reflection" mapstructure:"reflection"`
+	TLS        TLSSelection `json:"tls" yaml:"tls" mapstructure:"tls"`
 }
 
 // Configuration is the struct for the configuration
@@ -253,6 +262,15 @@ func DefaultConfig() map[string]interface{} {
 		"apis.rest.port":                8180,
 		"apis.rest.tls.enabled":         true,
 		"apis.rest.tls.profile":         "default",
+		"apis.grpc.enabled":             true,
+		"apis.grpc.port":                8181,
+		"apis.grpc.reflection":          false,
+		"apis.grpc.tls.enabled":         true,
+		"apis.grpc.tls.profile":         "default",
+		"apis.json.enabled":             false,
+		"apis.json.port":                8182,
+		"apis.json.tls.enabled":         true,
+		"apis.json.tls.profile":         "default",
 		"tls.default.enabled":           true,
 		"tls.default.type":              "self-signed",
 		"tls.default.ca":                DefaultTLSCACertName,

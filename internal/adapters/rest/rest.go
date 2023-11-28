@@ -68,10 +68,6 @@ func (a *Adapter) Register(subsystems []interfaces.Subsystem) (err error) {
 	for _, subsystem := range subsystems {
 		a.logger.Debug("registering subsystem", zap.String("subsystem", subsystem.Name()))
 		if subsystem.Enabled() {
-			// TODO: BUG - If this is called in multiple API adapters then our EndpointList in the controller which is
-			//       universal is going to have duplicate endpoints. This should either be per API or should show
-			//       API + endpoint
-			a.controller.EndpointList.AddEndpoints(subsystem.Endpoints())
 			for _, ep := range subsystem.Endpoints() {
 				a.logger.Debug("registering endpoint", zap.String("path", ep.Path), zap.Any("action", ep.Action))
 				var method string
@@ -125,14 +121,14 @@ func (a *Adapter) setup() (err error) {
 
 	// Set up the serve function
 	a.srvFunc = a.server.Serve
-	a.srvMsg = "starting HTTP server"
+	a.srvMsg = "starting REST API HTTP server"
 	if a.controller.Config.APIs.REST.TLS.Enabled {
 		if cfg, ok := (*a.tls)[a.controller.Config.APIs.REST.TLS.Profile]; ok {
 			wrapper := func(l net.Listener) error {
 				return a.server.ServeTLS(l, cfg.CertFilename, cfg.KeyFilename)
 			}
 			a.srvFunc = wrapper
-			a.srvMsg = "starting HTTPS server"
+			a.srvMsg = "starting REST API HTTPS server"
 			return nil
 		}
 
