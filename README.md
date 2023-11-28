@@ -17,6 +17,9 @@ with a more feature complete, flexible and secure framework for automation and t
 to be highly extensible through a multitude of methodologies described in more detail in the [extensibility](#extensibility) 
 section below.
 
+Out of the box DTAC Agent supports both gRPC and REST as the Frontend API Protocols and has support for easily adding
+additional frontend protocols.
+
 It is important to note that this project is under active development and as such it may have incomplete or missing documentation as well as incomplete implementations of some functionality. While we will do our best to not change the public APIs it is possible that they will have breaking changes prior to the first production release.
 
 ## Installation
