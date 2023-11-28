@@ -1,0 +1,255 @@
+package json
+
+import (
+	"context"
+	"errors"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/basic"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
+	"go.uber.org/zap"
+	"net"
+	"net/http"
+)
+
+// NewAdapter creates a new JSON-RPC adapter
+func NewAdapter(c *controller.Controller, tls *map[string]basic.TLSInfo) (adapter interfaces.APIAdapter, err error) {
+	// Check to see if the JSON-RPC API is enabled. If not return an error that it is disabled
+	if !c.Config.APIs.JSON.Enabled {
+		return nil, errors.New("json-rpc api is not enabled")
+	}
+
+	// Setup logger
+	name := "api/json"
+	logger := c.Logger.With(zap.String("module", name))
+
+	// Setup gin logging
+	//gin.SetMode(gin.ReleaseMode)
+	//router := gin.New()
+	//router.Use(ginZapLoggerMiddleware(logger))
+
+	r := &Adapter{
+		controller: c,
+		// router:     router,
+		logger: logger,
+		tls:    tls,
+		name:   name,
+		//formatter:  NewJSONResponseFormatter(c.Config, logger),
+	}
+	return r, r.setup()
+}
+
+// Adapter is the JSON-RPC API adapter
+type Adapter struct {
+	server     *http.Server
+	tls        *map[string]basic.TLSInfo
+	controller *controller.Controller
+	logger     *zap.Logger
+	name       string
+	srvMsg     string
+	srvFunc    func(net.Listener) error
+}
+
+// Name returns the name of the REST API adapter
+func (a *Adapter) Name() string {
+	return a.name
+}
+
+// Register registers the subsystems with the API adapter
+func (a *Adapter) Register(subsystems []interfaces.Subsystem) (err error) {
+	// Iterate over the subsystems and register each of the endpoints
+	for _, subsystem := range subsystems {
+		a.logger.Debug("registering subsystem", zap.String("subsystem", subsystem.Name()))
+		if subsystem.Enabled() {
+			for _, ep := range subsystem.Endpoints() {
+				a.logger.Debug("registering endpoint", zap.String("path", ep.Path), zap.Any("action", ep.Action))
+				var method string
+				switch ep.Action {
+				case endpoint.ActionRead:
+					method = http.MethodGet
+				case endpoint.ActionWrite:
+					method = http.MethodPut
+				case endpoint.ActionCreate:
+					method = http.MethodPost
+				case endpoint.ActionDelete:
+					method = http.MethodDelete
+				default:
+					return errors.New("invalid action")
+				}
+
+				_ = method
+
+				//a.shim(method, ep)
+			}
+		}
+	}
+
+	return nil
+}
+
+// Start starts the REST API adapter
+func (a *Adapter) Start(ctx context.Context) (err error) {
+	ln, err := net.Listen("tcp", a.server.Addr)
+	if err != nil {
+		return err
+	}
+
+	a.logger.Info(a.srvMsg, zap.String("addr", a.server.Addr))
+	go func() {
+		err := a.srvFunc(ln)
+		if err != nil {
+			a.logger.Fatal("failed to start server", zap.Error(err))
+		}
+	}()
+
+	return nil
+}
+
+// Stop stops the REST API adapter
+func (a *Adapter) Stop(ctx context.Context) (err error) {
+	return a.server.Shutdown(ctx)
+}
+
+func (a *Adapter) setup() (err error) {
+	return errors.New("this adapter has not been implemented yet")
+}
+
+//
+//func (a *Adapter) setup() (err error) {
+//	// Create a new http server
+//	a.server = &http.Server{Addr: fmt.Sprintf(":%d", a.controller.Config.APIs.REST.Port), Handler: a.router}
+//
+//	// Set up the serve function
+//	a.srvFunc = a.server.Serve
+//	a.srvMsg = "starting HTTP server"
+//	if a.controller.Config.APIs.REST.TLS.Enabled {
+//		if cfg, ok := (*a.tls)[a.controller.Config.APIs.REST.TLS.Profile]; ok {
+//			wrapper := func(l net.Listener) error {
+//				return a.server.ServeTLS(l, cfg.CertFilename, cfg.KeyFilename)
+//			}
+//			a.srvFunc = wrapper
+//			a.srvMsg = "starting HTTPS server"
+//			return nil
+//		}
+//
+//		return errors.New("tls profile not found")
+//
+//	}
+//
+//	return nil
+//}
+//
+//func (a *Adapter) shim(method string, ep *endpoint.Endpoint) {
+//	a.router.Handle(method, ep.Path, func(c *gin.Context) {
+//		in, err := a.createInputArgs(c)
+//		if err != nil {
+//			a.logger.Error("failed to create input args", zap.Error(err))
+//			a.formatter.WriteError(c, err)
+//			return
+//		}
+//
+//		// TODO: Look at moving validation somewhere central so API's don't have to do it
+//		//err = ep.ValidateArgs(in)
+//		//if err != nil {
+//		//	a.logger.Error("failed to validate input args", zap.Error(err))
+//		//	a.formatter.WriteError(c, err)
+//		//	return
+//		//}
+//		//
+//		//// TODO: Look at moving validation somewhere central so API's don't have to do it
+//		//// TODO: Look at deserialization of body and storage in a central manner to ease endpoint dup code
+//		//err = ep.ValidateBody(in)
+//		//if err != nil {
+//		//	a.logger.Error("failed to validate input body", zap.Error(err))
+//		//	a.formatter.WriteError(c, err)
+//		//	return
+//		//}
+//
+//		// If this is a secured endpoint check for the authorization header
+//		if ep.Secure {
+//			auth := c.GetHeader("Authorization")
+//			if auth == "" {
+//				a.formatter.WriteUnauthorizedError(c, errors.New("authorization header is missing"))
+//				return
+//			}
+//			in.Metadata[types.ContextAuthHeader.String()] = auth
+//		}
+//
+//		// Add additional context
+//		in.Metadata[types.ContextResourceAction.String()] = ep.Action.String()
+//		in.Metadata[types.ContextResourcePath.String()] = ep.Path
+//
+//		out, err := ep.Function(in)
+//		if err != nil {
+//			a.logger.Error("failed to execute endpoint", zap.Error(err))
+//			a.formatter.WriteError(c, err)
+//			return
+//		}
+//
+//		// Set headers from out.Headers into gin.Context
+//		for headerKey, headerValues := range out.Headers {
+//			for _, headerValue := range headerValues {
+//				c.Header(headerKey, headerValue)
+//			}
+//		}
+//
+//		// If timing information is present then write it out
+//		if et, ok := out.Metadata[types.ContextExecDuration.String()]; ok {
+//			duration, err := time.ParseDuration(et)
+//			if err != nil {
+//				duration = -1
+//			}
+//			a.formatter.WriteResponse(c, duration, out.Value)
+//		} else {
+//			a.formatter.WriteResponse(c, -1, out.Value)
+//		}
+//
+//	})
+//}
+//
+//func (a *Adapter) createInputArgs(ctx *gin.Context) (*endpoint.Request, error) {
+//	input := &endpoint.Request{
+//		Metadata:   make(map[string]string),
+//		Headers:    make(map[string][]string),
+//		Parameters: make(map[string][]string),
+//		Body:       nil,
+//	}
+//
+//	// Populate headers
+//	for k, v := range ctx.Request.Header {
+//		input.Headers[k] = v
+//	}
+//
+//	// Populate query parameters
+//	for k, v := range ctx.Request.URL.Query() {
+//		input.Parameters[k] = v
+//	}
+//
+//	// Read request body
+//	body, err := io.ReadAll(ctx.Request.Body)
+//	if err != nil {
+//		return nil, err
+//	}
+//	input.Body = body
+//
+//	return input, nil
+//}
+//
+//// Custom middleware for Gin that uses Zap logger
+//func ginZapLoggerMiddleware(logger *zap.Logger) gin.HandlerFunc {
+//	return func(c *gin.Context) {
+//		// Start timer
+//		start := time.Now()
+//
+//		// Process request
+//		c.Next()
+//
+//		// Log request details
+//		logger.Info("Request",
+//			zap.String("method", c.Request.Method),
+//			zap.String("path", c.Request.URL.Path),
+//			zap.Int("status", c.Writer.Status()),
+//			zap.Duration("duration", time.Since(start)),
+//		)
+//	}
+//}
