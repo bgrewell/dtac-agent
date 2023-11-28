@@ -188,7 +188,7 @@ func (a *Adapter) setup() (err error) {
 // Example testing from command line
 //
 // Login
-// grpcurl -insecure -d '{"method": "create:auth/login", "request": {"metadata": {}, "headers": {}, "parameters": {}, "body": "eyJ1c2VybmFtZSI6ICJhZG1pbiIsICJwYXNzd29yZCI6ICJuZWVkX3RvX2dlbmVyYXRlX2FfcmFuZG9tX3Bhc3N3b3JkX29uX2luc3RhbGxfb3JfZmlyc3RfcnVuIn0K" }}' 127.0.0.1:8181 frontend.AdapterService.Call
+// grpcurl -insecure -d '{"method": "create:auth/login", "request": {"metadata": {}, "headers": {}, "parameters": {}, "body": "<base64 encoded username/password json blob>" }}' 127.0.0.1:8181 frontend.AdapterService.Call
 //
 // Call to secured diag/
-// grpcurl -insecure -d '{"method": "read:diag/", "request": {"metadata": {"auth_header": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NfdXVpZCI6ImJmNzAyN2RiLTUyOGUtNGYwYS1iNzk2LTUwYjYxY2U0YTliYSIsImF1dGhvcml6ZWQiOnRydWUsImV4cCI6MTcwMTIwNzg3MCwidXNlcl9pZCI6MX0.XUFBR_PIrxmJ5QqJuPs7vDxpBxmfE4BhX93Jk4q6OAE"}, "headers": {}, "parameters": {}, "body": [] }}' 127.0.0.1:8181 frontend.AdapterService.Call | jq -r .response.value | base64 -d
+// grpcurl -insecure -d '{"method": "read:diag/", "request": {"metadata": {"auth_header": "<bearer token here>"}, "headers": {}, "parameters": {}, "body": [] }}' 127.0.0.1:8181 frontend.AdapterService.Call | jq -r .response.value | base64 -d
