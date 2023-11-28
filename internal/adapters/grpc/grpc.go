@@ -51,8 +51,6 @@ type Adapter struct {
 	logger     *zap.Logger
 	endpoints  map[string]*endpoint.Endpoint
 	name       string
-	srvMsg     string
-	srvFunc    func(net.Listener) error
 }
 
 // Name returns the name of the gRPC API adapter

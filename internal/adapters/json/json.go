@@ -3,7 +3,6 @@ package json
 import (
 	"context"
 	"errors"
-	"github.com/gin-gonic/gin"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/basic"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
@@ -43,7 +42,6 @@ func NewAdapter(c *controller.Controller, tls *map[string]basic.TLSInfo) (adapte
 // Adapter is the JSON-RPC API adapter
 type Adapter struct {
 	server     *http.Server
-	router     *gin.Engine
 	tls        *map[string]basic.TLSInfo
 	controller *controller.Controller
 	logger     *zap.Logger
