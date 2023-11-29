@@ -79,8 +79,7 @@ func (es *EchoSubsystem) Endpoints() []*endpoint.Endpoint {
 func (es *EchoSubsystem) rootHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
 		if m, ok := in.Parameters["msg"]; ok && len(m) > 0 && m[0] != "" {
-			msg, err := json.Marshal(EchoOutput{Message: m[0]})
-			return msg, err
+			return json.Marshal(EchoOutput{Message: m[0]})
 		}
 
 		return nil, errors.New("missing parameter 'msg'")

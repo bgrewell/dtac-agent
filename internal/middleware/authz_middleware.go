@@ -7,4 +7,5 @@ import (
 // AuthorizationMiddleware is the interface for the authorization middleware
 type AuthorizationMiddleware interface {
 	AuthorizationHandler(next endpoint.Func) endpoint.Func
+	RegisterPolicies() error
 }

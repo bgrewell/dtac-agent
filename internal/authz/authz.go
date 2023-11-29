@@ -32,12 +32,13 @@ func NewSubsystem(c *controller.Controller) interfaces.Subsystem {
 
 // Subsystem is the subsystem for authorization
 type Subsystem struct {
-	Controller *controller.Controller
-	Logger     *zap.Logger
-	enabled    bool
-	name       string
-	enforcer   *casbin.Enforcer
-	endpoints  []*endpoint.Endpoint
+	Controller   *controller.Controller
+	Logger       *zap.Logger
+	enabled      bool
+	name         string
+	enforcer     *casbin.Enforcer
+	policyLogger *CasbinLogger
+	endpoints    []*endpoint.Endpoint
 }
 
 // register registers the authz subsystem
@@ -52,6 +53,15 @@ func (s *Subsystem) register() {
 		s.Logger.Fatal("failed to create casbin enforcer", zap.Error(err))
 	}
 	s.enforcer = enforcer
+
+	s.policyLogger = &CasbinLogger{
+		enabled: true,
+		logger:  s.Logger.With(zap.String("module", "casbin")),
+	}
+	s.enforcer.EnableLog(true)
+	s.enforcer.SetLogger(s.policyLogger)
+	// Setup role hierarchy
+	addRoleHierarchies(enforcer, s.Logger)
 }
 
 // Enabled returns whether the authz subsystem is enabled
@@ -112,13 +122,68 @@ func (s *Subsystem) AuthorizationHandler(next endpoint.Func) endpoint.Func {
 
 		s.Logger.Debug("Username", zap.String("username", user.Username))
 
-		if canAccess, _ := s.enforcer.Enforce(user.Username, path, string(action)); canAccess {
-			return next(in)
+		// Get users roles
+		roles, err := s.enforcer.GetRolesForUser(user.Username)
+		if err != nil {
+			return nil, fmt.Errorf("error retrieving roles for user: %v", err)
+		}
+
+		for _, role := range roles {
+			canAccess, err := s.enforcer.Enforce(role, path, action)
+			if err != nil {
+				return nil, fmt.Errorf("error checking role access: %v", err)
+			}
+			if canAccess {
+				return next(in)
+			}
 		}
 
 		return nil, errors.New("user not authorized to access this resource")
 	}
-	// This is just a extremely basic authorization function right now. Will need to be built out to have full
-	// RBAC or ACL access controls in place. This implementation just checks to see if the user can access the
-	// resource and the default model says that "admin" can access anything.
+}
+
+// RegisterPolicies registers the policies for the authz subsystem
+func (s *Subsystem) RegisterPolicies() error {
+	// Setup policy assignments for users
+	users, err := s.Controller.AuthDB.ViewUsers()
+	if err != nil {
+		return fmt.Errorf("failed to view users: %v", err)
+	}
+	for _, user := range users {
+		for _, group := range user.Groups {
+			_, err = s.enforcer.AddGroupingPolicy(user.Username, group)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	// Setup policies for the endpoints
+	for _, endpoint := range s.Controller.EndpointList.Endpoints {
+		_, err = s.enforcer.AddPolicy(endpoint.AuthGroup, endpoint.Path, endpoint.Action.String())
+		if err != nil {
+			return err
+		}
+	}
+
+	s.policyLogger.LogCurrentPolicies(s.enforcer)
+
+	return nil
+}
+
+func addRoleHierarchies(enforcer *casbin.Enforcer, logger *zap.Logger) {
+	roleHierarchies := []struct {
+		parent string
+		child  string
+	}{
+		{"admin", "operator"},
+		{"operator", "user"},
+		{"user", "guest"},
+	}
+
+	for _, hierarchy := range roleHierarchies {
+		if _, err := enforcer.AddNamedGroupingPolicy("g2", hierarchy.parent, hierarchy.child); err != nil {
+			logger.Fatal("failed to add role hierarchy", zap.String("parent", hierarchy.parent), zap.String("child", hierarchy.child), zap.Error(err))
+		}
+	}
 }

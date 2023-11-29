@@ -83,6 +83,17 @@ func Setup(params AdapterParams) {
 		params.Controller.EndpointList.AddEndpoints(subsystem.Endpoints())
 	}
 
+	// Setup authorization policies
+	params.Controller.Logger.Debug("setting up authorization policies")
+	for _, subsystem := range params.Subsystems {
+		if sub, ok := subsystem.(middleware.AuthorizationMiddleware); ok {
+			err := sub.RegisterPolicies()
+			if err != nil {
+				params.Controller.Logger.Fatal("failed to register authorization policies", zap.Error(err))
+			}
+		}
+	}
+
 	// Setup API Adapters
 	params.Controller.Logger.Debug("setting up API adapters", zap.Int("count", len(params.Adapters)))
 	for _, adapter := range params.Adapters {

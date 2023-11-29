@@ -37,21 +37,42 @@ func NewSubsystem(c *controller.Controller) interfaces.Subsystem {
 		Logger:     c.Logger.With(zap.String("module", name)),
 		enabled:    true,
 		name:       name,
-		admin: authndb.User{ // This is all stubbed in until we get the authentication database up and running
-			ID:             1,
-			Username:       c.Config.Auth.User,
-			UsernameHashed: fmt.Sprintf("%x", sha256.Sum256([]byte(c.Config.Auth.User))),
-			Password:       fmt.Sprintf("%x", sha256.Sum256([]byte(c.Config.Auth.Pass))), //TODO: Store as a sha256 hash in the configuration file
-			Groups:         []string{"admin"},
-		},
-		guest: authndb.User{
-			ID:             2,
-			Username:       "guest",
-			UsernameHashed: fmt.Sprintf("%x", sha256.Sum256([]byte("guest"))),
-			Password:       fmt.Sprintf("%x", sha256.Sum256([]byte("guest"))),
-			Groups:         []string{"guest"},
-		},
 	}
+
+	adminID := -1
+
+	if u, err := c.AuthDB.ViewUser(adminID); err != nil {
+		as.Logger.Warn("failed to get admin user from database. creating admin user", zap.Error(err))
+		u := &authndb.User{
+			ID:       adminID,
+			Username: c.Config.Auth.User,
+			Password: fmt.Sprintf("%x", sha256.Sum256([]byte(c.Config.Auth.Pass))), //TODO: Store as a sha256 hash in the configuration file
+			Groups:   []string{"admin"},
+		}
+		err := c.AuthDB.CreateUserWithID(u)
+		if err != nil {
+			as.Logger.Fatal("failed to create admin user", zap.Error(err))
+		}
+	} else {
+		// Ensure user/pass hasn't changed in the config
+		if u.Username != c.Config.Auth.User {
+			as.Logger.Info("updating admin user", zap.String("username", c.Config.Auth.User))
+			u.Username = c.Config.Auth.User
+			err = c.AuthDB.UpdateUser(u)
+			if err != nil {
+				as.Logger.Fatal("failed to update admin user", zap.Error(err))
+			}
+		}
+		if u.Password != fmt.Sprintf("%x", sha256.Sum256([]byte(c.Config.Auth.Pass))) {
+			as.Logger.Info("updating admin user password")
+			u.Password = fmt.Sprintf("%x", sha256.Sum256([]byte(c.Config.Auth.Pass)))
+			err = c.AuthDB.UpdateUser(u)
+			if err != nil {
+				as.Logger.Fatal("failed to update admin user", zap.Error(err))
+			}
+		}
+	}
+
 	as.register()
 	return &as
 }
@@ -62,8 +83,6 @@ type Subsystem struct {
 	Logger     *zap.Logger
 	enabled    bool
 	name       string
-	admin      authndb.User //TODO: Replace with actual authentication database
-	guest      authndb.User
 	endpoints  []*endpoint.Endpoint
 }
 
@@ -78,9 +97,16 @@ func (s *Subsystem) register() {
 	base := s.name
 
 	// Endpoints
-	authz := endpoint.AuthGroupGuest.String()
+	authz_guest := endpoint.AuthGroupGuest.String()
+	authz_operator := endpoint.AuthGroupOperator.String()
+	authz_admin := endpoint.AuthGroupAdmin.String()
 	s.endpoints = []*endpoint.Endpoint{
-		endpoint.NewEndpoint(fmt.Sprintf("%s/login", base), endpoint.ActionCreate, "login handler", s.loginHandler, false, authz, endpoint.WithBody(authndb.UserArgs{}), endpoint.WithOutput(AuthOutput{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/login", base), endpoint.ActionCreate, "login handler", s.loginHandler, false, authz_guest, endpoint.WithBody(authndb.UserArgs{}), endpoint.WithOutput(AuthOutput{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/users", base), endpoint.ActionRead, "list users - does not include built-in admin", s.listUsers, true, authz_operator, endpoint.WithOutput([]authndb.User{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/user", base), endpoint.ActionRead, "get user by id", s.getUser, true, authz_operator, endpoint.WithOutput(authndb.User{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/users", base), endpoint.ActionCreate, "create user", s.createUser, true, authz_admin, endpoint.WithBody(authndb.User{}), endpoint.WithOutput(authndb.User{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/user", base), endpoint.ActionWrite, "update user", s.updateUser, true, authz_admin, endpoint.WithBody(authndb.User{}), endpoint.WithOutput(authndb.User{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/user", base), endpoint.ActionDelete, "delete user", s.deleteUser, true, authz_admin),
 	}
 }
 
@@ -108,10 +134,9 @@ func (s *Subsystem) Handler(ep endpoint.Endpoint) endpoint.Func {
 	return s.AuthenticationHandler(ep.Function)
 }
 
-// TODO: Need to make sure this function can access the context used for logging in
 func (s *Subsystem) loginHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapperWithHeaders(in, func() (map[string][]string, []byte, error) {
-		var u authndb.User
+		var u = &authndb.User{ID: -9999}
 
 		// Transform the body into a RouteTableRow
 		if err := json.Unmarshal(in.Body, &u); err != nil {
@@ -127,21 +152,29 @@ func (s *Subsystem) loginHandler(in *endpoint.Request) (out *endpoint.Response, 
 		check := func(a, b string) bool {
 			return subtle.ConstantTimeCompare([]byte(a), []byte(b)) == 1
 		}
-		isAdminUsername := check(userHash, s.admin.UsernameHashed)
-		isAdminPassword := check(passHash, s.admin.Password)
-		isGuestUsername := check(userHash, s.guest.UsernameHashed)
-		isGuestPassword := check(passHash, s.guest.Password)
 
-		// check the users credentials //TODO: Replace with actual authentication database
-		if !((isAdminUsername && isAdminPassword) || (isGuestUsername && isGuestPassword)) {
-			return nil, nil, errors.New("invalid username or password")
+		// Get Users from database
+		users, err := s.Controller.AuthDB.ViewUsers()
+		if err != nil {
+			return nil, nil, err
 		}
 
-		// TODO: Fake lookup in database
-		if u.Username == "admin" {
-			u = s.admin // set the user to admins
-		} else {
-			u = s.guest // guest is the only other valid user at this point
+		// Check if the user is in the database (always check all the users to avoid timing attacks)
+		var userExists bool
+		for _, user := range users {
+			uh := fmt.Sprintf("%x", sha256.Sum256([]byte(user.Username)))
+			if check(userHash, uh) {
+				userExists = true
+				u = user
+			}
+		}
+
+		// check password
+		passwordMatch := check(passHash, u.Password)
+
+		// check the users credentials
+		if !(userExists) || !(passwordMatch) {
+			return nil, nil, errors.New("invalid username or password")
 		}
 
 		token, err := s.createToken(u.ID)
@@ -168,7 +201,7 @@ func (s *Subsystem) loginHandler(in *endpoint.Request) (out *endpoint.Response, 
 	}, "authentication tokens")
 }
 
-func (s *Subsystem) createToken(userid uint64) (token *authndb.TokenDetails, err error) {
+func (s *Subsystem) createToken(userid int) (token *authndb.TokenDetails, err error) {
 
 	td := &authndb.TokenDetails{
 		AtExpires:   time.Now().Add(time.Minute * 15).Unix(),
@@ -214,13 +247,13 @@ func (s *Subsystem) createToken(userid uint64) (token *authndb.TokenDetails, err
 	return td, nil
 }
 
-func (s *Subsystem) createAuth(userid uint64, td *authndb.TokenDetails) (err error) {
-	errAccess := s.Controller.AuthDB.UpdateDB(td.AccessUUID, strconv.Itoa(int(userid))) //todo: need to look into how to time-expire these entries
+func (s *Subsystem) createAuth(userid int, td *authndb.TokenDetails) (err error) {
+	errAccess := s.Controller.AuthDB.UpdateToken(td.AccessUUID, strconv.Itoa(userid)) //todo: need to look into how to time-expire these entries
 	if errAccess != nil {
 		return errAccess
 	}
 
-	errRefresh := s.Controller.AuthDB.UpdateDB(td.RefreshUUID, strconv.Itoa(int(userid)))
+	errRefresh := s.Controller.AuthDB.UpdateToken(td.RefreshUUID, strconv.Itoa(userid))
 	if errRefresh != nil {
 		return errRefresh
 	}
@@ -286,13 +319,7 @@ func (s *Subsystem) authorizeUser(bearerToken string) (user *authndb.User, err e
 		return nil, errors.New("unable to authorize token")
 	}
 
-	if userID == s.admin.ID {
-		return &s.admin, nil
-	} else if userID == s.guest.ID {
-		return &s.guest, nil
-	} else {
-		return nil, fmt.Errorf("unable to find %v", userID)
-	}
+	return s.Controller.AuthDB.ViewUser(userID)
 }
 
 func (s *Subsystem) extractToken(bearerToken string) string {
@@ -323,12 +350,15 @@ func (s *Subsystem) verifyToken(tokenStr string) (*jwt.Token, error) {
 	return token, nil
 }
 
-func (s *Subsystem) fetchAuth(authD *authndb.AccessDetails) (userID uint64, err error) {
-	userIDStr, err := s.Controller.AuthDB.ViewDB(authD.AccessUUID)
+func (s *Subsystem) fetchAuth(authD *authndb.AccessDetails) (userID int, err error) {
+	userIDStr, err := s.Controller.AuthDB.ViewToken(authD.AccessUUID)
 	if userIDStr == "" || err != nil {
 		return 0, fmt.Errorf("unable to find %s authn details in database", authD.AccessUUID)
 	}
-	userID, _ = strconv.ParseUint(userIDStr, 10, 64)
+	userID, err = strconv.Atoi(userIDStr)
+	if err != nil {
+		return 0, fmt.Errorf("unable to convert %s to int", userIDStr)
+	}
 	return userID, nil
 }
 
@@ -339,15 +369,154 @@ func (s *Subsystem) extractTokenMetadata(token *jwt.Token) (*authndb.AccessDetai
 		if !ok {
 			return nil, errors.New("unable to extract access id from token")
 		}
-		userID, err := strconv.ParseUint(fmt.Sprintf("%.f", claims["user_id"]), 10, 64)
-		if err != nil {
-			return nil, err
+		if userID, ok := claims["user_id"].(float64); ok {
+			return &authndb.AccessDetails{
+				AccessUUID: accessUUID,
+				UserID:     int(userID),
+			}, nil
 		}
-		return &authndb.AccessDetails{
-			AccessUUID: accessUUID,
-			UserID:     userID,
-		}, nil
+
+		return nil, errors.New("unable to extract user id from token")
 	}
 
 	return nil, errors.New("failed to get claims from token")
+}
+
+func (s *Subsystem) listUsers(in *endpoint.Request) (out *endpoint.Response, err error) {
+	return helpers.HandleWrapper(in, func() ([]byte, error) {
+		users, err := s.Controller.AuthDB.SafeViewUsers()
+		if err != nil {
+			return nil, err
+		}
+		return json.Marshal(users)
+	}, "users configured for access to the system")
+}
+
+func (s *Subsystem) getUser(in *endpoint.Request) (out *endpoint.Response, err error) {
+	return helpers.HandleWrapper(in, func() ([]byte, error) {
+		if m, ok := in.Parameters["id"]; ok && len(m) > 0 && m[0] != "" {
+			id := m[0]
+			uid, err := strconv.Atoi(id)
+			if err != nil {
+				return nil, err
+			}
+			user, err := s.Controller.AuthDB.SafeViewUser(uid)
+			if err != nil {
+				return nil, err
+			}
+			return json.Marshal(user)
+		}
+		return nil, errors.New("missing parameter 'id'")
+
+	}, "information for the specified user")
+}
+
+func (s *Subsystem) createUser(in *endpoint.Request) (out *endpoint.Response, err error) {
+	return helpers.HandleWrapper(in, func() ([]byte, error) {
+		var user authndb.User
+		if in.Body == nil || len(in.Body) == 0 {
+			return nil, errors.New("missing body")
+		}
+
+		// Transform the body into a user
+		if err := json.Unmarshal(in.Body, &user); err != nil {
+			return nil, err
+		}
+
+		// Hash the password
+		user.Password = fmt.Sprintf("%x", sha256.Sum256([]byte(user.Password)))
+
+		// Add to database
+		err = s.Controller.AuthDB.CreateUser(&user)
+		if err != nil {
+			return nil, err
+		}
+
+		// Return safe view of updated user
+		safeUser, err := s.Controller.AuthDB.SafeViewUser(user.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		return json.Marshal(safeUser)
+	}, "information for the user that has been created")
+}
+
+func (s *Subsystem) updateUser(in *endpoint.Request) (out *endpoint.Response, err error) {
+	return helpers.HandleWrapper(in, func() ([]byte, error) {
+		var user authndb.User
+
+		if m, ok := in.Parameters["id"]; ok && len(m) > 0 && m[0] != "" {
+			if in.Body == nil || len(in.Body) == 0 {
+				return nil, errors.New("missing body")
+			}
+
+			// Transform the body into a user
+			if err := json.Unmarshal(in.Body, &user); err != nil {
+				return nil, err
+			}
+
+			// Get DB user with id
+			id := m[0]
+			uid, err := strconv.Atoi(id)
+			if err != nil {
+				return nil, err
+			}
+			dbUser, err := s.Controller.AuthDB.ViewUser(uid)
+
+			// Update ID if not specified
+			if user.ID == 0 {
+				user.ID = dbUser.ID
+			}
+
+			// Verify
+			if dbUser.ID != user.ID {
+				return nil, errors.New("user id mismatch, you cannot change the user id")
+			}
+			if dbUser.Username != user.Username {
+				return nil, errors.New("user username mismatch, you cannot change the username")
+			}
+
+			// If password changed then rehash it
+			if (user.Password != "") && (fmt.Sprintf("%x", sha256.Sum256([]byte(user.Password))) != dbUser.Password) {
+				s.Logger.Info("password changed, rehashing", zap.String("username", user.Username), zap.Int("id", user.ID))
+				user.Password = fmt.Sprintf("%x", sha256.Sum256([]byte(user.Password)))
+			}
+
+			// Add to database
+			err = s.Controller.AuthDB.UpdateUser(&user)
+			if err != nil {
+				return nil, err
+			}
+
+			// Return safe view of updated user
+			safeUser, err := s.Controller.AuthDB.SafeViewUser(user.ID)
+			if err != nil {
+				return nil, err
+			}
+
+			return json.Marshal(safeUser)
+		}
+		return nil, errors.New("missing parameter 'id'")
+
+	}, "information for the user that has been updated")
+}
+
+func (s *Subsystem) deleteUser(in *endpoint.Request) (out *endpoint.Response, err error) {
+	return helpers.HandleWrapper(in, func() ([]byte, error) {
+		if m, ok := in.Parameters["id"]; ok && len(m) > 0 && m[0] != "" {
+			id := m[0]
+			uid, err := strconv.Atoi(id)
+			if err != nil {
+				return nil, err
+			}
+			err = s.Controller.AuthDB.DeleteUser(uid)
+			if err != nil {
+				return nil, err
+			}
+			return json.Marshal(map[string]int{"deleted_uid": uid})
+		}
+		return nil, errors.New("missing parameter 'id'")
+
+	}, "no information is returned by this endpoint")
 }

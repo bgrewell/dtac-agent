@@ -18,11 +18,15 @@ r = sub, obj, act
 [policy_definition]
 p = sub, obj, act
 
+[role_definition]
+g = _, _
+g2 = _, _
+
 [policy_effect]
 e = some(where (p.eft == allow))
 
 [matchers]
-m = r.sub == p.sub && r.obj == p.obj && r.act == p.act || r.sub == "admin"
+m = g(r.sub, p.sub) && r.obj == p.obj && r.act == p.act || g2(r.sub, "admin")
 `
 		err := os.WriteFile(c.Config.Auth.Model, []byte(defaultContents), 0600)
 		if err != nil {
