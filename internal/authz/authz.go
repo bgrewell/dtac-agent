@@ -128,6 +128,7 @@ func (s *Subsystem) AuthorizationHandler(next endpoint.Func) endpoint.Func {
 			return nil, fmt.Errorf("error retrieving roles for user: %v", err)
 		}
 
+		// Check if user has access to the resource
 		for _, role := range roles {
 			canAccess, err := s.enforcer.Enforce(role, path, action)
 			if err != nil {
