@@ -1,3 +1,11 @@
+## v1.1.1 (2023-11-29)
+
+### Fix
+
+- **grpc.go**: modify to follow standard practice of using grpc request metadata for authentication
+
+## v1.1.0 (2023-11-28)
+
 ## v1.0.8 (2023-11-27)
 
 ### Fix
