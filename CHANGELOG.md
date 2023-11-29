@@ -1,3 +1,9 @@
+## v1.1.2 (2023-11-29)
+
+### Fix
+
+- **authz**: add support for users database and fully implement casbin based RBAC authorization
+
 ## v1.1.1 (2023-11-29)
 
 ### Fix
