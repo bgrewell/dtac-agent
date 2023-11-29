@@ -15,6 +15,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 	"net"
@@ -122,9 +123,16 @@ func (a *Adapter) Call(ctx context.Context, in *api.EndpointRequestMessage) (*ap
 	method := in.GetMethod()
 	request := utility.APIEndpointRequestToEndpointRequest(in.GetRequest())
 
-	// Ensure that we have the metadata map
-	if request.Metadata == nil {
-		request.Metadata = make(map[string]string)
+	// Ensure that metadata wasn't passed in since it's only to be used internally. Due to a desire to keep things simple
+	// the plugin types were used here instead of creating new types for the API. Because of that metadata could be
+	// populated even though it's not documented. This is a temporary solution until the API is refactored.
+	request.Metadata = make(map[string]string)
+
+	// Pull authentication metadata from the request (gRPC metadata not EndpointRequest metadata)
+	if meta, ok := metadata.FromIncomingContext(ctx); ok {
+		if token := meta.Get("authorization"); len(token) > 0 {
+			request.Metadata[types.ContextAuthHeader.String()] = token[0]
+		}
 	}
 
 	if ep, ok := a.endpoints[method]; ok {
@@ -191,4 +199,4 @@ func (a *Adapter) setup() (err error) {
 // grpcurl -insecure -d '{"method": "create:auth/login", "request": {"metadata": {}, "headers": {}, "parameters": {}, "body": "<base64 encoded username/password json blob>" }}' 127.0.0.1:8181 frontend.AdapterService.Call
 //
 // Call to secured diag/
-// grpcurl -insecure -d '{"method": "read:diag/", "request": {"metadata": {"auth_header": "<bearer token here>"}, "headers": {}, "parameters": {}, "body": [] }}' 127.0.0.1:8181 frontend.AdapterService.Call | jq -r .response.value | base64 -d
+// grpcurl -insecure -H 'Authorization: <access_token_from_above_request>' -d '{"method": "read:diag/", "request": {"headers": {}, "parameters": {}, "body": [] }}' 127.0.0.1:8181 frontend.AdapterService.Call | jq -r .response.value | base64 -d | jq
