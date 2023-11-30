@@ -47,7 +47,7 @@ func (s *Subsystem) register() {
 
 	// Endpoints
 	secure := s.Controller.Config.Auth.DefaultSecure
-	authz := endpoint.AuthGroupAdmin.String()
+	authz := endpoint.AuthGroupUser.String()
 	s.endpoints = []*endpoint.Endpoint{
 		endpoint.NewEndpoint(fmt.Sprintf("%s/", base), endpoint.ActionRead, "general system information", s.rootHandler, secure, authz, endpoint.WithOutput(&Info{})),
 		endpoint.NewEndpoint(fmt.Sprintf("%s/uuid", base), endpoint.ActionRead, "system uuid", s.uuidHandler, secure, authz, endpoint.WithOutput(Info{}.UUID)),

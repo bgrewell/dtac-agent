@@ -1,9 +1,12 @@
 package endpoints
 
 import (
+	"encoding/json"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
 	"go.uber.org/zap"
+	"strings"
 )
 
 // NewEndpointList creates a new instance of the RouteList struct
@@ -25,4 +28,37 @@ type EndpointList struct {
 // AddEndpoints inserts new endpoints into the endpoint list
 func (el *EndpointList) AddEndpoints(endpoints []*endpoint.Endpoint) {
 	el.Endpoints = append(el.Endpoints, endpoints...)
+}
+
+// GetVisibleEndpoints returns a list of endpoints that are visible to the user
+func (el *EndpointList) GetVisibleEndpoints(in *endpoint.Request) (out []byte, err error) {
+	visibleEndpoints := make([]*endpoint.Endpoint, 0)
+	roleMap := make(map[string]bool)
+	if roles, ok := in.Metadata[types.ContextAuthRoles.String()]; ok {
+		for _, role := range strings.Split(roles, ",") {
+			switch role {
+			case endpoint.AuthGroupAdmin.String():
+				roleMap = map[string]bool{"admin": true, "operator": true, "user": true, "guest": true}
+			case endpoint.AuthGroupOperator.String():
+				roleMap = map[string]bool{"operator": true, "user": true, "guest": true}
+			case endpoint.AuthGroupUser.String():
+				roleMap = map[string]bool{"user": true, "guest": true}
+			case endpoint.AuthGroupGuest.String():
+				roleMap = map[string]bool{"guest": true}
+			default:
+				roleMap = map[string]bool{}
+			}
+		}
+	}
+
+	for _, ep := range el.Endpoints {
+		if _, hasAccess := roleMap[ep.AuthGroup]; !ep.Secure || hasAccess {
+			visibleEndpoints = append(visibleEndpoints, ep)
+		}
+	}
+
+	output := map[string]interface{}{
+		"count":     len(visibleEndpoints),
+		"endpoints": visibleEndpoints}
+	return json.Marshal(output)
 }

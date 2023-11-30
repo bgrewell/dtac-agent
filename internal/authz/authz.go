@@ -13,6 +13,7 @@ import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
 	"go.uber.org/zap"
+	"strings"
 )
 
 // NewSubsystem creates a new authz subsystem
@@ -135,6 +136,7 @@ func (s *Subsystem) AuthorizationHandler(next endpoint.Func) endpoint.Func {
 				return nil, fmt.Errorf("error checking role access: %v", err)
 			}
 			if canAccess {
+				in.Metadata[types.ContextAuthRoles.String()] = strings.Join(roles, ",")
 				return next(in)
 			}
 		}

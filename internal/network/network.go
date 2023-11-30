@@ -49,22 +49,23 @@ func (s *Subsystem) register() {
 
 	// Endpoints
 	secure := s.Controller.Config.Auth.DefaultSecure
-	authz := endpoint.AuthGroupAdmin.String() // Assuming this is the default authorization group
+	authzAdmin := endpoint.AuthGroupAdmin.String()
+	authzUser := endpoint.AuthGroupUser.String()
 	s.endpoints = []*endpoint.Endpoint{
-		endpoint.NewEndpoint(fmt.Sprintf("%s/", base), endpoint.ActionRead, "network information", s.networkInfoHandler, secure, authz, endpoint.WithOutput([]net.InterfaceStat{})),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/arp", base), endpoint.ActionRead, "arp table information", s.arpTableHandler, secure, authz, endpoint.WithOutput([]ArpEntry{})),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/routes", base), endpoint.ActionRead, "route table information", s.getRoutesHandler, secure, authz, endpoint.WithOutput([]RouteTableRow{})),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/route", base), endpoint.ActionRead, "route information", s.getRouteHandler, secure, authz),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/route", base), endpoint.ActionWrite, "update existing route", s.updateRouteHandler, secure, authz, endpoint.WithBody(RouteTableRowArgs{}), endpoint.WithOutput([]RouteTableRow{})),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/route", base), endpoint.ActionCreate, "create new route", s.createRouteHandler, secure, authz, endpoint.WithBody(RouteTableRowArgs{}), endpoint.WithOutput([]RouteTableRow{})),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/route", base), endpoint.ActionDelete, "delete route", s.deleteRouteHandler, secure, authz, endpoint.WithBody(RouteTableRowArgs{}), endpoint.WithOutput([]RouteTableRow{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/", base), endpoint.ActionRead, "network information", s.networkInfoHandler, secure, authzUser, endpoint.WithOutput([]net.InterfaceStat{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/arp", base), endpoint.ActionRead, "arp table information", s.arpTableHandler, secure, authzUser, endpoint.WithOutput([]ArpEntry{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/routes", base), endpoint.ActionRead, "route table information", s.getRoutesHandler, secure, authzUser, endpoint.WithOutput([]RouteTableRow{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/route", base), endpoint.ActionRead, "route information", s.getRouteHandler, secure, authzUser),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/route", base), endpoint.ActionWrite, "update existing route", s.updateRouteHandler, secure, authzAdmin, endpoint.WithBody(RouteTableRowArgs{}), endpoint.WithOutput([]RouteTableRow{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/route", base), endpoint.ActionCreate, "create new route", s.createRouteHandler, secure, authzAdmin, endpoint.WithBody(RouteTableRowArgs{}), endpoint.WithOutput([]RouteTableRow{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/route", base), endpoint.ActionDelete, "delete route", s.deleteRouteHandler, secure, authzAdmin, endpoint.WithBody(RouteTableRowArgs{}), endpoint.WithOutput([]RouteTableRow{})),
 
 		// Unified Endpoints
-		endpoint.NewEndpoint(fmt.Sprintf("%s/routes", unified), endpoint.ActionRead, "os agnostic route table information", s.getRoutesUnifiedHandler, secure, authz),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/route", unified), endpoint.ActionRead, "os agnostic route information", s.getRouteUnifiedHandler, secure, authz),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/route", unified), endpoint.ActionWrite, "os agnostic update exiting route", s.updateRouteUnifiedHandler, secure, authz),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/route", unified), endpoint.ActionCreate, "os agnostic create new route", s.createRouteUnifiedHandler, secure, authz),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/route", unified), endpoint.ActionDelete, "os agnostic delete route", s.deleteRouteUnifiedHandler, secure, authz),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/routes", unified), endpoint.ActionRead, "os agnostic route table information", s.getRoutesUnifiedHandler, secure, authzUser),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/route", unified), endpoint.ActionRead, "os agnostic route information", s.getRouteUnifiedHandler, secure, authzUser),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/route", unified), endpoint.ActionWrite, "os agnostic update exiting route", s.updateRouteUnifiedHandler, secure, authzAdmin),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/route", unified), endpoint.ActionCreate, "os agnostic create new route", s.createRouteUnifiedHandler, secure, authzAdmin),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/route", unified), endpoint.ActionDelete, "os agnostic delete route", s.deleteRouteUnifiedHandler, secure, authzAdmin),
 	}
 
 }

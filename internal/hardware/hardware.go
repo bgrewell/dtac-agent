@@ -56,7 +56,7 @@ func (s *Subsystem) register() {
 
 	// Endpoints
 	secure := s.Controller.Config.Auth.DefaultSecure
-	authz := endpoint.AuthGroupAdmin.String() // Assuming this is the default authorization group
+	authz := endpoint.AuthGroupUser.String()
 	s.endpoints = []*endpoint.Endpoint{
 		endpoint.NewEndpoint(fmt.Sprintf("%s/cpu", base), endpoint.ActionRead, "cpu information", s.cpuInfoHandler, secure, authz, endpoint.WithOutput([]cpu.InfoStat{})),
 		endpoint.NewEndpoint(fmt.Sprintf("%s/cpu/usage", base), endpoint.ActionRead, "cpu usage information", s.cpuUsageHandler, secure, authz, endpoint.WithParameters(CPUUsageArgs{}), endpoint.WithOutput(CPUUsageOutput{})),

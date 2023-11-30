@@ -55,7 +55,7 @@ func (es *EchoSubsystem) register() {
 
 	// Routes
 	secure := es.Controller.Config.Auth.DefaultSecure
-	authz := endpoint.AuthGroupAdmin.String()
+	authz := endpoint.AuthGroupGuest.String()
 	es.endpoints = []*endpoint.Endpoint{
 		endpoint.NewEndpoint(fmt.Sprintf("%s/", base), endpoint.ActionRead, "echo test endpoint", es.rootHandler, secure, authz, endpoint.WithParameters(EchoArgs{}), endpoint.WithOutput(EchoOutput{})),
 	}

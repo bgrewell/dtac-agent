@@ -13,9 +13,9 @@ import (
 
 // HomeOutput is the struct for the home page output
 type HomeOutput struct {
-	Message   string               `json:"message"`
-	Version   string               `json:"version"`
-	Endpoints []*endpoint.Endpoint `json:"endpoints"`
+	Message   string `json:"message"`
+	Version   string `json:"version"`
+	Endpoints []byte `json:"endpoints"`
 }
 
 // NewHomePageSubsystem creates a new homepage subsystem
@@ -48,7 +48,7 @@ func (hps *HomePageSubsystem) register() {
 	// Routes
 	base := ""
 	secure := hps.Controller.Config.Auth.DefaultSecure
-	authz := endpoint.AuthGroupAdmin.String()
+	authz := endpoint.AuthGroupGuest.String()
 	hps.endpoints = []*endpoint.Endpoint{
 		endpoint.NewEndpoint(fmt.Sprintf("%s/", base), endpoint.ActionRead, "general dtac agent information", hps.homeHandler, secure, authz, endpoint.WithOutput(HomeOutput{})),
 	}
@@ -71,10 +71,14 @@ func (hps *HomePageSubsystem) Endpoints() []*endpoint.Endpoint {
 
 func (hps *HomePageSubsystem) homeHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
+		eps, err := hps.Controller.EndpointList.GetVisibleEndpoints(in)
+		if err != nil {
+			return nil, err
+		}
 		response := HomeOutput{
 			Message:   fmt.Sprintf("welcome to the %s", hps.Controller.Config.Internal.ProductName),
 			Version:   version.Current().String(),
-			Endpoints: hps.Controller.EndpointList.Endpoints,
+			Endpoints: eps,
 		}
 		return json.Marshal(response)
 	}, "dtac-agentd information")

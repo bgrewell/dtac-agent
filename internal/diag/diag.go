@@ -48,12 +48,13 @@ func (s *Subsystem) register() {
 
 	// Endpoints
 	secure := s.Controller.Config.Auth.DefaultSecure
-	authz := endpoint.AuthGroupAdmin.String()
+	authzAdmin := endpoint.AuthGroupAdmin.String()
+	authzGuest := endpoint.AuthGroupGuest.String()
 
 	s.endpoints = []*endpoint.Endpoint{
-		endpoint.NewEndpoint(fmt.Sprintf("%s/", base), endpoint.ActionRead, "general diagnostic information", s.rootHandler, secure, authz, endpoint.WithOutput(version.Info{})),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/endpoints", base), endpoint.ActionRead, "list of endpoints", s.endpointListPrintHandler, secure, authz, endpoint.WithOutput(endpoints.EndpointList{})),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/runningas", base), endpoint.ActionRead, "information on current execution context", s.runningAsHandler, secure, authz, endpoint.WithOutput(types.UserGroup{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/", base), endpoint.ActionRead, "general diagnostic information", s.rootHandler, secure, authzGuest, endpoint.WithOutput(version.Info{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/endpoints", base), endpoint.ActionRead, "list of endpoints", s.endpointListPrintHandler, secure, authzGuest, endpoint.WithOutput(endpoints.EndpointList{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/runningas", base), endpoint.ActionRead, "information on current execution context", s.runningAsHandler, secure, authzAdmin, endpoint.WithOutput(types.UserGroup{})),
 	}
 
 }
@@ -83,8 +84,8 @@ func (s *Subsystem) rootHandler(in *endpoint.Request) (out *endpoint.Response, e
 // endpointListPrintHandler handles requests for the supported endpoints
 func (s *Subsystem) endpointListPrintHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
-		return json.Marshal(s.Controller.EndpointList)
-	}, "enabled api endpoints")
+		return s.Controller.EndpointList.GetVisibleEndpoints(in)
+	}, "endpoints visible to the user")
 }
 
 // runningAsHandler returns information about the user and group context the application is running as

@@ -14,6 +14,8 @@ const (
 	ContextAuthHeader ContextKey = "auth_header"
 	// ContextAuthUser is the key used to store the value of the auth user
 	ContextAuthUser ContextKey = "auth_user"
+	// ContextAuthRoles is the key used to store the value of the auth roles
+	ContextAuthRoles ContextKey = "auth_roles"
 	// ContextResourceAction is the key used to store the value of the resource action
 	ContextResourceAction ContextKey = "resource_action"
 	// ContextResourcePath is the key used to store the value of the resource path
