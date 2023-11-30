@@ -89,6 +89,18 @@ func (a *Adapter) Register(subsystems []interfaces.Subsystem) (err error) {
 		}
 	}
 
+	// Add swagger endpoint
+	a.router.GET("/swagger.json", func(c *gin.Context) {
+		endpoints := a.controller.EndpointList
+		swagger, err := GenerateSwaggerDocument(endpoints.Endpoints)
+		if err != nil {
+			a.logger.Error("failed to generate swagger document", zap.Error(err))
+			a.formatter.WriteError(c, err)
+			return
+		}
+		c.JSON(http.StatusOK, swagger)
+	})
+
 	return nil
 }
 

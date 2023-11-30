@@ -143,6 +143,9 @@ func (s *Subsystem) loginHandler(in *endpoint.Request) (out *endpoint.Response, 
 			return nil, nil, err
 		}
 
+		// Usernames are always worked with in lowercase
+		u.Username = strings.ToLower(u.Username)
+
 		// Convert the users credentials into sha256 hashes
 		userHash := fmt.Sprintf("%x", sha256.Sum256([]byte(u.Username)))
 		passHash := fmt.Sprintf("%x", sha256.Sum256([]byte(u.Password)))
@@ -162,7 +165,7 @@ func (s *Subsystem) loginHandler(in *endpoint.Request) (out *endpoint.Response, 
 		// Check if the user is in the database (always check all the users to avoid timing attacks)
 		var userExists bool
 		for _, user := range users {
-			uh := fmt.Sprintf("%x", sha256.Sum256([]byte(user.Username)))
+			uh := fmt.Sprintf("%x", sha256.Sum256([]byte(strings.ToLower(user.Username))))
 			if check(userHash, uh) {
 				userExists = true
 				u = user
@@ -425,6 +428,11 @@ func (s *Subsystem) createUser(in *endpoint.Request) (out *endpoint.Response, er
 
 		// Hash the password
 		user.Password = fmt.Sprintf("%x", sha256.Sum256([]byte(user.Password)))
+
+		// Check to see if the user already exists (this is not secure against timing attacks because you need to be an admin already to do it)
+		if s.Controller.AuthDB.UserExistsByUsername(user.Username) {
+			return nil, errors.New("user already exists")
+		}
 
 		// Add to database
 		err = s.Controller.AuthDB.CreateUser(&user)

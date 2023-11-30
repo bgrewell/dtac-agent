@@ -53,19 +53,30 @@ type Endpoint struct {
 	AuthGroup string `json:"auth_group,omitempty" yaml:"auth_group,omitempty" toml:"auth_group,omitempty" mapstructure:"auth_group,omitempty"`
 
 	// ExpectedMetadataSchema defines the JSON Schema for the expected metadata structure in the request.
-	ExpectedMetadataSchema string `json:"expected_metadata_schema,omitempty" yaml:"expected_metadata_schema,omitempty" toml:"expected_metadata_schema,omitempty" mapstructure:"expected_metadata_schema,omitempty"`
+	ExpectedMetadataSchema string `json:"-" mapstructure:"expected_metadata_schema,omitempty"`
 
 	// ExpectedHeadersSchema defines the JSON Schema for the expected headers structure in the request.
-	ExpectedHeadersSchema string `json:"expected_headers_schema,omitempty" yaml:"expected_headers_schema,omitempty" toml:"expected_headers_schema,omitempty" mapstructure:"expected_headers_schema,omitempty"`
+	ExpectedHeadersSchema string `json:"-" mapstructure:"expected_headers_schema,omitempty"`
 
 	// ExpectedParametersSchema defines the JSON Schema for the expected parameters structure in the request.
-	ExpectedParametersSchema string `json:"expected_parameters_schema,omitempty" yaml:"expected_parameters_schema,omitempty" toml:"expected_parameters_schema,omitempty" mapstructure:"expected_parameters_schema,omitempty"`
+	ExpectedParametersSchema string `json:"-" mapstructure:"expected_parameters_schema,omitempty"`
 
 	// ExpectedBodySchema defines the JSON Schema for the expected body structure in the request.
-	ExpectedBodySchema string `json:"expected_body_schema,omitempty" yaml:"expected_body_schema,omitempty" toml:"expected_body_schema,omitempty" mapstructure:"expected_body_schema,omitempty"`
+	ExpectedBodySchema string `json:"-" mapstructure:"expected_body_schema,omitempty"`
 
 	// ExpectedOutputSchema defines the JSON Schema for the expected output structure in the response.
-	ExpectedOutputSchema string `json:"expected_output_schema,omitempty" yaml:"expected_output_schema,omitempty" toml:"expected_output_schema,omitempty" mapstructure:"expected_output_schema,omitempty"`
+	ExpectedOutputSchema string `json:"-" mapstructure:"expected_output_schema,omitempty"`
+
+	// ExpectedMetadataDescription is a output friendly representation of the expected metadata schema.
+	ExpectedMetadataDescription json.RawMessage `json:"expected_metadata_schema,omitempty" yaml:"expected_metadata_schema,omitempty" toml:"expected_metadata_schema,omitempty"`
+	// ExpectedHeadersDescription is a output friendly representation of the expected headers schema.
+	ExpectedHeadersDescription json.RawMessage `json:"expected_headers_schema,omitempty" yaml:"expected_headers_schema,omitempty" toml:"expected_headers_schema,omitempty"`
+	// ExpectedParametersDescription is a output friendly representation of the expected parameters schema.
+	ExpectedParametersDescription json.RawMessage `json:"expected_parameters_schema,omitempty" yaml:"expected_parameters_schema,omitempty" toml:"expected_parameters_schema,omitempty"`
+	// ExpectedBodyDescription is a output friendly representation of the expected body schema.
+	ExpectedBodyDescription json.RawMessage `json:"expected_body_schema,omitempty" yaml:"expected_body_schema,omitempty" toml:"expected_body_schema,omitempty"`
+	// ExpectedOutputDescription is a output friendly representation of the expected output schema.
+	ExpectedOutputDescription json.RawMessage `json:"expected_output_schema,omitempty" yaml:"expected_output_schema,omitempty" toml:"expected_output_schema,omitempty"`
 }
 
 // GenerateSchemas handles conversion for Go structs to JSON Schemas for input/output validation definition
@@ -131,7 +142,8 @@ func (e *Endpoint) SetExpectedMetadataSchema(data interface{}) error {
 		return err
 	}
 	e.ExpectedMetadataSchema = schema
-	return nil
+
+	return json.Unmarshal([]byte(schema), &e.ExpectedMetadataDescription)
 }
 
 // SetExpectedHeadersSchema sets the expected headers schema from a given struct.
@@ -141,7 +153,8 @@ func (e *Endpoint) SetExpectedHeadersSchema(data interface{}) error {
 		return err
 	}
 	e.ExpectedHeadersSchema = schema
-	return nil
+
+	return json.Unmarshal([]byte(schema), &e.ExpectedHeadersDescription)
 }
 
 // SetExpectedParameterSchema sets the expected metadata schema from a given struct.
@@ -151,7 +164,8 @@ func (e *Endpoint) SetExpectedParameterSchema(data interface{}) error {
 		return err
 	}
 	e.ExpectedParametersSchema = schema
-	return nil
+
+	return json.Unmarshal([]byte(schema), &e.ExpectedParametersDescription)
 }
 
 // SetExpectedBodySchema sets the expected parameter schema from a given struct.
@@ -161,7 +175,8 @@ func (e *Endpoint) SetExpectedBodySchema(data interface{}) error {
 		return err
 	}
 	e.ExpectedBodySchema = schema
-	return nil
+
+	return json.Unmarshal([]byte(schema), &e.ExpectedBodyDescription)
 }
 
 // SetExpectedOutputSchema sets the expected parameter schema from a given struct.
@@ -171,7 +186,8 @@ func (e *Endpoint) SetExpectedOutputSchema(data interface{}) error {
 		return err
 	}
 	e.ExpectedOutputSchema = schema
-	return nil
+
+	return json.Unmarshal([]byte(schema), &e.ExpectedOutputDescription)
 }
 
 // ValidateRequest validates the request against the expected schemas

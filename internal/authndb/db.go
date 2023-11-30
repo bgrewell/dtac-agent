@@ -8,6 +8,7 @@ import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
 	"go.uber.org/zap"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -19,10 +20,10 @@ type UserArgs struct {
 
 // User is the struct for a user
 type User struct {
-	ID       int      `json:"id"`       // User ID
-	Username string   `json:"username"` // Username
-	Password string   `json:"password"` // Password stored as sha256 hash
-	Groups   []string `json:"groups"`   // Groups user belongs to
+	ID       int      `json:"id,omitempty"` // User ID
+	Username string   `json:"username"`     // Username
+	Password string   `json:"password"`     // Password stored as sha256 hash
+	Groups   []string `json:"groups"`       // Groups user belongs to
 }
 
 // TokenDetails is the struct for the token details
@@ -189,6 +190,50 @@ func (db *AuthDB) DeleteUser(userID int) error {
 
 		return b.Delete(key)
 	})
+}
+
+// UserExistsByID checks if a user exists in the authn database
+func (db *AuthDB) UserExistsByID(userID int) bool {
+	var exists bool
+	db.DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(db.userBucket))
+
+		key := itob(userID)
+
+		v := b.Get(key)
+		if v == nil {
+			exists = false
+		} else {
+			exists = true
+		}
+		return nil
+	})
+	return exists
+}
+
+// UserExistsByUsername checks if a user exists in the authn database
+func (db *AuthDB) UserExistsByUsername(username string) bool {
+	var exists bool
+	db.DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(db.userBucket))
+
+		c := b.Cursor()
+
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			var u User
+			err := json.Unmarshal(v, &u)
+			if err != nil {
+				return err
+			}
+			if strings.ToLower(u.Username) == strings.ToLower(username) {
+				exists = true
+				return nil
+			}
+		}
+		exists = false
+		return nil
+	})
+	return exists
 }
 
 // ViewUser views the specified user in the authn database
