@@ -1,42 +1,65 @@
-listener:
-  https:
-    cert: /etc/dtac/certs/tls.crt
-    create_if_missing: true
-    domains:
-      - localhost
-      - 127.0.0.1
+auth:
+  admin: admin
+  default_secure: true
+  model: /etc/dtac/auth_model.conf
+  pass: need_to_generate_a_random_password_on_install_or_first_run
+  policy: /etc/dtac/auth_policy.csv
+apis:
+  grpc:
     enabled: true
-    key: /etc/dtac/certs/tls.key
-    type: self-signed
-  port: 8180
+    port: 8181
+    reflection: false
+    tls:
+      enabled: true
+      profile: default
+  json:
+    enabled: false
+    port: 8182
+    tls:
+      enabled: true
+      profile: default
+  rest:
+    enabled: true
+    port: 8180
+    tls:
+      enabled: true
+      profile: default
 lockout:
-  auto_unlock_time: 30s
+  auto_unlock_time: 10s
   enabled: true
+output:
+  log_level: debug
+  wrap_responses: false
 plugins:
-  dir: /opt/dtac/plugins
+  dir: /opt/dtac/plugins/
   enabled: true
+  group: plugins
+  load_unconfigured: false
+  tls:
+    enabled: true
+    profile: default
   entries:
     hello:
       config:
         message: hello world plugin
-      cookie: this_is_not_a_security_feature
       enabled: true
-      hash: acf432990799087e0a651f26339d16b08f21f5f48d5981b3b86032fc412b1a30
-routes: []
+      hash: ""
+      user: ""
 subsystems:
-  firewall: false
-  iperf: true
-  tcp_reflector: true
-  udp_reflector: true
-updater:
-  enabled: false
-  error_fallback: 1h
-  interval: 1m
-  mode: auto
-  restart_on_update: true
-  token: ""
-wifi_watchdog:
-  bssid: ""
-  enabled: false
-  poll_interval: 10s
-  profile: ""
+  auth: true
+  diag: true
+  echo: true
+  hardware: true
+  network: true
+  validation: true
+tls:
+  default:
+    ca: /etc/dtac/certs/ca.crt
+    cert: /etc/dtac/certs/tls.crt
+    create_if_missing: true
+    domains:
+      - localhost
+      - bgrewell-DESK3
+    enabled: true
+    key: /etc/dtac/certs/tls.key
+    type: self-signed
