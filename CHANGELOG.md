@@ -1,3 +1,10 @@
+## v1.1.3 (2023-11-30)
+
+### Fix
+
+- update endpoint validation/self-describing code
+- fixed missing error check
+
 ## v1.1.2 (2023-11-29)
 
 ### Fix
