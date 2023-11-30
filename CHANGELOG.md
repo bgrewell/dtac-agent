@@ -1,3 +1,13 @@
+## v1.1.6 (2023-11-30)
+
+### Fix
+
+- modify endpoint list to take user auth into context and update required auth groups
+
+### Refactor
+
+- enable ability to disable/enable authn/authz subsystems
+
 ## v1.1.5 (2023-11-30)
 
 ### Fix
