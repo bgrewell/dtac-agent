@@ -84,11 +84,6 @@ type SubsystemEntry struct {
 	Hardware   bool `json:"hardware" yaml:"hardware" mapstructure:"hardware"`
 	Network    bool `json:"network" yaml:"network" mapstructure:"network"`
 	Validation bool `json:"validation" yaml:"validation" mapstructure:"validation"`
-	//TODO: Below this line are old and should be removed
-	Firewall     bool `json:"firewall" yaml:"firewall" mapstructure:"firewall"`
-	Iperf        bool `json:"iperf" yaml:"iperf" mapstructure:"iperf"`
-	TCPReflector bool `json:"tcp_reflector" yaml:"tcp_reflector" mapstructure:"tcp_reflector"`
-	UDPReflector bool `json:"udp_reflector" yaml:"udp_reflector" mapstructure:"udp_reflector"`
 }
 
 // UpdaterEntry is the struct for an updater entry
