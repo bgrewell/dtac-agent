@@ -78,10 +78,12 @@ type SourceEntry struct {
 
 // SubsystemEntry is the struct for a subsystem entry
 type SubsystemEntry struct {
-	Diag     bool `json:"diag" yaml:"diag" mapstructure:"diag"`
-	Echo     bool `json:"echo" yaml:"echo" mapstructure:"echo"`
-	Hardware bool `json:"hardware" yaml:"hardware" mapstructure:"hardware"`
-	Network  bool `json:"network" yaml:"network" mapstructure:"network"`
+	Auth       bool `json:"auth" yaml:"auth" mapstructure:"auth"`
+	Diag       bool `json:"diag" yaml:"diag" mapstructure:"diag"`
+	Echo       bool `json:"echo" yaml:"echo" mapstructure:"echo"`
+	Hardware   bool `json:"hardware" yaml:"hardware" mapstructure:"hardware"`
+	Network    bool `json:"network" yaml:"network" mapstructure:"network"`
+	Validation bool `json:"validation" yaml:"validation" mapstructure:"validation"`
 	//TODO: Below this line are old and should be removed
 	Firewall     bool `json:"firewall" yaml:"firewall" mapstructure:"firewall"`
 	Iperf        bool `json:"iperf" yaml:"iperf" mapstructure:"iperf"`
@@ -296,10 +298,12 @@ func DefaultConfig() map[string]interface{} {
 		"plugins.load_unconfigured":     false,
 		"plugins.tls.enabled":           true,
 		"plugins.tls.profile":           "default",
+		"subsystems.auth":               true,
 		"subsystems.diag":               true,
 		"subsystems.echo":               true,
 		"subsystems.network":            true,
 		"subsystems.hardware":           true,
+		"subsystems.validation":         true,
 		"custom_endpoints":              []map[string]*RouteEntry{},
 		"output.log_level":              "debug",
 		"output.wrap_responses":         false,

@@ -36,7 +36,7 @@ func NewSubsystem(c *controller.Controller) interfaces.Subsystem {
 	as := Subsystem{
 		Controller: c,
 		Logger:     c.Logger.With(zap.String("module", name)),
-		enabled:    true,
+		enabled:    c.Config.Subsystems.Auth,
 		name:       name,
 	}
 

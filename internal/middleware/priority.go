@@ -14,4 +14,6 @@ const (
 	PriorityMedium Priority = 100
 	// PriorityLow is for low priority non-authn/non-authz middleware
 	PriorityLow Priority = 200
+	// PriorityValidation is for validation middleware which is one of the last to run
+	PriorityValidation = 300
 )

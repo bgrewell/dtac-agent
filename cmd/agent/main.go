@@ -22,6 +22,7 @@ import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/network"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/plugin"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/system"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/validation"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 	"go.uber.org/zap"
@@ -71,8 +72,8 @@ func Setup(params AdapterParams) {
 	// Register middleware
 	params.Controller.Logger.Debug("registering middleware", zap.Int("count", len(middlewares)))
 	for _, subsystem := range params.Subsystems {
-		endpionts := subsystem.Endpoints()
-		for _, endpoint := range endpionts {
+		eps := subsystem.Endpoints()
+		for _, endpoint := range eps {
 			endpoint.Function = middleware.Chain(middlewares, *endpoint)
 		}
 	}
@@ -192,6 +193,7 @@ func main() {
 			AsSubsystem(network.NewSubsystem),       // Network Subsystem
 			AsSubsystem(hardware.NewSubsystem),      // Hardware Subsystem
 			AsSubsystem(system.NewSubsystem),        // System Subsystem
+			AsSubsystem(validation.NewSubsystem),    // Validation Subsystem
 		),
 		// Invoke any functions needed to initialize everything. The empty anonymous functions are
 		// used to ensure that the providers that return that type are initialized.

@@ -238,6 +238,8 @@ func ValidateAgainstSchema(data interface{}, schemaStr string) error {
 		err := json.Unmarshal(input, &tmp)
 		if err == nil {
 			data = tmp
+		} else {
+			return err
 		}
 	}
 
