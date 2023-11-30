@@ -139,7 +139,7 @@ func (s *Subsystem) Endpoints() []*endpoint.Endpoint {
 // Handler handles the authentication middleware
 func (s *Subsystem) Handler(ep endpoint.Endpoint) endpoint.Func {
 	// Bypass authentication for endpoints that don't use auth
-	if !ep.Secure {
+	if !ep.Secure || !s.enabled {
 		return ep.Function
 	}
 	return s.AuthenticationHandler(ep.Function)
