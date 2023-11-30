@@ -1,3 +1,9 @@
+## v1.1.4 (2023-11-30)
+
+### Fix
+
+- **authn**: migrated from sha256 password hashes to salted bcrypt
+
 ## v1.1.3 (2023-11-30)
 
 ### Fix
