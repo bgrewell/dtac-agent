@@ -13,7 +13,7 @@ import (
 
 // EchoArgs is a struct to assist with validating the input arguments
 type EchoArgs struct {
-	Message string `json:"msg"`
+	Message []string `json:"msg"`
 }
 
 // EchoOutput is a struct to assist with validating the output

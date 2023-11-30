@@ -148,23 +148,6 @@ func (a *Adapter) shim(method string, ep *endpoint.Endpoint) {
 			return
 		}
 
-		// TODO: Look at moving validation somewhere central so API's don't have to do it
-		//err = ep.ValidateArgs(in)
-		//if err != nil {
-		//	a.logger.Error("failed to validate input args", zap.Error(err))
-		//	a.formatter.WriteError(c, err)
-		//	return
-		//}
-		//
-		//// TODO: Look at moving validation somewhere central so API's don't have to do it
-		//// TODO: Look at deserialization of body and storage in a central manner to ease endpoint dup code
-		//err = ep.ValidateBody(in)
-		//if err != nil {
-		//	a.logger.Error("failed to validate input body", zap.Error(err))
-		//	a.formatter.WriteError(c, err)
-		//	return
-		//}
-
 		// If this is a secured endpoint check for the authorization header
 		if ep.Secure {
 			auth := c.GetHeader("Authorization")
@@ -178,6 +161,13 @@ func (a *Adapter) shim(method string, ep *endpoint.Endpoint) {
 		// Add additional context
 		in.Metadata[types.ContextResourceAction.String()] = ep.Action.String()
 		in.Metadata[types.ContextResourcePath.String()] = ep.Path
+
+		// Look at moving validators to middleware so API adapters don't have to worry about it
+		err = ep.ValidateRequest(in)
+		if err != nil {
+			a.formatter.WriteError(c, err)
+			return
+		}
 
 		out, err := ep.Function(in)
 		if err != nil {

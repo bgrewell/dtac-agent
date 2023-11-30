@@ -463,6 +463,9 @@ func (s *Subsystem) updateUser(in *endpoint.Request) (out *endpoint.Response, er
 				return nil, err
 			}
 			dbUser, err := s.Controller.AuthDB.ViewUser(uid)
+			if err != nil {
+				return nil, err
+			}
 
 			// Update ID if not specified
 			if user.ID == 0 {

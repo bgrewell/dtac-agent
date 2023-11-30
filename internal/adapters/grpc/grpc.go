@@ -139,6 +139,11 @@ func (a *Adapter) Call(ctx context.Context, in *api.EndpointRequestMessage) (*ap
 		request.Metadata[types.ContextResourceAction.String()] = ep.Action.String()
 		request.Metadata[types.ContextResourcePath.String()] = ep.Path
 
+		err := ep.ValidateRequest(request)
+		if err != nil {
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		}
+
 		response, err := ep.Function(request)
 		if err != nil {
 			return nil, status.Error(codes.Internal, err.Error())

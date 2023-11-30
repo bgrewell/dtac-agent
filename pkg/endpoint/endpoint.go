@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/invopop/jsonschema"
+	"github.com/xeipuuv/gojsonschema"
+	"strings"
 )
 
 // NewEndpoint creates a new instance of the Endpoint struct
@@ -89,6 +91,13 @@ func (e *Endpoint) GenerateSchemas(validators *validationOptions) {
 			fmt.Printf("[!] ERROR: %v\n", err)
 		}
 	}
+	if validators.body != nil {
+		err := e.SetExpectedBodySchema(validators.body)
+		if err != nil {
+			//TODO: Need to figure out how to handle logging here
+			fmt.Printf("[!] ERROR: %v\n", err)
+		}
+	}
 	if validators.output != nil {
 		err := e.SetExpectedOutputSchema(validators.output)
 		if err != nil {
@@ -100,8 +109,14 @@ func (e *Endpoint) GenerateSchemas(validators *validationOptions) {
 
 // GenerateSchemaFromInterface generates a JSON Schema from a given interface{}.
 // The interface should ideally be a struct for meaningful schema generation.
-func (e *Endpoint) GenerateSchemaFromInterface(data interface{}) (string, error) {
+func (e *Endpoint) GenerateSchemaFromInterface(data interface{}, additionalProperties bool) (string, error) {
 	schema := jsonschema.Reflect(data)
+	if additionalProperties {
+		for _, definition := range schema.Definitions {
+			definition.AdditionalProperties = jsonschema.TrueSchema
+		}
+	}
+
 	bytes, err := json.MarshalIndent(schema, "", "  ")
 	if err != nil {
 		return "", err
@@ -111,7 +126,7 @@ func (e *Endpoint) GenerateSchemaFromInterface(data interface{}) (string, error)
 
 // SetExpectedMetadataSchema sets the expected metadata schema from a given struct.
 func (e *Endpoint) SetExpectedMetadataSchema(data interface{}) error {
-	schema, err := e.GenerateSchemaFromInterface(data)
+	schema, err := e.GenerateSchemaFromInterface(data, false)
 	if err != nil {
 		return err
 	}
@@ -121,7 +136,7 @@ func (e *Endpoint) SetExpectedMetadataSchema(data interface{}) error {
 
 // SetExpectedHeadersSchema sets the expected headers schema from a given struct.
 func (e *Endpoint) SetExpectedHeadersSchema(data interface{}) error {
-	schema, err := e.GenerateSchemaFromInterface(data)
+	schema, err := e.GenerateSchemaFromInterface(data, true)
 	if err != nil {
 		return err
 	}
@@ -131,34 +146,103 @@ func (e *Endpoint) SetExpectedHeadersSchema(data interface{}) error {
 
 // SetExpectedParameterSchema sets the expected metadata schema from a given struct.
 func (e *Endpoint) SetExpectedParameterSchema(data interface{}) error {
-	schema, err := e.GenerateSchemaFromInterface(data)
+	schema, err := e.GenerateSchemaFromInterface(data, true)
 	if err != nil {
 		return err
 	}
-	e.ExpectedMetadataSchema = schema
+	e.ExpectedParametersSchema = schema
+	return nil
+}
+
+// SetExpectedBodySchema sets the expected parameter schema from a given struct.
+func (e *Endpoint) SetExpectedBodySchema(data interface{}) error {
+	schema, err := e.GenerateSchemaFromInterface(data, false)
+	if err != nil {
+		return err
+	}
+	e.ExpectedBodySchema = schema
 	return nil
 }
 
 // SetExpectedOutputSchema sets the expected parameter schema from a given struct.
 func (e *Endpoint) SetExpectedOutputSchema(data interface{}) error {
-	schema, err := e.GenerateSchemaFromInterface(data)
+	schema, err := e.GenerateSchemaFromInterface(data, false)
 	if err != nil {
 		return err
 	}
-	e.ExpectedHeadersSchema = schema
+	e.ExpectedOutputSchema = schema
 	return nil
 }
 
-// ValidateArgs validates the arguments of the request against the expected arguments
-func (e *Endpoint) ValidateArgs(request *Request) error {
-	//TODO: Return errors until implemented. Currently just return nil to allow development/testing to continue
+// ValidateRequest validates the request against the expected schemas
+func (e *Endpoint) ValidateRequest(request *Request) error {
+	if err := ValidateAgainstSchema(request.Metadata, e.ExpectedMetadataSchema); err != nil {
+		return err
+	}
+	if err := ValidateAgainstSchema(request.Headers, e.ExpectedHeadersSchema); err != nil {
+		return err
+	}
+	if err := ValidateAgainstSchema(request.Parameters, e.ExpectedParametersSchema); err != nil {
+		return err
+	}
+	if err := ValidateAgainstSchema(request.Body, e.ExpectedBodySchema); err != nil {
+		return err
+	}
+
 	return nil
-	//return errors.New("this method has not been implemented")
 }
 
-// ValidateBody validates the body of the request against the expected body
-func (e *Endpoint) ValidateBody(request *Request) error {
-	//TODO: Return errors until implemented. Currently just return nil to allow development/testing to continue
+// ValidateResponse validates the response against the expected output schema
+func (e *Endpoint) ValidateResponse(response *Response) error {
+	if err := ValidateAgainstSchema(response.Metadata, e.ExpectedMetadataSchema); err != nil {
+		return err
+	}
+	if err := ValidateAgainstSchema(response.Headers, e.ExpectedHeadersSchema); err != nil {
+		return err
+	}
+	if err := ValidateAgainstSchema(response.Parameters, e.ExpectedParametersSchema); err != nil {
+		return err
+	}
+	if err := ValidateAgainstSchema(response.Value, e.ExpectedOutputSchema); err != nil {
+		return err
+	}
+
 	return nil
-	//return errors.New("this method has not been implemented")
+}
+
+// ValidateAgainstSchema validates the given data against the given schema
+func ValidateAgainstSchema(data interface{}, schemaStr string) error {
+	if schemaStr == "" {
+		return nil // No schema provided
+	}
+
+	// Ensure data isn't a json string
+	if input, ok := data.([]byte); ok {
+		var tmp interface{}
+		err := json.Unmarshal(input, &tmp)
+		if err == nil {
+			data = tmp
+		}
+	}
+
+	// Load schema and data into gojsonschema loaders
+	schemaLoader := gojsonschema.NewStringLoader(schemaStr)
+	documentLoader := gojsonschema.NewGoLoader(data)
+
+	// Perform validation
+	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
+	if err != nil {
+		return err // handle validation error
+	}
+
+	if !result.Valid() {
+		// Collect and return errors if validation fails
+		var validationErrors []string
+		for _, err := range result.Errors() {
+			validationErrors = append(validationErrors, err.String())
+		}
+		return fmt.Errorf("validation failed: %s", strings.Join(validationErrors, "; "))
+	}
+
+	return nil
 }
