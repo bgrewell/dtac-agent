@@ -8,12 +8,7 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 )
 
-//router.GET("/swagger.json", func(c *gin.Context) {
-//	endpoints := loadEndpointDescriptions() // Load or update your endpoint descriptions
-//	swagger := generateSwaggerDocument(endpoints)
-//	c.JSON(http.StatusOK, swagger)
-//})
-
+// GenerateSwaggerDocument generates a Swagger document from a list of Endpoints
 func GenerateSwaggerDocument(endpoints []*endpoint.Endpoint) (swagger *openapi3.T, err error) {
 	swagger = &openapi3.T{
 		OpenAPI: "3.0.0",
@@ -67,14 +62,14 @@ func convertToSwaggerPath(endpoint *endpoint.Endpoint) (*openapi3.PathItem, erro
 	operation.RequestBody = &openapi3.RequestBodyRef{}
 
 	// Convert JSON Schema strings to OpenAPI schema objects
-	if endpoint.ExpectedParametersSchema != "" {
-		//schema, err := convertJSONSchemaToOpenAPI(endpoint.ExpectedParametersSchema)
-		//if err != nil {
-		//	return nil, err
-		//}
-		//// Add parameters schema to operation
-		//// You may need to adjust this part based on how your schema defines parameters
-	}
+	//if endpoint.ExpectedParametersSchema != "" {
+	//	//schema, err := convertJSONSchemaToOpenAPI(endpoint.ExpectedParametersSchema)
+	//	//if err != nil {
+	//	//	return nil, err
+	//	//}
+	//	//// Add parameters schema to operation
+	//	//// You may need to adjust this part based on how your schema defines parameters
+	//}
 
 	if endpoint.ExpectedBodySchema != "" {
 		schema, err := convertJSONSchemaToOpenAPI(endpoint.ExpectedBodySchema)

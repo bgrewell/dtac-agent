@@ -152,6 +152,7 @@ func (db *AuthDB) CreateUser(user *User) error {
 	})
 }
 
+// CreateUserWithID creates a new user in the authn database with the specified ID
 func (db *AuthDB) CreateUserWithID(user *User) error {
 	return db.DB.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(db.userBucket))
@@ -225,7 +226,7 @@ func (db *AuthDB) UserExistsByUsername(username string) bool {
 			if err != nil {
 				return err
 			}
-			if strings.ToLower(u.Username) == strings.ToLower(username) {
+			if strings.EqualFold(u.Username, username) {
 				exists = true
 				return nil
 			}

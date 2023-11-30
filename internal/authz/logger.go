@@ -45,6 +45,7 @@ func (l *CasbinLogger) LogRole(roles []string) {
 	l.logger.Info("logging roles", zap.Strings("roles", roles))
 }
 
+// LogPolicy logs the policy information, including policy type, role, and permission
 func (l *CasbinLogger) LogPolicy(policy map[string][][]string) {
 	if !l.enabled {
 		return
@@ -53,6 +54,7 @@ func (l *CasbinLogger) LogPolicy(policy map[string][][]string) {
 	l.logger.Info("logging policy", zap.Any("policy", policy))
 }
 
+// LogError logs error message
 func (l *CasbinLogger) LogError(err error, msg ...string) {
 	if !l.enabled {
 		return
@@ -65,6 +67,7 @@ func (l *CasbinLogger) LogError(err error, msg ...string) {
 	}
 }
 
+// LogCurrentPolicies logs current policies
 func (l *CasbinLogger) LogCurrentPolicies(enforcer *casbin.Enforcer) {
 	if !l.enabled {
 		return

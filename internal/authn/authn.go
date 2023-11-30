@@ -97,16 +97,16 @@ func (s *Subsystem) register() {
 	base := s.name
 
 	// Endpoints
-	authz_guest := endpoint.AuthGroupGuest.String()
-	authz_operator := endpoint.AuthGroupOperator.String()
-	authz_admin := endpoint.AuthGroupAdmin.String()
+	authzGuest := endpoint.AuthGroupGuest.String()
+	authzOperator := endpoint.AuthGroupOperator.String()
+	authzAdmin := endpoint.AuthGroupAdmin.String()
 	s.endpoints = []*endpoint.Endpoint{
-		endpoint.NewEndpoint(fmt.Sprintf("%s/login", base), endpoint.ActionCreate, "login handler", s.loginHandler, false, authz_guest, endpoint.WithBody(authndb.UserArgs{}), endpoint.WithOutput(AuthOutput{})),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/users", base), endpoint.ActionRead, "list users - does not include built-in admin", s.listUsers, true, authz_operator, endpoint.WithOutput([]authndb.User{})),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/user", base), endpoint.ActionRead, "get user by id", s.getUser, true, authz_operator, endpoint.WithOutput(authndb.User{})),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/users", base), endpoint.ActionCreate, "create user", s.createUser, true, authz_admin, endpoint.WithBody(authndb.User{}), endpoint.WithOutput(authndb.User{})),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/user", base), endpoint.ActionWrite, "update user", s.updateUser, true, authz_admin, endpoint.WithBody(authndb.User{}), endpoint.WithOutput(authndb.User{})),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/user", base), endpoint.ActionDelete, "delete user", s.deleteUser, true, authz_admin),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/login", base), endpoint.ActionCreate, "login handler", s.loginHandler, false, authzGuest, endpoint.WithBody(authndb.UserArgs{}), endpoint.WithOutput(AuthOutput{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/users", base), endpoint.ActionRead, "list users - does not include built-in admin", s.listUsers, true, authzOperator, endpoint.WithOutput([]authndb.User{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/user", base), endpoint.ActionRead, "get user by id", s.getUser, true, authzOperator, endpoint.WithOutput(authndb.User{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/users", base), endpoint.ActionCreate, "create user", s.createUser, true, authzAdmin, endpoint.WithBody(authndb.User{}), endpoint.WithOutput(authndb.User{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/user", base), endpoint.ActionWrite, "update user", s.updateUser, true, authzAdmin, endpoint.WithBody(authndb.User{}), endpoint.WithOutput(authndb.User{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/user", base), endpoint.ActionDelete, "delete user", s.deleteUser, true, authzAdmin),
 	}
 }
 
