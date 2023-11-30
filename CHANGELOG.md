@@ -1,3 +1,9 @@
+## v1.1.7 (2023-11-30)
+
+### Fix
+
+- removed old erroneous configuration elements
+
 ## v1.1.6 (2023-11-30)
 
 ### Fix
