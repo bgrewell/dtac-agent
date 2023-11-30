@@ -17,6 +17,7 @@ import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
 	"github.com/twinj/uuid"
 	"go.uber.org/zap"
+	"golang.org/x/crypto/bcrypt"
 	"os"
 	"strconv"
 	"strings"
@@ -43,13 +44,18 @@ func NewSubsystem(c *controller.Controller) interfaces.Subsystem {
 
 	if u, err := c.AuthDB.ViewUser(adminID); err != nil {
 		as.Logger.Warn("failed to get admin user from database. creating admin user", zap.Error(err))
-		u := &authndb.User{
+		var hash []byte
+		hash, err = bcrypt.GenerateFromPassword([]byte(c.Config.Auth.Pass), bcrypt.DefaultCost)
+		if err != nil {
+			as.Logger.Fatal("failed to update admin user", zap.Error(err))
+		}
+		user := &authndb.User{
 			ID:       adminID,
 			Username: c.Config.Auth.User,
-			Password: fmt.Sprintf("%x", sha256.Sum256([]byte(c.Config.Auth.Pass))), //TODO: Store as a sha256 hash in the configuration file
+			Password: string(hash),
 			Groups:   []string{"admin"},
 		}
-		err := c.AuthDB.CreateUserWithID(u)
+		err = c.AuthDB.CreateUserWithID(user)
 		if err != nil {
 			as.Logger.Fatal("failed to create admin user", zap.Error(err))
 		}
@@ -63,9 +69,14 @@ func NewSubsystem(c *controller.Controller) interfaces.Subsystem {
 				as.Logger.Fatal("failed to update admin user", zap.Error(err))
 			}
 		}
-		if u.Password != fmt.Sprintf("%x", sha256.Sum256([]byte(c.Config.Auth.Pass))) {
+		if err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(c.Config.Auth.Pass)); err != nil {
 			as.Logger.Info("updating admin user password")
-			u.Password = fmt.Sprintf("%x", sha256.Sum256([]byte(c.Config.Auth.Pass)))
+			var hash []byte
+			hash, err = bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+			if err != nil {
+				as.Logger.Fatal("failed to update admin user", zap.Error(err))
+			}
+			u.Password = string(hash)
 			err = c.AuthDB.UpdateUser(u)
 			if err != nil {
 				as.Logger.Fatal("failed to update admin user", zap.Error(err))
@@ -102,7 +113,7 @@ func (s *Subsystem) register() {
 	authzAdmin := endpoint.AuthGroupAdmin.String()
 	s.endpoints = []*endpoint.Endpoint{
 		endpoint.NewEndpoint(fmt.Sprintf("%s/login", base), endpoint.ActionCreate, "login handler", s.loginHandler, false, authzGuest, endpoint.WithBody(authndb.UserArgs{}), endpoint.WithOutput(AuthOutput{})),
-		endpoint.NewEndpoint(fmt.Sprintf("%s/users", base), endpoint.ActionRead, "list users - does not include built-in admin", s.listUsers, true, authzOperator, endpoint.WithOutput([]authndb.User{})),
+		endpoint.NewEndpoint(fmt.Sprintf("%s/users", base), endpoint.ActionRead, "list users", s.listUsers, true, authzOperator, endpoint.WithOutput([]authndb.User{})),
 		endpoint.NewEndpoint(fmt.Sprintf("%s/user", base), endpoint.ActionRead, "get user by id", s.getUser, true, authzOperator, endpoint.WithOutput(authndb.User{})),
 		endpoint.NewEndpoint(fmt.Sprintf("%s/users", base), endpoint.ActionCreate, "create user", s.createUser, true, authzAdmin, endpoint.WithBody(authndb.User{}), endpoint.WithOutput(authndb.User{})),
 		endpoint.NewEndpoint(fmt.Sprintf("%s/user", base), endpoint.ActionWrite, "update user", s.updateUser, true, authzAdmin, endpoint.WithBody(authndb.User{}), endpoint.WithOutput(authndb.User{})),
@@ -136,19 +147,18 @@ func (s *Subsystem) Handler(ep endpoint.Endpoint) endpoint.Func {
 
 func (s *Subsystem) loginHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapperWithHeaders(in, func() (map[string][]string, []byte, error) {
-		var u = &authndb.User{ID: -9999}
+		var inputUser = &authndb.User{ID: -9999}
 
 		// Transform the body into a RouteTableRow
-		if err := json.Unmarshal(in.Body, &u); err != nil {
+		if err := json.Unmarshal(in.Body, &inputUser); err != nil {
 			return nil, nil, err
 		}
 
 		// Usernames are always worked with in lowercase
-		u.Username = strings.ToLower(u.Username)
+		inputUser.Username = strings.ToLower(inputUser.Username)
 
 		// Convert the users credentials into sha256 hashes
-		userHash := fmt.Sprintf("%x", sha256.Sum256([]byte(u.Username)))
-		passHash := fmt.Sprintf("%x", sha256.Sum256([]byte(u.Password)))
+		userHash := fmt.Sprintf("%x", sha256.Sum256([]byte(inputUser.Username)))
 
 		// Operations performed here are done this way to ensure constant time comparison where authentication checks will
 		// always take the same approximate amount of time to avoid timing attacks
@@ -164,28 +174,32 @@ func (s *Subsystem) loginHandler(in *endpoint.Request) (out *endpoint.Response, 
 
 		// Check if the user is in the database (always check all the users to avoid timing attacks)
 		var userExists bool
+		var matchUser *authndb.User
 		for _, user := range users {
 			uh := fmt.Sprintf("%x", sha256.Sum256([]byte(strings.ToLower(user.Username))))
 			if check(userHash, uh) {
 				userExists = true
-				u = user
+				matchUser = user
 			}
 		}
 
 		// check password
-		passwordMatch := check(passHash, u.Password)
+		passwordMatch := false
+		if err := bcrypt.CompareHashAndPassword([]byte(matchUser.Password), []byte(inputUser.Password)); err == nil {
+			passwordMatch = true
+		}
 
 		// check the users credentials
 		if !(userExists) || !(passwordMatch) {
 			return nil, nil, errors.New("invalid username or password")
 		}
 
-		token, err := s.createToken(u.ID)
+		token, err := s.createToken(matchUser.ID)
 		if err != nil {
 			return nil, nil, err
 		}
 
-		saveErr := s.createAuth(u.ID, token)
+		saveErr := s.createAuth(matchUser.ID, token)
 		if saveErr != nil {
 			return nil, nil, err
 		}
@@ -426,13 +440,18 @@ func (s *Subsystem) createUser(in *endpoint.Request) (out *endpoint.Response, er
 			return nil, err
 		}
 
-		// Hash the password
-		user.Password = fmt.Sprintf("%x", sha256.Sum256([]byte(user.Password)))
-
 		// Check to see if the user already exists (this is not secure against timing attacks because you need to be an admin already to do it)
 		if s.Controller.AuthDB.UserExistsByUsername(user.Username) {
 			return nil, errors.New("user already exists")
 		}
+
+		// Hash the password
+		var hash []byte
+		hash, err = bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return nil, err
+		}
+		user.Password = string(hash)
 
 		// Add to database
 		err = s.Controller.AuthDB.CreateUser(&user)
@@ -491,7 +510,12 @@ func (s *Subsystem) updateUser(in *endpoint.Request) (out *endpoint.Response, er
 			// If password changed then rehash it
 			if (user.Password != "") && (fmt.Sprintf("%x", sha256.Sum256([]byte(user.Password))) != dbUser.Password) {
 				s.Logger.Info("password changed, rehashing", zap.String("username", user.Username), zap.Int("id", user.ID))
-				user.Password = fmt.Sprintf("%x", sha256.Sum256([]byte(user.Password)))
+				var hash []byte
+				hash, err = bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+				if err != nil {
+					return nil, err
+				}
+				user.Password = string(hash)
 			}
 
 			// Add to database
