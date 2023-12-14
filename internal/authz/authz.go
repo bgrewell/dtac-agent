@@ -147,6 +147,11 @@ func (s *Subsystem) AuthorizationHandler(next endpoint.Func) endpoint.Func {
 
 // RegisterPolicies registers the policies for the authz subsystem
 func (s *Subsystem) RegisterPolicies() error {
+	if !s.enabled {
+		s.Logger.Debug("subsystem is disabled", zap.String("subsystem", s.Name()))
+		return nil
+	}
+
 	// Setup policy assignments for users
 	users, err := s.Controller.AuthDB.ViewUsers()
 	if err != nil {

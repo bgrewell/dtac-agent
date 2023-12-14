@@ -1,0 +1,3 @@
+---
+name: iperf
+entry: main.go

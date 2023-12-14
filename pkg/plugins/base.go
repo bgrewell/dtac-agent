@@ -6,7 +6,6 @@ import (
 	"fmt"
 	api "github.com/intel-innersource/frameworks.automation.dtac.agent/api/grpc/go"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
-	"strings"
 )
 
 // PluginMethod declares the signature of plugin endpoint methods
@@ -26,7 +25,7 @@ func (p *PluginBase) Register(request *api.RegisterRequest, reply *api.RegisterR
 
 // Call is a shim that calls the appropriate method on the plugin
 func (p *PluginBase) Call(method string, args *endpoint.Request) (out *endpoint.Response, err error) {
-	key := strings.TrimPrefix(method, p.RootPath()+"/")
+	key := method
 	if f, exists := p.Methods[key]; exists {
 		return f(args)
 	}
@@ -67,7 +66,7 @@ func (p *PluginBase) RegisterMethods(endpoints []*endpoint.Endpoint) {
 		p.Methods = make(map[string]endpoint.Func)
 	}
 	for _, ep := range endpoints {
-		p.Methods[ep.Path] = ep.Function
+		p.Methods[fmt.Sprintf("%s:%s", ep.Action, ep.Path)] = ep.Function
 	}
 }
 

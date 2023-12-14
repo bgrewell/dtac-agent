@@ -72,7 +72,7 @@ func NewSubsystem(c *controller.Controller) interfaces.Subsystem {
 		if err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(c.Config.Auth.Pass)); err != nil {
 			as.Logger.Info("updating admin user password")
 			var hash []byte
-			hash, err = bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+			hash, err = bcrypt.GenerateFromPassword([]byte(c.Config.Auth.Pass), bcrypt.DefaultCost)
 			if err != nil {
 				as.Logger.Fatal("failed to update admin user", zap.Error(err))
 			}
@@ -181,6 +181,14 @@ func (s *Subsystem) loginHandler(in *endpoint.Request) (out *endpoint.Response, 
 				userExists = true
 				matchUser = user
 			}
+		}
+
+		// Ensure we don't have a nil user. We don't want to simply skip the password check due to timing differences that
+		// would create which could be used to determine if a user exists or not. Technically we may want to revisit all
+		// of this code and simply ensure that the function takes N time to complete regardless of any internal operations.
+		if matchUser == nil {
+			matchUser = &authndb.User{ID: -9999}
+			matchUser.Password = "" // Even if password matches we'll get a credential failure below due to user not existing
 		}
 
 		// check password

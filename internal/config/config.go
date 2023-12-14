@@ -377,10 +377,15 @@ func writeConfigWithoutInternalKeys(filename string) error {
 
 	// Add default plugin entries
 	pluginKVPs := map[string]interface{}{
-		"plugins.entries.hello.enabled":        true,
-		"plugins.entries.hello.hash":           "",
-		"plugins.entries.hello.user":           "",
-		"plugins.entries.hello.config.message": "hello world plugin",
+		"plugins.entries.hello.enabled":             true,
+		"plugins.entries.hello.hash":                "",
+		"plugins.entries.hello.user":                "",
+		"plugins.entries.hello.config.message":      "hello world plugin",
+		"plugins.entries.iperf.enabled":             true,
+		"plugins.entries.iperf.hash":                "",
+		"plugins.entries.iperf.user":                "",
+		"plugins.entries.iperf.config.bind":         "0.0.0.0",
+		"plugins.entries.iperf.config.control_port": 8191,
 	}
 	for key, value := range pluginKVPs {
 		viper.SetDefault(key, value)

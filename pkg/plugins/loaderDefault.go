@@ -362,7 +362,7 @@ func (pl *DefaultPluginLoader) CallShim(ep *endpoint.Endpoint, in *endpoint.Requ
 
 	// Setup the request message
 	erm := &api.EndpointRequestMessage{
-		Method:  handler.HandleFunc,
+		Method:  fmt.Sprintf("%s:%s", ep.Action, handler.HandleFunc),
 		Request: utility.EndpointRequestToAPIEndpointRequest(in),
 	}
 
