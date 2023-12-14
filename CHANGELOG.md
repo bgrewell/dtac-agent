@@ -1,3 +1,9 @@
+## v1.1.8 (2023-12-14)
+
+### Fix
+
+- **plugins**: fix routing issue caused by lack of action in route map
+
 ## v1.1.7 (2023-11-30)
 
 ### Fix
