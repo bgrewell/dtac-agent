@@ -1,3 +1,13 @@
+## v1.1.9 (2024-01-08)
+
+### Fix
+
+- fix bug with control_port handling
+
+### Refactor
+
+- modify logging output formatter
+
 ## v1.1.8 (2023-12-14)
 
 ### Fix
