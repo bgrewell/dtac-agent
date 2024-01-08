@@ -26,6 +26,7 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"os"
 	"runtime"
 )
@@ -152,8 +153,8 @@ func AsAdapter(f any) any {
 // NewLogger returns a new instance of the zap.Logger
 func NewLogger() (*zap.Logger, error) {
 	zapCFG := zap.NewDevelopmentConfig()
+	zapCFG.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	zapCFG.DisableStacktrace = true
-
 	return zapCFG.Build()
 }
 
