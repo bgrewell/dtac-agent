@@ -9,6 +9,7 @@ import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins/utility"
+	"net/http"
 	_ "net/http/pprof" // Used for remote debugging of the plugin
 	"reflect"
 	"strconv"
@@ -24,10 +25,13 @@ var _ plugins.Plugin = &IperfPlugin{}
 // NewIperfPlugin is a constructor that returns a new instance of the HelloPlugin
 func NewIperfPlugin() *IperfPlugin {
 	// Uncommenting the following anonymous function will allow remote debugging of the plugin by attaching a debugger
-	// like the one built into goland. This is useful for debugging plugins.
-	//go func() {
-	//	log.Println(http.ListenAndServe("localhost:6060", nil))
-	//}()
+	// like the one built into goland. This is useful for debugging plugins. To do this do the following.
+	// 1. Uncomment the anonymous function below
+	// 2. Build the plugin like normal and execute via DTAC
+	// 3.
+	go func() {
+		fmt.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 
 	// Create a new instance of the plugin
 	p := &IperfPlugin{
@@ -79,7 +83,12 @@ func (p *IperfPlugin) Register(request *api.RegisterRequest, reply *api.Register
 
 	// Check if the configuration has a bind address
 	if bind, ok := config["bind"]; ok {
-		p.bindAddr = bind.(string)
+		p.bindAddr, ok = bind.(string)
+		if !ok {
+			p.Log(plugins.LevelError, "failed to convert bind to string", map[string]string{"type": reflect.TypeOf(bind).String()})
+		} else {
+			p.Log(plugins.LevelInfo, "control bind addr set via configuration file", map[string]string{"bind": p.bindAddr})
+		}
 	} else {
 		p.bindAddr = "0.0.0.0"
 	}
@@ -87,9 +96,12 @@ func (p *IperfPlugin) Register(request *api.RegisterRequest, reply *api.Register
 	// Check for controller port and set up controller
 	controllerPort := 8191
 	if configPort, ok := config["control_port"]; ok {
-		controllerPort, ok = configPort.(int)
+		cPortFloat, ok := configPort.(float64)
 		if !ok {
 			p.Log(plugins.LevelError, "failed to convert control port to int", map[string]string{"type": reflect.TypeOf(configPort).String()})
+		} else {
+			controllerPort = int(cPortFloat)
+			p.Log(plugins.LevelInfo, "control port set via configuration file", map[string]string{"port": strconv.Itoa(controllerPort)})
 		}
 	}
 
