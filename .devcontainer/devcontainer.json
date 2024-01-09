@@ -1,8 +1,10 @@
 // Info https://containers.dev/implementors/json_reference/
 {
-//	name of the dev container
 	"name": "dtac-agent-dev",
-//	Or use a Dockerfile here, more info: https://containers.dev/guide/dockerfile
-	"image":  "golang:1.21.5-bookworm"
-
+	"forwardPorts": [
+		8180,
+		8181,
+		8182 ],
+	"image":  "golang:1.21.5-bookworm",
+	"postCreateCommand": "bash .devcontainer/post-create.sh",
 }
