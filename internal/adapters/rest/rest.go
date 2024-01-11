@@ -174,14 +174,6 @@ func (a *Adapter) shim(method string, ep *endpoint.Endpoint) {
 		in.Metadata[types.ContextResourceAction.String()] = ep.Action.String()
 		in.Metadata[types.ContextResourcePath.String()] = ep.Path
 
-		// TODO: REMOVE ME AFTER MAKING SURE THE MIDDLEWARE WORKS
-		//// Look at moving validators to middleware so API adapters don't have to worry about it
-		//err = ep.ValidateRequest(in)
-		//if err != nil {
-		//	a.formatter.WriteError(c, err)
-		//	return
-		//}
-
 		out, err := ep.Function(in)
 		if err != nil {
 			a.logger.Error("failed to execute endpoint", zap.Error(err))

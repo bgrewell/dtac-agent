@@ -1,7 +1,6 @@
 package endpoints
 
 import (
-	"encoding/json"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
@@ -31,8 +30,8 @@ func (el *EndpointList) AddEndpoints(endpoints []*endpoint.Endpoint) {
 }
 
 // GetVisibleEndpoints returns a list of endpoints that are visible to the user
-func (el *EndpointList) GetVisibleEndpoints(in *endpoint.Request) (out []byte, err error) {
-	visibleEndpoints := make([]*endpoint.Endpoint, 0)
+func (el *EndpointList) GetVisibleEndpoints(in *endpoint.Request) (visibleEndpoints []*endpoint.Endpoint) {
+	visibleEndpoints = make([]*endpoint.Endpoint, 0)
 	roleMap := make(map[string]bool)
 	if roles, ok := in.Metadata[types.ContextAuthRoles.String()]; ok {
 		for _, role := range strings.Split(roles, ",") {
@@ -57,8 +56,5 @@ func (el *EndpointList) GetVisibleEndpoints(in *endpoint.Request) (out []byte, e
 		}
 	}
 
-	output := map[string]interface{}{
-		"count":     len(visibleEndpoints),
-		"endpoints": visibleEndpoints}
-	return json.Marshal(output)
+	return visibleEndpoints
 }

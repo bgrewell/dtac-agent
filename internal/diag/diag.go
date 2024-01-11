@@ -84,7 +84,12 @@ func (s *Subsystem) rootHandler(in *endpoint.Request) (out *endpoint.Response, e
 // endpointListPrintHandler handles requests for the supported endpoints
 func (s *Subsystem) endpointListPrintHandler(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return helpers.HandleWrapper(in, func() ([]byte, error) {
-		return s.Controller.EndpointList.GetVisibleEndpoints(in)
+		visibleEndpoints := s.Controller.EndpointList.GetVisibleEndpoints(in)
+		count := len(visibleEndpoints)
+		return json.Marshal(map[string]interface{}{
+			"count":     count,
+			"endpoints": visibleEndpoints,
+		})
 	}, "endpoints visible to the user")
 }
 
