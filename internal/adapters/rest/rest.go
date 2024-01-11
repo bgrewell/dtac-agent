@@ -34,27 +34,29 @@ func NewAdapter(c *controller.Controller, tls *map[string]basic.TLSInfo) (adapte
 	router.Use(ginZapLoggerMiddleware(logger))
 
 	r := &Adapter{
-		controller: c,
-		router:     router,
-		logger:     logger,
-		tls:        tls,
-		name:       name,
-		formatter:  NewJSONResponseFormatter(c.Config, logger),
+		controller:      c,
+		router:          router,
+		logger:          logger,
+		tls:             tls,
+		name:            name,
+		formatter:       NewJSONResponseFormatter(c.Config, logger),
+		registeredPaths: make(map[string]bool),
 	}
 	return r, r.setup()
 }
 
 // Adapter is the REST API adapter
 type Adapter struct {
-	server     *http.Server
-	router     *gin.Engine
-	tls        *map[string]basic.TLSInfo
-	controller *controller.Controller
-	logger     *zap.Logger
-	name       string
-	srvMsg     string
-	srvFunc    func(net.Listener) error
-	formatter  ResponseFormatter
+	server          *http.Server
+	router          *gin.Engine
+	tls             *map[string]basic.TLSInfo
+	controller      *controller.Controller
+	logger          *zap.Logger
+	name            string
+	srvMsg          string
+	srvFunc         func(net.Listener) error
+	formatter       ResponseFormatter
+	registeredPaths map[string]bool
 }
 
 // Name returns the name of the REST API adapter
@@ -64,6 +66,7 @@ func (a *Adapter) Name() string {
 
 // Register registers the subsystems with the API adapter
 func (a *Adapter) Register(subsystems []interfaces.Subsystem) (err error) {
+
 	// Iterate over the subsystems and register each of the endpoints
 	for _, subsystem := range subsystems {
 		a.logger.Debug("registering subsystem", zap.String("subsystem", subsystem.Name()))
@@ -152,6 +155,14 @@ func (a *Adapter) setup() (err error) {
 }
 
 func (a *Adapter) shim(method string, ep *endpoint.Endpoint) {
+	// Check if the path is already registered
+	key := fmt.Sprintf("%s:%s", method, ep.Path)
+	if _, exists := a.registeredPaths[key]; exists {
+		// Handle the error or log a message as needed
+		a.logger.Error("Path is already registered", zap.String("path", ep.Path), zap.String("method", method))
+		return
+	}
+
 	a.router.Handle(method, ep.Path, func(c *gin.Context) {
 		in, err := a.createInputArgs(c)
 		if err != nil {
@@ -200,6 +211,9 @@ func (a *Adapter) shim(method string, ep *endpoint.Endpoint) {
 		}
 
 	})
+
+	// Mark the path as registered
+	a.registeredPaths[key] = true
 }
 
 func (a *Adapter) createInputArgs(ctx *gin.Context) (*endpoint.Request, error) {
