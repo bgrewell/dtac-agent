@@ -67,15 +67,15 @@ type Endpoint struct {
 	// ExpectedOutputSchema defines the JSON Schema for the expected output structure in the response.
 	ExpectedOutputSchema string `json:"-" mapstructure:"expected_output_schema,omitempty"`
 
-	// ExpectedMetadataDescription is a output friendly representation of the expected metadata schema.
+	// ExpectedMetadataDescription is an output friendly representation of the expected metadata schema.
 	ExpectedMetadataDescription json.RawMessage `json:"expected_metadata_schema,omitempty" yaml:"expected_metadata_schema,omitempty" toml:"expected_metadata_schema,omitempty"`
-	// ExpectedHeadersDescription is a output friendly representation of the expected headers schema.
+	// ExpectedHeadersDescription is an output friendly representation of the expected headers schema.
 	ExpectedHeadersDescription json.RawMessage `json:"expected_headers_schema,omitempty" yaml:"expected_headers_schema,omitempty" toml:"expected_headers_schema,omitempty"`
-	// ExpectedParametersDescription is a output friendly representation of the expected parameters schema.
+	// ExpectedParametersDescription is an output friendly representation of the expected parameters schema.
 	ExpectedParametersDescription json.RawMessage `json:"expected_parameters_schema,omitempty" yaml:"expected_parameters_schema,omitempty" toml:"expected_parameters_schema,omitempty"`
-	// ExpectedBodyDescription is a output friendly representation of the expected body schema.
+	// ExpectedBodyDescription is an output friendly representation of the expected body schema.
 	ExpectedBodyDescription json.RawMessage `json:"expected_body_schema,omitempty" yaml:"expected_body_schema,omitempty" toml:"expected_body_schema,omitempty"`
-	// ExpectedOutputDescription is a output friendly representation of the expected output schema.
+	// ExpectedOutputDescription is an output friendly representation of the expected output schema.
 	ExpectedOutputDescription json.RawMessage `json:"expected_output_schema,omitempty" yaml:"expected_output_schema,omitempty" toml:"expected_output_schema,omitempty"`
 }
 

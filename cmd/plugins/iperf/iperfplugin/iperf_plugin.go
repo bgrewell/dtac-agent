@@ -38,8 +38,8 @@ func NewIperfPlugin() *IperfPlugin {
 		PluginBase: plugins.PluginBase{
 			Methods: make(map[string]endpoint.Func),
 		},
-		iperfServerLock:  sync.Mutex{},
-		iperfClientLock:  sync.Mutex{},
+		iperfServerLock:  &sync.Mutex{},
+		iperfClientLock:  &sync.Mutex{},
 		iperfClients:     make(map[string]*iperf.Client),
 		iperfServers:     make(map[string]*iperf.Server),
 		iperfLiveResults: make(map[string]<-chan *iperf.StreamIntervalReport),
@@ -56,8 +56,8 @@ type IperfPlugin struct {
 	bindAddr         string
 	iperfClients     map[string]*iperf.Client
 	iperfServers     map[string]*iperf.Server
-	iperfServerLock  sync.Mutex
-	iperfClientLock  sync.Mutex
+	iperfServerLock  *sync.Mutex
+	iperfClientLock  *sync.Mutex
 	iperfLiveResults map[string]<-chan *iperf.StreamIntervalReport
 	iperfController  *iperf.Controller
 }
@@ -178,6 +178,9 @@ func (p *IperfPlugin) CreateIperfServer(in *endpoint.Request) (out *endpoint.Res
 		}
 
 		err = s.Start()
+		if err != nil {
+			return nil, err
+		}
 
 		p.iperfServerLock.Lock()
 		p.iperfServers[s.Id] = s
@@ -269,12 +272,14 @@ func (p *IperfPlugin) StopIperfServer(in *endpoint.Request) (out *endpoint.Respo
 				p.iperfServerLock.Unlock()
 				_ = p.iperfController.StopServer(id[0])
 				return json.Marshal(s)
-			} else {
-				return nil, fmt.Errorf("the specified id %s was not found on the system", id)
 			}
-		} else {
-			return nil, errors.New("the parameter 'id' is required")
+
+			return nil, fmt.Errorf("the specified id %s was not found on the system", id)
+
 		}
+
+		return nil, errors.New("the parameter 'id' is required")
+
 	}, "stops and iperf server test instance")
 }
 
@@ -289,12 +294,14 @@ func (p *IperfPlugin) StopIperfClient(in *endpoint.Request) (out *endpoint.Respo
 				delete(p.iperfClients, id[0])
 				p.iperfClientLock.Unlock()
 				return json.Marshal(report)
-			} else {
-				return nil, fmt.Errorf("the specified id %s was not found on the system", id)
 			}
-		} else {
-			return nil, errors.New("the parameter 'id' is required")
+
+			return nil, fmt.Errorf("the specified id %s was not found on the system", id)
+
 		}
+
+		return nil, errors.New("the parameter 'id' is required")
+
 	}, "stops an iperf client test instance")
 }
 
@@ -322,11 +329,13 @@ func (p *IperfPlugin) GetIperfClientResults(in *endpoint.Request) (out *endpoint
 				}
 				report := c.Report()
 				return json.Marshal(report)
-			} else {
-				return nil, fmt.Errorf("the specified id %s was not found on the system", id)
 			}
-		} else {
-			return nil, errors.New("the parameter 'id' is required")
+
+			return nil, fmt.Errorf("the specified id %s was not found on the system", id)
+
 		}
+
+		return nil, errors.New("the parameter 'id' is required")
+
 	}, "gets iperf client test results")
 }

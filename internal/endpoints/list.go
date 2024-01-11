@@ -50,9 +50,30 @@ func (el *EndpointList) GetVisibleEndpoints(in *endpoint.Request) (visibleEndpoi
 		}
 	}
 
+	// Check for the showSchemas parameter
+	showSchemas := el.Config.Output.IncludeSchemas
+	if params, ok := in.Parameters["include_schemas"]; ok && len(params) > 0 {
+		if strings.ToLower(params[0]) == "yes" || strings.ToLower(params[0]) == "true" {
+			showSchemas = true
+		} else if strings.ToLower(params[0]) == "no" || strings.ToLower(params[0]) == "false" {
+			showSchemas = false
+		}
+	}
+
 	for _, ep := range el.Endpoints {
 		if _, hasAccess := roleMap[ep.AuthGroup]; !ep.Secure || hasAccess {
-			visibleEndpoints = append(visibleEndpoints, ep)
+			if !showSchemas {
+				// Create a copy of the endpoint without schema descriptions
+				epCopy := *ep
+				epCopy.ExpectedMetadataDescription = nil
+				epCopy.ExpectedHeadersDescription = nil
+				epCopy.ExpectedParametersDescription = nil
+				epCopy.ExpectedBodyDescription = nil
+				epCopy.ExpectedOutputDescription = nil
+				visibleEndpoints = append(visibleEndpoints, &epCopy)
+			} else {
+				visibleEndpoints = append(visibleEndpoints, ep)
+			}
 		}
 	}
 

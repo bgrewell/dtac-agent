@@ -115,8 +115,9 @@ type AuthEntry struct {
 
 // OutputEntry is the struct for an output entry
 type OutputEntry struct {
-	LogLevel      string `json:"log_level" yaml:"log_level" mapstructure:"log_level"`
-	WrapResponses bool   `json:"wrap_responses" yaml:"wrap_responses" mapstructure:"wrap_responses"`
+	LogLevel       string `json:"log_level" yaml:"log_level" mapstructure:"log_level"`
+	WrapResponses  bool   `json:"wrap_responses" yaml:"wrap_responses" mapstructure:"wrap_responses"`
+	IncludeSchemas bool   `json:"include_schemas" yaml:"include_schemas" mapstructure:"include_schemas"`
 }
 
 // TLSSelection is the struct for a tls selection
@@ -301,6 +302,7 @@ func DefaultConfig() map[string]interface{} {
 		"subsystems.validation":         true,
 		"custom_endpoints":              []map[string]*RouteEntry{},
 		"output.log_level":              "debug",
+		"output.include_schemas":        false,
 		"output.wrap_responses":         false,
 	}
 }
