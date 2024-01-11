@@ -1,3 +1,14 @@
+## v1.2.0 (2024-01-11)
+
+### Feat
+
+- add ability to toggle schema information being presented in endpoint lists
+
+### Fix
+
+- fix issue where duplicate endpoints causes panic
+- fix issue with home page endpoint list being base64 encoded
+
 ## v1.1.9 (2024-01-08)
 
 ### Fix
