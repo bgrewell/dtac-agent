@@ -7,6 +7,7 @@ import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/docker/plugin/internal/utilities"
 )
 
+// NewDockerClientWrapper returns a new wrapper around the docker client
 func NewDockerClientWrapper() (wrapper *DockerClientWrapper, err error) {
 	client, err := docker.NewClientFromEnv()
 	if err != nil {
@@ -18,10 +19,12 @@ func NewDockerClientWrapper() (wrapper *DockerClientWrapper, err error) {
 	}, nil
 }
 
+// DockerClientWrapper is a type for making working with the docker client a little more friendly
 type DockerClientWrapper struct {
 	client *docker.Client
 }
 
+// ListImages returns a list of the docker images on the system
 func (w *DockerClientWrapper) ListImages(options ...ListImageOptions) (images []*ImageInfo, err error) {
 	o := &listImageOptions{}
 	for _, option := range options {
@@ -57,21 +60,30 @@ func (w *DockerClientWrapper) ListImages(options ...ListImageOptions) (images []
 	return images, nil
 }
 
+// ListConfigs returns a list of configurations if swarm is installed
 func (w *DockerClientWrapper) ListConfigs() ([]swarm.Config, error) {
 	return w.client.ListConfigs(docker.ListConfigsOptions{})
 }
 
-func (w *DockerClientWrapper) ListContainers() ([]docker.APIContainers, error) {
-	return w.client.ListContainers(docker.ListContainersOptions{
-		All:     false,
-		Size:    false,
-		Limit:   0,
-		Since:   "",
-		Before:  "",
-		Filters: nil,
-	})
+// ListContainers returns a list of docker containers on the system
+func (w *DockerClientWrapper) ListContainers(options ...ListContainerOptions) ([]docker.APIContainers, error) {
+	o := &listContainerOptions{}
+	for _, option := range options {
+		option(o)
+	}
+
+	lco := docker.ListContainersOptions{
+		All:    o.all,
+		Size:   o.size,
+		Limit:  o.limit,
+		Since:  o.since,
+		Before: o.before,
+	}
+
+	return w.client.ListContainers(lco)
 }
 
+// ListNodes returns a list of nodes if docker swarm is enabled
 func (w *DockerClientWrapper) ListNodes() ([]swarm.Node, error) {
 	return w.client.ListNodes(docker.ListNodesOptions{
 		Filters: nil,
@@ -79,14 +91,17 @@ func (w *DockerClientWrapper) ListNodes() ([]swarm.Node, error) {
 	})
 }
 
+// ListNetworks returns a list of docker networks on the system
 func (w *DockerClientWrapper) ListNetworks() ([]docker.Network, error) {
 	return w.client.ListNetworks()
 }
 
+// ListPlugins returns a list of plugins on the system if swarm is installed
 func (w *DockerClientWrapper) ListPlugins() ([]docker.PluginDetail, error) {
 	return w.client.ListPlugins(context.Background())
 }
 
+// ListSecrets returns a list of secrets if swarm is installed
 func (w *DockerClientWrapper) ListSecrets() ([]swarm.Secret, error) {
 	return w.client.ListSecrets(docker.ListSecretsOptions{
 		Filters: nil,
@@ -94,6 +109,7 @@ func (w *DockerClientWrapper) ListSecrets() ([]swarm.Secret, error) {
 	})
 }
 
+// ListServices returns a list of docker services if swarm is installed
 func (w *DockerClientWrapper) ListServices() ([]swarm.Service, error) {
 	return w.client.ListServices(docker.ListServicesOptions{
 		Filters: nil,
@@ -102,6 +118,7 @@ func (w *DockerClientWrapper) ListServices() ([]swarm.Service, error) {
 	})
 }
 
+// ListTasks returns a list of tasks if swarm is installed
 func (w *DockerClientWrapper) ListTasks() ([]swarm.Task, error) {
 	return w.client.ListTasks(docker.ListTasksOptions{
 		Filters: nil,
@@ -109,6 +126,7 @@ func (w *DockerClientWrapper) ListTasks() ([]swarm.Task, error) {
 	})
 }
 
+// ListVolumes returns a list of volumes on the system
 func (w *DockerClientWrapper) ListVolumes() ([]docker.Volume, error) {
 	return w.client.ListVolumes(docker.ListVolumesOptions{
 		Filters: nil,

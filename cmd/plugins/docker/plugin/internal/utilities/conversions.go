@@ -5,11 +5,13 @@ import (
 	"time"
 )
 
+// ConvertEpochTimeToTimestamp converts unix epoch time into a human readable timestamp
 func ConvertEpochTimeToTimestamp(epochTime int64) (timestamp string) {
 	t := time.Unix(epochTime, 0)
 	return t.Format("2006-01-02 15:04:05")
 }
 
+// ConvertBytesToHumanReadable converts a byte count into a human friendly value
 func ConvertBytesToHumanReadable(bytes int64) (humanReadableBytes string) {
 	const (
 		KB int64 = 1 << 10 // 1024

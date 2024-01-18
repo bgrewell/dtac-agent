@@ -61,13 +61,13 @@ type DockerPlugin struct {
 // Name returns the name of the plugin type
 // NOTE: this is intentionally not a pointer receiver otherwise it wouldn't work. This must be set at your plugin struct
 // level. otherwise it will return the type of the PluginBase struct instead.
-func (h DockerPlugin) Name() string {
-	t := reflect.TypeOf(h)
+func (p DockerPlugin) Name() string {
+	t := reflect.TypeOf(p)
 	return t.Name()
 }
 
 // Register registers the plugin with the plugin manager
-func (h *DockerPlugin) Register(request *api.RegisterRequest, reply *api.RegisterResponse) error {
+func (p *DockerPlugin) Register(request *api.RegisterRequest, reply *api.RegisterResponse) error {
 	*reply = api.RegisterResponse{Endpoints: make([]*api.PluginEndpoint, 0)}
 
 	// Convert the config json to a map. If you have a specific configuration type you should unmarshal into that type
@@ -80,21 +80,21 @@ func (h *DockerPlugin) Register(request *api.RegisterRequest, reply *api.Registe
 	// Declare our endpoint(s)
 	authz := endpoint.AuthGroupAdmin.String()
 	endpoints := []*endpoint.Endpoint{
-		endpoint.NewEndpoint("/", endpoint.ActionRead, "this endpoint returns docker stats", h.Stats, request.DefaultSecure, authz, endpoint.WithOutput(&[]docker.CgroupDockerStat{})),
-		endpoint.NewEndpoint("/images", endpoint.ActionRead, "this endpoint returns docker images", h.ListImages, request.DefaultSecure, authz, endpoint.WithOutput(&[]internal.ImageInfo{})),
-		endpoint.NewEndpoint("/configs", endpoint.ActionRead, "this endpoint returns docker config", h.ListConfigs, request.DefaultSecure, authz),
-		endpoint.NewEndpoint("/containers", endpoint.ActionRead, "this endpoint returns docker containers", h.ListContainers, request.DefaultSecure, authz),
-		endpoint.NewEndpoint("/nodes", endpoint.ActionRead, "this endpoint returns docker nodes", h.ListNodes, request.DefaultSecure, authz),
-		endpoint.NewEndpoint("/networks", endpoint.ActionRead, "this endpoint returns docker networks", h.ListNetworks, request.DefaultSecure, authz),
-		endpoint.NewEndpoint("/plugins", endpoint.ActionRead, "this endpoint returns docker plugins", h.ListPlugins, request.DefaultSecure, authz),
-		endpoint.NewEndpoint("/secrets", endpoint.ActionRead, "this endpoint returns docker secrets", h.ListSecrets, request.DefaultSecure, authz),
-		endpoint.NewEndpoint("/services", endpoint.ActionRead, "this endpoint returns docker services", h.ListServices, request.DefaultSecure, authz),
-		endpoint.NewEndpoint("/tasks", endpoint.ActionRead, "this endpoint returns docker tasks", h.ListTasks, request.DefaultSecure, authz),
-		endpoint.NewEndpoint("/volumes", endpoint.ActionRead, "this endpoint returns docker volumes", h.ListVolumes, request.DefaultSecure, authz),
+		endpoint.NewEndpoint("/", endpoint.ActionRead, "this endpoint returns docker stats", p.Stats, request.DefaultSecure, authz, endpoint.WithOutput(&[]docker.CgroupDockerStat{})),
+		endpoint.NewEndpoint("/images", endpoint.ActionRead, "this endpoint returns docker images", p.ListImages, request.DefaultSecure, authz, endpoint.WithOutput(&[]internal.ImageInfo{})),
+		endpoint.NewEndpoint("/configs", endpoint.ActionRead, "this endpoint returns docker config", p.ListConfigs, request.DefaultSecure, authz),
+		endpoint.NewEndpoint("/containers", endpoint.ActionRead, "this endpoint returns docker containers", p.ListContainers, request.DefaultSecure, authz),
+		endpoint.NewEndpoint("/nodes", endpoint.ActionRead, "this endpoint returns docker nodes", p.ListNodes, request.DefaultSecure, authz),
+		endpoint.NewEndpoint("/networks", endpoint.ActionRead, "this endpoint returns docker networks", p.ListNetworks, request.DefaultSecure, authz),
+		endpoint.NewEndpoint("/plugins", endpoint.ActionRead, "this endpoint returns docker plugins", p.ListPlugins, request.DefaultSecure, authz),
+		endpoint.NewEndpoint("/secrets", endpoint.ActionRead, "this endpoint returns docker secrets", p.ListSecrets, request.DefaultSecure, authz),
+		endpoint.NewEndpoint("/services", endpoint.ActionRead, "this endpoint returns docker services", p.ListServices, request.DefaultSecure, authz),
+		endpoint.NewEndpoint("/tasks", endpoint.ActionRead, "this endpoint returns docker tasks", p.ListTasks, request.DefaultSecure, authz),
+		endpoint.NewEndpoint("/volumes", endpoint.ActionRead, "this endpoint returns docker volumes", p.ListVolumes, request.DefaultSecure, authz),
 	}
 
 	// Register them with the plugin
-	h.RegisterMethods(endpoints)
+	p.RegisterMethods(endpoints)
 
 	// Convert to plugin endpoints and return
 	for _, ep := range endpoints {
@@ -103,7 +103,7 @@ func (h *DockerPlugin) Register(request *api.RegisterRequest, reply *api.Registe
 	}
 
 	// Print out a log message
-	h.Log(plugins.LevelInfo, "docker plugin registered", map[string]string{"endpoint_count": strconv.Itoa(len(endpoints))})
+	p.Log(plugins.LevelInfo, "docker plugin registered", map[string]string{"endpoint_count": strconv.Itoa(len(endpoints))})
 
 	// Return no error
 	return nil
@@ -114,6 +114,9 @@ func (p *DockerPlugin) ListImages(in *endpoint.Request) (out *endpoint.Response,
 	return utility.PluginHandleWrapper(in, func() ([]byte, error) {
 
 		options, err := internal.ParseListImageOptions(in.Parameters)
+		if err != nil {
+			p.Log(plugins.LevelError, "failed to parse image list options", map[string]string{"error": err.Error()})
+		}
 		images, err := p.client.ListImages(options...)
 		if err != nil {
 			return nil, err
@@ -139,8 +142,11 @@ func (p *DockerPlugin) ListConfigs(in *endpoint.Request) (out *endpoint.Response
 func (p *DockerPlugin) ListContainers(in *endpoint.Request) (out *endpoint.Response, err error) {
 	return utility.PluginHandleWrapper(in, func() ([]byte, error) {
 
-		//options, err := internal.ParseListImageOptions(in.Parameters)
-		containers, err := p.client.ListContainers()
+		options, err := internal.ParseListContainerOptions(in.Parameters)
+		if err != nil {
+			p.Log(plugins.LevelError, "failed to parse container list options", map[string]string{"error": err.Error()})
+		}
+		containers, err := p.client.ListContainers(options...)
 		if err != nil {
 			return nil, err
 		}
