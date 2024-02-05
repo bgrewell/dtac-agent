@@ -9,6 +9,7 @@ require (
 	github.com/bgrewell/gin-plugins v0.0.0-20231010210718-77ec7d6d7d0a
 	github.com/boltdb/bolt v1.3.1
 	github.com/casbin/casbin/v2 v2.77.2
+	github.com/docker/docker v24.0.7+incompatible
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/fsouza/go-dockerclient v1.10.1
 	github.com/getkin/kin-openapi v0.122.0
@@ -26,7 +27,7 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0
 	go.uber.org/fx v1.20.0
 	go.uber.org/zap v1.26.0
-	golang.org/x/crypto v0.14.0
+	golang.org/x/crypto v0.17.0
 	golang.org/x/sys v0.15.0
 	google.golang.org/grpc v1.58.3
 	google.golang.org/protobuf v1.31.0
@@ -45,7 +46,6 @@ require (
 	github.com/chenzhuoyu/iasm v0.9.0 // indirect
 	github.com/containerd/containerd v1.6.26 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/docker/docker v24.0.7+incompatible // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
@@ -117,7 +117,7 @@ require (
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
 	golang.org/x/mod v0.13.0 // indirect
 	golang.org/x/net v0.17.0 // indirect
-	golang.org/x/text v0.13.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/tools v0.14.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230920204549-e6e6cdab5c13 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
