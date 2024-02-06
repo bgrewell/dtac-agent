@@ -53,20 +53,3 @@ jobs:
           args: release --clean ${{ github.event_name == 'workflow_dispatch' && '--snapshot' || '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      -
-        name: Build Writerside docs using Docker
-        uses: JetBrains/writerside-github-action@v4
-        with:
-          instance: ${{ env.INSTANCE }}
-          artifact: ${{ env.ARTIFACT }}
-          docker-version: ${{ env.DOCKER_VERSION }}
-
-      -
-        name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: docs
-          path: |
-            artifacts/${{ env.ARTIFACT }}
-          retention-days: 7
