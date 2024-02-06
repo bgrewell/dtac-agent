@@ -3,8 +3,10 @@
         SYSTEM "https://resources.jetbrains.com/writerside/1.0/product-profile.dtd">
 
 <instance-profile id="hi"
-                 name="Help Instance"
-                 start-page="Default-topic.md">
+                 name="Distributed Telemetry and Control Documents"
+                 start-page="Overview.md">
 
-    <toc-element topic="Default-topic.md"/>
+    <toc-element topic="Overview.md"/>
+    <toc-element topic="Usage.md"/>
+    <toc-element topic="Development.md"/>
 </instance-profile>
