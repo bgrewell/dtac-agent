@@ -6,10 +6,23 @@ on:
     tags:
       - '*'
 
+env:
+  # Name of module and id separated by a slash
+  INSTANCE: Writerside/hi
+  # Replace XX with the ID of the instance in capital letters
+  ARTIFACT: webHelpHI2-all.zip
+  # Docker image version
+  DOCKER_VERSION: 232.10275
+  # Add the variable below to upload Algolia indexes
+  # Replace HI with the ID of the instance in capital letters
+  ALGOLIA_ARTIFACT: algolia-indexes-HI.zip
+
 permissions:
   contents: write
   packages: write
   issues: write
+  id-token: write
+  pages: write
 
 jobs:
   goreleaser:
@@ -40,3 +53,20 @@ jobs:
           args: release --clean ${{ github.event_name == 'workflow_dispatch' && '--snapshot' || '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      -
+        name: Build Writerside docs using Docker
+        uses: JetBrains/writerside-github-action@v4
+        with:
+          instance: ${{ env.INSTANCE }}
+          artifact: ${{ env.ARTIFACT }}
+          docker-version: ${{ env.DOCKER_VERSION }}
+
+      -
+        name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: docs
+          path: |
+            artifacts/${{ env.ARTIFACT }}
+          retention-days: 7
