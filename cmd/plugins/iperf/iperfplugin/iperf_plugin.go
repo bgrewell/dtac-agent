@@ -115,25 +115,22 @@ func (p *IperfPlugin) Register(request *api.RegisterRequest, reply *api.Register
 	// Declare our endpoint(s)
 	authz := endpoint.AuthGroupOperator.String()
 	endpoints := []*endpoint.Endpoint{
-		//r.POST("/iperf/server/start", handlers.CreateIperfServerTestHandler)
-		//r.POST("/iperf/server/start/:bind", handlers.CreateIperfServerTestHandler)
 		endpoint.NewEndpoint("server/start", endpoint.ActionCreate, "this endpoint starts a iperf server", p.CreateIperfServer, request.DefaultSecure, authz,
 			endpoint.WithParameters(&IperfServerStartRequest{}),
 			endpoint.WithOutput(&iperf.Server{}),
 		),
-		//r.POST("/iperf/client/start/:host", handlers.CreateIperfClientTestHandler)
 		endpoint.NewEndpoint("client/start", endpoint.ActionCreate, "this endpoint starts a iperf client", p.CreateIperfClient, request.DefaultSecure, authz,
 			endpoint.WithParameters(&IperfClientStartRequest{}),
 			endpoint.WithOutput(&iperf.Client{}),
 		),
-		//r.DELETE("/iperf/reset", handlers.DeleteIperfResetHandler)
 		endpoint.NewEndpoint("reset", endpoint.ActionDelete, "this endpoint resets the iperf server and client", p.ResetIperf, request.DefaultSecure, authz),
-		//r.DELETE("/iperf/server/stop/:id", handlers.DeleteIperfServerTestHandler)
 		endpoint.NewEndpoint("server/stop", endpoint.ActionDelete, "this endpoint stops a iperf server", p.StopIperfServer, request.DefaultSecure, authz,
 			endpoint.WithParameters(&IperfTestIDRequest{}),
 		),
-		//r.DELETE("/iperf/client/stop/:id", handlers.DeleteIperfClientTestHandler)
 		endpoint.NewEndpoint("client/stop", endpoint.ActionDelete, "this endpoint stops a iperf client", p.StopIperfClient, request.DefaultSecure, authz,
+			endpoint.WithParameters(&IperfTestIDRequest{}),
+		),
+		endpoint.NewEndpoint("client/results", endpoint.ActionRead, "this endpoint gets the results of a iperf client", p.GetIperfClientResults, request.DefaultSecure, authz,
 			endpoint.WithParameters(&IperfTestIDRequest{}),
 		),
 		//r.GET("/iperf/server/results/:id", handlers.GetIperfServerTestResultsHandler)
@@ -147,9 +144,7 @@ func (p *IperfPlugin) Register(request *api.RegisterRequest, reply *api.Register
 		//	endpoint.WithParameters(&IperfTestIDRequest{}),
 		//),
 		//r.GET("/iperf/client/results/:id", handlers.GetIperfClientTestResultsHandler)
-		endpoint.NewEndpoint("client/results", endpoint.ActionRead, "this endpoint gets the results of a iperf client", p.GetIperfClientResults, request.DefaultSecure, authz,
-			endpoint.WithParameters(&IperfTestIDRequest{}),
-		),
+
 	}
 
 	// Register them with the plugin
