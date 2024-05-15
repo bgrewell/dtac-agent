@@ -1,0 +1,5 @@
+---
+name: dsc
+entry: main.go
+platforms:
+  - windows:amd64

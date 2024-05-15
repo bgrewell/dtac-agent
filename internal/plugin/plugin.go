@@ -13,6 +13,8 @@ import (
 	"io"
 	"os"
 	"path"
+	"runtime"
+	"strings"
 )
 
 // NewSubsystem creates a new instance of the Subsystem struct
@@ -58,6 +60,13 @@ func (s *Subsystem) register() {
 			continue
 		}
 		full := path.Join(s.Config.Plugins.PluginDir, fmt.Sprintf("%s.plugin", k))
+		if runtime.GOOS == "windows" {
+			full = strings.Replace(full, "/", "", -1)
+			full += ".exe"
+		} else if runtime.GOOS == "darwin" {
+			full += ".app"
+		}
+
 		v.PluginPath = full
 		v.RootPath = group
 		s.Logger.Info("loaded configuration",
@@ -65,7 +74,8 @@ func (s *Subsystem) register() {
 			zap.Bool("enabled", v.Enabled),
 			zap.String("path", v.PluginPath),
 			zap.String("hash", v.Hash),
-			zap.String("root", v.RootPath))
+			zap.String("root", v.RootPath),
+			zap.String("config_key", full))
 
 		if v.Hash != "" {
 			ph, err := ComputeSHA256(v.PluginPath)

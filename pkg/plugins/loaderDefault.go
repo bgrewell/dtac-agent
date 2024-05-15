@@ -61,7 +61,8 @@ func (pl *DefaultPluginLoader) Initialize(secure bool) (loadedPlugins []*PluginI
 	if err != nil {
 		return nil, err
 	}
-
+	pl.logger.Info("enumerated plugins", zap.Strings("plugins", plugs))
+	pl.logger.Debug("plugin configs", zap.Any("configs", pl.PluginConfigs))
 	for _, plug := range plugs {
 		// Inside here we don't return errors because we want to continue loading other plugins. Instead, we log the
 		// error and continue
@@ -100,7 +101,13 @@ func (pl *DefaultPluginLoader) Initialize(secure bool) (loadedPlugins []*PluginI
 
 // ListPlugins returns a list of all plugins in the plugin directory
 func (pl *DefaultPluginLoader) ListPlugins() (plugins []string, err error) {
-	return utility.FindPlugins(pl.PluginDirectory, "*.plugin")
+	if runtime.GOOS == "windows" {
+		return utility.FindPlugins(pl.PluginDirectory, "*.plugin.exe")
+	} else if runtime.GOOS == "darwin" {
+		return utility.FindPlugins(pl.PluginDirectory, "*.plugin.app")
+	} else {
+		return utility.FindPlugins(pl.PluginDirectory, "*.plugin")
+	}
 }
 
 // LaunchPlugin launches a plugin and returns the info on the running plugin
@@ -420,6 +427,9 @@ func (pl *DefaultPluginLoader) executePlugin(config *PluginConfig) (info *Plugin
 	// TODO: to support execution under another user go-execute has v2 which currently has Linux working but not
 	// Windows at this point. Once Windows is supported this will be updated to use the new version and will support
 	// setting the user to execute the plugin as.
+	pl.logger.Debug("executing plugin",
+		zap.String("plugin", config.PluginPath),
+		zap.Strings("envs", envs))
 	stdout, _, exitChan, cancel, err := execute.ExecuteAsyncWithCancel(config.PluginPath, &envs)
 	if err != nil {
 		return nil, err

@@ -9,7 +9,6 @@ import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins/utility"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"io"
 	"log"
 	"net"
 	"net/url"
@@ -78,8 +77,8 @@ func (ph *DefaultPluginHost) LoggingStream(req *api.LoggingArgs, stream api.Plug
 // Serve starts the plugin host
 func (ph *DefaultPluginHost) Serve() error {
 	// Hacky way to keep the net.rpc package from complaining about some method signatures
-	logger := log.Default()
-	logger.SetOutput(io.Discard)
+	//logger := log.Default()
+	//logger.SetOutput(io.Discard)
 
 	// Verify that the ENV variable is set else exit with helpful message
 	if os.Getenv("DTAC_PLUGINS") == "" {

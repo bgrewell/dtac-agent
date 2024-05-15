@@ -315,8 +315,9 @@ func Plugins() error {
 	fmt.Println("Building plugins")
 	// Define a struct to unmarshal the build.yaml contents into.
 	type BuildInfo struct {
-		Name  string `yaml:"name"`
-		Entry string `yaml:"entry"`
+		Name      string   `yaml:"name"`
+		Entry     string   `yaml:"entry"`
+		Platforms []string `yaml:"platforms"`
 	}
 
 	buildFiles, err := findBuildYAMLFiles("cmd/plugins")
@@ -337,20 +338,40 @@ func Plugins() error {
 			return fmt.Errorf("failed unmarshaling %s: %v", filename, err)
 		}
 
-		// Run the go build command using the extracted name and entry values.
-		fmt.Printf("  Compiling %s\n", buildInfo.Name)
-		inPath := filepath.Dir(filename)
-		outPath := fmt.Sprintf("bin/plugins/%s.plugin", buildInfo.Name)
-		cmd := exec.Command("go", "build", "-o", outPath, path.Join(inPath, buildInfo.Entry))
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		err = cmd.Run()
-		if err != nil {
-			return fmt.Errorf("failed building plugin %s: %v", buildInfo.Name, err)
+		// Run the go build command using the extracted name, entry, and platforms values.
+		for _, platform := range buildInfo.Platforms {
+			parts := strings.Split(platform, ":")
+			os := parts[0]
+			arch := "amd64"
+			if len(parts) > 1 {
+				arch = parts[1]
+			}
+
+			fmt.Printf("  Compiling %s for %s %s\n", buildInfo.Name, os, arch)
+			inPath := filepath.Dir(filename)
+			outPath := fmt.Sprintf("bin/plugins/%s.plugin", buildInfo.Name)
+			err := buildPlugins(path.Join(inPath, buildInfo.Entry), os, arch, outPath)
+			if err != nil {
+				return fmt.Errorf("failed building plugin %s: %v", buildInfo.Name, err)
+			}
 		}
 	}
 
 	return nil
+}
+
+func buildPlugins(source string, os string, arch string, binary string) error {
+	extension := ""
+	if os == "windows" {
+		extension = ".exe"
+	} else if os == "darwin" {
+		extension = ".app"
+	}
+	env := flagEnv()
+	env["GOOS"] = os
+	env["GOARCH"] = arch
+	output := fmt.Sprintf("%s%s", binary, extension)
+	return runWith(env, goexe, "build", "-tags", buildTags(), "-o", output, source)
 }
 
 func Clean() error {

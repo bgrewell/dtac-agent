@@ -144,7 +144,6 @@ func (p *IperfPlugin) Register(request *api.RegisterRequest, reply *api.Register
 		//	endpoint.WithParameters(&IperfTestIDRequest{}),
 		//),
 		//r.GET("/iperf/client/results/:id", handlers.GetIperfClientTestResultsHandler)
-
 	}
 
 	// Register them with the plugin

@@ -1,3 +1,6 @@
 ---
 name: docker
 entry: main.go
+platforms:
+  - linux
+  - darwin

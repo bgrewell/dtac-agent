@@ -1,3 +1,7 @@
 ---
 name: hello
 entry: main.go
+platforms:
+  - linux
+  - darwin
+  - windows
