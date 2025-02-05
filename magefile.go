@@ -97,11 +97,7 @@ func getBuildVersion() string {
 }
 
 func getBuildDate() string {
-	d, err := outputWith(nil, "date", "+\"%Y.%m.%d_%H%M%S\"")
-	if err != nil {
-		log.Fatal(err)
-	}
-	return d
+	return time.Now().Format("2006.01.02_150405")
 }
 
 func getBuildRevision() string {

@@ -1,7 +1,7 @@
 package hardware
 
 import (
-	execute "github.com/BGrewell/go-execute/v2"
+	execute "github.com/bgrewell/go-execute/v2"
 	"github.com/shirou/gopsutil/disk"
 	"strings"
 )

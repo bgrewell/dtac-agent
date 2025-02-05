@@ -1,5 +1,5 @@
 ---
-name: dsc
+name: domaincontroller
 entry: main.go
 platforms:
   - windows:amd64

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/dsc/plugin"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/domaincontroller/plugin"
 	"log"
 
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins"
@@ -9,7 +9,7 @@ import (
 
 func main() {
 
-	p := plugin.NewDSCPlugin()
+	p := plugin.NewDomainControllerPlugin()
 
 	h, err := plugins.NewPluginHost(p)
 	if err != nil {
