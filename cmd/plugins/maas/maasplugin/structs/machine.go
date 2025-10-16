@@ -1,5 +1,31 @@
 package structs
 
+import (
+	"encoding/json"
+	"fmt"
+	"strconv"
+)
+
+type VirtualMachineID string
+
+func (v *VirtualMachineID) UnmarshalJSON(data []byte) error {
+	// Try unmarshaling as string
+	var str string
+	if err := json.Unmarshal(data, &str); err == nil {
+		*v = VirtualMachineID(str)
+		return nil
+	}
+
+	// Try unmarshaling as number
+	var num int
+	if err := json.Unmarshal(data, &num); err == nil {
+		*v = VirtualMachineID(strconv.Itoa(num))
+		return nil
+	}
+
+	return fmt.Errorf("VirtualMachineID: unable to unmarshal %s", string(data))
+}
+
 // Machine is the struct for a machine
 type Machine struct {
 	AddressTTL                   string                   `json:"address_ttl" yaml:"address_ttl"`
@@ -54,7 +80,7 @@ type Machine struct {
 	SystemID                     string                   `json:"system_id" yaml:"system_id"`
 	TestingStatus                int                      `json:"testing_status" yaml:"testing_status"`
 	TestingStatusName            string                   `json:"testing_status_name" yaml:"testing_status_name"`
-	VirtualmachineID             string                   `json:"virtualmachine_id" yaml:"virtualmachine_id"`
+	VirtualmachineID             VirtualMachineID         `json:"virtualmachine_id" yaml:"virtualmachine_id"`
 	InterfaceSet                 []InterfaceStruct        `json:"interface_set" yaml:"interface_set"`
 	DefaultGateways              DefaultGatewayStruct     `json:"default_gateways" yaml:"default_gateways"`
 	HardwareInfo                 map[string]interface{}   `json:"hardware_info" yaml:"hardware_info"`

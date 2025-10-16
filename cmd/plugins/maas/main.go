@@ -2,16 +2,15 @@ package main
 
 import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/maas/maasplugin"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins"
 	"log"
-
-	"github.com/bgrewell/gin-plugins/host"
 )
 
 func main() {
 
-	p := new(maasplugin.MAASPlugin)
+	p := maasplugin.NewMAASPlugin()
 
-	h, err := host.NewPluginHost(p, "still_using_the_old_gin_plugins")
+	h, err := plugins.NewPluginHost(p)
 	if err != nil {
 		log.Fatal(err)
 	}

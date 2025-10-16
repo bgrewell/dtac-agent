@@ -1,27 +1,33 @@
 package engine
 
 import (
-	api2 "github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/maas/maasplugin/api"
-	structs2 "github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/maas/maasplugin/structs"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/maas/maasplugin/api"
+	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/maas/maasplugin/structs"
 )
 
 // Engine is the main engine for the MAAS plugin
 type Engine struct {
-	Settings *structs2.MAASSettings
+	Settings *structs.MAASSettings
 	running  bool
 	errored  bool
 	err      error
-	machines []*structs2.Machine
-	fabrics  []*structs2.Fabric
+	machines []*structs.Machine
+	fabrics  []*structs.Fabric
+}
+
+func (e *Engine) CreateMachine() (results []byte, err error) {
+	// TODO: Need to think of where the dividing lines are in this package, for example the engine probably shouldn't
+	//  be taking in grpc structs and working with them, but rather the engine should be working with the structs
+	//  defined in the maasplugin package. The engine should be agnostic to the grpc structs.
 }
 
 // Machines returns a list of machines from the MAAS server
-func (e *Engine) Machines() []*structs2.Machine {
+func (e *Engine) Machines() []*structs.Machine {
 	return e.machines
 }
 
 // Fabrics returns a list of fabrics from the MAAS server
-func (e *Engine) Fabrics() []*structs2.Fabric {
+func (e *Engine) Fabrics() []*structs.Fabric {
 	return e.fabrics
 }
 
@@ -48,7 +54,7 @@ func (e *Engine) Start() error {
 		for e.running {
 
 			// Update machines
-			e.machines, err = api2.GetMachines(e.Settings)
+			e.machines, err = api.GetMachines(e.Settings)
 			if err != nil {
 				e.running = false
 				e.errored = true
@@ -56,7 +62,7 @@ func (e *Engine) Start() error {
 			}
 
 			// Update fabrics
-			e.fabrics, err = api2.GetFabrics(e.Settings)
+			e.fabrics, err = api.GetFabrics(e.Settings)
 			if err != nil {
 				e.running = false
 				e.errored = true

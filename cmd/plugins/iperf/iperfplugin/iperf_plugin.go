@@ -9,7 +9,6 @@ import (
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins"
 	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins/utility"
-	"net/http"
 	_ "net/http/pprof" // Used for remote debugging of the plugin
 	"reflect"
 	"strconv"
@@ -29,9 +28,9 @@ func NewIperfPlugin() *IperfPlugin {
 	// 1. Uncomment the anonymous function below
 	// 2. Build the plugin like normal and execute via DTAC
 	// 3.
-	go func() {
-		fmt.Println(http.ListenAndServe("localhost:6060", nil))
-	}()
+	//go func() {
+	//	fmt.Println(http.ListenAndServe("localhost:6060", nil))
+	//}()
 
 	// Create a new instance of the plugin
 	p := &IperfPlugin{
