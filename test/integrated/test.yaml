@@ -1,0 +1,36 @@
+---
+suite: DTAC Agent Integration Tests
+nodes:
+  - name: dtac-agent
+    type: lxd
+    options:
+      image: ubuntu:24.04
+      type: container
+      exec_options:
+        shell: /bin/bash
+
+  - name: dtac-client
+    type: lxd
+    options:
+      image: ubuntu:24.04
+      type: container
+      exec_options:
+        shell: /bin/bash
+
+setup:
+  - name: install curl
+    node: dtac-client
+    step:
+      type: apt
+      options:
+        packages:
+          - curl
+
+tests:
+  - name: start service
+    node: dtac-agent
+    type: execute
+    options:
+      command: bash -c 'systemctl start dtac-agentd.service'
+      evaluate:
+        exit_code: 0
