@@ -31,7 +31,8 @@ func NewBrokerClient(brokerAddress string) (*BrokerClient, error) {
 	if os.Getenv("DTAC_TLS_CERT") != "" && os.Getenv("DTAC_TLS_KEY") != "" {
 		// TLS is enabled
 		cert := os.Getenv("DTAC_TLS_CERT")
-		tlsCert, err := tls.X509KeyPair([]byte(cert), []byte(cert))
+		key := os.Getenv("DTAC_TLS_KEY")
+		tlsCert, err := tls.X509KeyPair([]byte(cert), []byte(key))
 		if err != nil {
 			return nil, fmt.Errorf("failed to load client TLS certificate: %w", err)
 		}
