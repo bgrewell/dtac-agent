@@ -74,17 +74,20 @@ func (l *CasbinLogger) LogCurrentPolicies(enforcer *casbin.Enforcer) {
 	}
 
 	l.logger.Info("Current Policies:")
-	for _, policy := range enforcer.GetPolicy() {
+	policies, _ := enforcer.GetPolicy()
+	for _, policy := range policies {
 		l.logger.Info("Policy:", zap.Any("policy", policy))
 	}
 
 	l.logger.Info("Current Grouping Policies:")
-	for _, gPolicy := range enforcer.GetGroupingPolicy() {
+	gPolicies, _ := enforcer.GetGroupingPolicy()
+	for _, gPolicy := range gPolicies {
 		l.logger.Info("Grouping Policy:", zap.Any("grouping policy", gPolicy))
 	}
 
 	l.logger.Info("Current Role Hierarchies:")
-	for _, hierarchy := range enforcer.GetNamedGroupingPolicy("g2") {
+	hierarchies, _ := enforcer.GetNamedGroupingPolicy("g2")
+	for _, hierarchy := range hierarchies {
 		l.logger.Info("Role Hierarchy:", zap.Any("role hierarchy", hierarchy))
 	}
 }
