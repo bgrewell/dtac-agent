@@ -4,10 +4,19 @@ package plugin;
 
 option go_package = "github.com/bgrewell/dtac-agent/api/grpc/go";
 
+// PluginService is the service that plugins expose to the agent
 service PluginService {
   rpc Register(RegisterRequest) returns (RegisterResponse);
   rpc Call (EndpointRequestMessage) returns (EndpointResponseMessage);
   rpc LoggingStream(LoggingArgs) returns (stream LogMessage);
+}
+
+// AgentService is the service that the agent exposes to plugins for broker functionality
+service AgentService {
+  // CallPlugin allows a plugin to call another plugin through the agent's broker
+  rpc CallPlugin(PluginCallRequest) returns (PluginCallResponse);
+  // ListPlugins returns a list of all loaded plugins
+  rpc ListPlugins(ListPluginsRequest) returns (ListPluginsResponse);
 }
 
 // EndpointRequestMessage represents a gRPC message for a request made to an endpoint.
@@ -62,6 +71,9 @@ message StringList {
 message RegisterRequest {
   string config = 1;
   bool default_secure = 2;
+  // BrokerAddress is the address of the agent's broker service for plugin-to-plugin communication
+  // Format: "host:port"
+  string broker_address = 3;
 }
 
 message RegisterResponse {
@@ -116,4 +128,33 @@ message LogMessage {
   LogLevel level = 1;
   string message = 2;
   repeated LogField fields = 3;  // Structured data
+}
+// PluginCallRequest represents a request from one plugin to call another plugin
+message PluginCallRequest {
+  // TargetPlugin is the name of the plugin to call
+  string target_plugin = 1;
+  // Method is the endpoint method to call on the target plugin
+  string method = 2;
+  // Action is the action type (Read, Write, Create, Delete)
+  string action = 3;
+  // Request contains the request data to send to the target plugin
+  EndpointRequest request = 4;
+}
+
+// PluginCallResponse represents the response from a plugin-to-plugin call
+message PluginCallResponse {
+  // Response contains the response data from the target plugin
+  EndpointResponse response = 1;
+  // Error contains any error message if the call failed
+  string error = 2;
+}
+
+// ListPluginsRequest is an empty request for listing plugins
+message ListPluginsRequest {
+}
+
+// ListPluginsResponse contains the list of loaded plugins
+message ListPluginsResponse {
+  // PluginNames contains the names of all loaded plugins
+  repeated string plugin_names = 1;
 }

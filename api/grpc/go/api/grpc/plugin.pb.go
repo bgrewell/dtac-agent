@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.10
 // 	protoc        v3.21.12
-// source: plugin.proto
+// source: api/grpc/plugin.proto
 
 package _go
 
@@ -61,11 +61,11 @@ func (x LogLevel) String() string {
 }
 
 func (LogLevel) Descriptor() protoreflect.EnumDescriptor {
-	return file_plugin_proto_enumTypes[0].Descriptor()
+	return file_api_grpc_plugin_proto_enumTypes[0].Descriptor()
 }
 
 func (LogLevel) Type() protoreflect.EnumType {
-	return &file_plugin_proto_enumTypes[0]
+	return &file_api_grpc_plugin_proto_enumTypes[0]
 }
 
 func (x LogLevel) Number() protoreflect.EnumNumber {
@@ -74,7 +74,7 @@ func (x LogLevel) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use LogLevel.Descriptor instead.
 func (LogLevel) EnumDescriptor() ([]byte, []int) {
-	return file_plugin_proto_rawDescGZIP(), []int{0}
+	return file_api_grpc_plugin_proto_rawDescGZIP(), []int{0}
 }
 
 // EndpointRequestMessage represents a gRPC message for a request made to an endpoint.
@@ -91,7 +91,7 @@ type EndpointRequestMessage struct {
 
 func (x *EndpointRequestMessage) Reset() {
 	*x = EndpointRequestMessage{}
-	mi := &file_plugin_proto_msgTypes[0]
+	mi := &file_api_grpc_plugin_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -103,7 +103,7 @@ func (x *EndpointRequestMessage) String() string {
 func (*EndpointRequestMessage) ProtoMessage() {}
 
 func (x *EndpointRequestMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_proto_msgTypes[0]
+	mi := &file_api_grpc_plugin_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -116,7 +116,7 @@ func (x *EndpointRequestMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EndpointRequestMessage.ProtoReflect.Descriptor instead.
 func (*EndpointRequestMessage) Descriptor() ([]byte, []int) {
-	return file_plugin_proto_rawDescGZIP(), []int{0}
+	return file_api_grpc_plugin_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *EndpointRequestMessage) GetMethod() string {
@@ -149,7 +149,7 @@ type EndpointResponseMessage struct {
 
 func (x *EndpointResponseMessage) Reset() {
 	*x = EndpointResponseMessage{}
-	mi := &file_plugin_proto_msgTypes[1]
+	mi := &file_api_grpc_plugin_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -161,7 +161,7 @@ func (x *EndpointResponseMessage) String() string {
 func (*EndpointResponseMessage) ProtoMessage() {}
 
 func (x *EndpointResponseMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_proto_msgTypes[1]
+	mi := &file_api_grpc_plugin_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -174,7 +174,7 @@ func (x *EndpointResponseMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EndpointResponseMessage.ProtoReflect.Descriptor instead.
 func (*EndpointResponseMessage) Descriptor() ([]byte, []int) {
-	return file_plugin_proto_rawDescGZIP(), []int{1}
+	return file_api_grpc_plugin_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *EndpointResponseMessage) GetId() int32 {
@@ -215,7 +215,7 @@ type EndpointRequest struct {
 
 func (x *EndpointRequest) Reset() {
 	*x = EndpointRequest{}
-	mi := &file_plugin_proto_msgTypes[2]
+	mi := &file_api_grpc_plugin_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -227,7 +227,7 @@ func (x *EndpointRequest) String() string {
 func (*EndpointRequest) ProtoMessage() {}
 
 func (x *EndpointRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_proto_msgTypes[2]
+	mi := &file_api_grpc_plugin_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -240,7 +240,7 @@ func (x *EndpointRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EndpointRequest.ProtoReflect.Descriptor instead.
 func (*EndpointRequest) Descriptor() ([]byte, []int) {
-	return file_plugin_proto_rawDescGZIP(), []int{2}
+	return file_api_grpc_plugin_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *EndpointRequest) GetMetadata() map[string]string {
@@ -288,7 +288,7 @@ type EndpointResponse struct {
 
 func (x *EndpointResponse) Reset() {
 	*x = EndpointResponse{}
-	mi := &file_plugin_proto_msgTypes[3]
+	mi := &file_api_grpc_plugin_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -300,7 +300,7 @@ func (x *EndpointResponse) String() string {
 func (*EndpointResponse) ProtoMessage() {}
 
 func (x *EndpointResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_proto_msgTypes[3]
+	mi := &file_api_grpc_plugin_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -313,7 +313,7 @@ func (x *EndpointResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EndpointResponse.ProtoReflect.Descriptor instead.
 func (*EndpointResponse) Descriptor() ([]byte, []int) {
-	return file_plugin_proto_rawDescGZIP(), []int{3}
+	return file_api_grpc_plugin_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *EndpointResponse) GetMetadata() map[string]string {
@@ -354,7 +354,7 @@ type StringList struct {
 
 func (x *StringList) Reset() {
 	*x = StringList{}
-	mi := &file_plugin_proto_msgTypes[4]
+	mi := &file_api_grpc_plugin_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -366,7 +366,7 @@ func (x *StringList) String() string {
 func (*StringList) ProtoMessage() {}
 
 func (x *StringList) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_proto_msgTypes[4]
+	mi := &file_api_grpc_plugin_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -379,7 +379,7 @@ func (x *StringList) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StringList.ProtoReflect.Descriptor instead.
 func (*StringList) Descriptor() ([]byte, []int) {
-	return file_plugin_proto_rawDescGZIP(), []int{4}
+	return file_api_grpc_plugin_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *StringList) GetValues() []string {
@@ -402,7 +402,7 @@ type RegisterRequest struct {
 
 func (x *RegisterRequest) Reset() {
 	*x = RegisterRequest{}
-	mi := &file_plugin_proto_msgTypes[5]
+	mi := &file_api_grpc_plugin_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -414,7 +414,7 @@ func (x *RegisterRequest) String() string {
 func (*RegisterRequest) ProtoMessage() {}
 
 func (x *RegisterRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_proto_msgTypes[5]
+	mi := &file_api_grpc_plugin_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -427,7 +427,7 @@ func (x *RegisterRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterRequest.ProtoReflect.Descriptor instead.
 func (*RegisterRequest) Descriptor() ([]byte, []int) {
-	return file_plugin_proto_rawDescGZIP(), []int{5}
+	return file_api_grpc_plugin_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *RegisterRequest) GetConfig() string {
@@ -460,7 +460,7 @@ type RegisterResponse struct {
 
 func (x *RegisterResponse) Reset() {
 	*x = RegisterResponse{}
-	mi := &file_plugin_proto_msgTypes[6]
+	mi := &file_api_grpc_plugin_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -472,7 +472,7 @@ func (x *RegisterResponse) String() string {
 func (*RegisterResponse) ProtoMessage() {}
 
 func (x *RegisterResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_proto_msgTypes[6]
+	mi := &file_api_grpc_plugin_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -485,7 +485,7 @@ func (x *RegisterResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterResponse.ProtoReflect.Descriptor instead.
 func (*RegisterResponse) Descriptor() ([]byte, []int) {
-	return file_plugin_proto_rawDescGZIP(), []int{6}
+	return file_api_grpc_plugin_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *RegisterResponse) GetEndpoints() []*PluginEndpoint {
@@ -524,7 +524,7 @@ type PluginEndpoint struct {
 
 func (x *PluginEndpoint) Reset() {
 	*x = PluginEndpoint{}
-	mi := &file_plugin_proto_msgTypes[7]
+	mi := &file_api_grpc_plugin_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -536,7 +536,7 @@ func (x *PluginEndpoint) String() string {
 func (*PluginEndpoint) ProtoMessage() {}
 
 func (x *PluginEndpoint) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_proto_msgTypes[7]
+	mi := &file_api_grpc_plugin_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -549,7 +549,7 @@ func (x *PluginEndpoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PluginEndpoint.ProtoReflect.Descriptor instead.
 func (*PluginEndpoint) Descriptor() ([]byte, []int) {
-	return file_plugin_proto_rawDescGZIP(), []int{7}
+	return file_api_grpc_plugin_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *PluginEndpoint) GetPath() string {
@@ -631,7 +631,7 @@ type LoggingArgs struct {
 
 func (x *LoggingArgs) Reset() {
 	*x = LoggingArgs{}
-	mi := &file_plugin_proto_msgTypes[8]
+	mi := &file_api_grpc_plugin_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -643,7 +643,7 @@ func (x *LoggingArgs) String() string {
 func (*LoggingArgs) ProtoMessage() {}
 
 func (x *LoggingArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_proto_msgTypes[8]
+	mi := &file_api_grpc_plugin_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -656,7 +656,7 @@ func (x *LoggingArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoggingArgs.ProtoReflect.Descriptor instead.
 func (*LoggingArgs) Descriptor() ([]byte, []int) {
-	return file_plugin_proto_rawDescGZIP(), []int{8}
+	return file_api_grpc_plugin_proto_rawDescGZIP(), []int{8}
 }
 
 // Key-value pair for structured data
@@ -670,7 +670,7 @@ type LogField struct {
 
 func (x *LogField) Reset() {
 	*x = LogField{}
-	mi := &file_plugin_proto_msgTypes[9]
+	mi := &file_api_grpc_plugin_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -682,7 +682,7 @@ func (x *LogField) String() string {
 func (*LogField) ProtoMessage() {}
 
 func (x *LogField) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_proto_msgTypes[9]
+	mi := &file_api_grpc_plugin_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -695,7 +695,7 @@ func (x *LogField) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogField.ProtoReflect.Descriptor instead.
 func (*LogField) Descriptor() ([]byte, []int) {
-	return file_plugin_proto_rawDescGZIP(), []int{9}
+	return file_api_grpc_plugin_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *LogField) GetKey() string {
@@ -724,7 +724,7 @@ type LogMessage struct {
 
 func (x *LogMessage) Reset() {
 	*x = LogMessage{}
-	mi := &file_plugin_proto_msgTypes[10]
+	mi := &file_api_grpc_plugin_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -736,7 +736,7 @@ func (x *LogMessage) String() string {
 func (*LogMessage) ProtoMessage() {}
 
 func (x *LogMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_proto_msgTypes[10]
+	mi := &file_api_grpc_plugin_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -749,7 +749,7 @@ func (x *LogMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogMessage.ProtoReflect.Descriptor instead.
 func (*LogMessage) Descriptor() ([]byte, []int) {
-	return file_plugin_proto_rawDescGZIP(), []int{10}
+	return file_api_grpc_plugin_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *LogMessage) GetLevel() LogLevel {
@@ -790,7 +790,7 @@ type PluginCallRequest struct {
 
 func (x *PluginCallRequest) Reset() {
 	*x = PluginCallRequest{}
-	mi := &file_plugin_proto_msgTypes[11]
+	mi := &file_api_grpc_plugin_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -802,7 +802,7 @@ func (x *PluginCallRequest) String() string {
 func (*PluginCallRequest) ProtoMessage() {}
 
 func (x *PluginCallRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_proto_msgTypes[11]
+	mi := &file_api_grpc_plugin_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -815,7 +815,7 @@ func (x *PluginCallRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PluginCallRequest.ProtoReflect.Descriptor instead.
 func (*PluginCallRequest) Descriptor() ([]byte, []int) {
-	return file_plugin_proto_rawDescGZIP(), []int{11}
+	return file_api_grpc_plugin_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *PluginCallRequest) GetTargetPlugin() string {
@@ -859,7 +859,7 @@ type PluginCallResponse struct {
 
 func (x *PluginCallResponse) Reset() {
 	*x = PluginCallResponse{}
-	mi := &file_plugin_proto_msgTypes[12]
+	mi := &file_api_grpc_plugin_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -871,7 +871,7 @@ func (x *PluginCallResponse) String() string {
 func (*PluginCallResponse) ProtoMessage() {}
 
 func (x *PluginCallResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_proto_msgTypes[12]
+	mi := &file_api_grpc_plugin_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -884,7 +884,7 @@ func (x *PluginCallResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PluginCallResponse.ProtoReflect.Descriptor instead.
 func (*PluginCallResponse) Descriptor() ([]byte, []int) {
-	return file_plugin_proto_rawDescGZIP(), []int{12}
+	return file_api_grpc_plugin_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *PluginCallResponse) GetResponse() *EndpointResponse {
@@ -910,7 +910,7 @@ type ListPluginsRequest struct {
 
 func (x *ListPluginsRequest) Reset() {
 	*x = ListPluginsRequest{}
-	mi := &file_plugin_proto_msgTypes[13]
+	mi := &file_api_grpc_plugin_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -922,7 +922,7 @@ func (x *ListPluginsRequest) String() string {
 func (*ListPluginsRequest) ProtoMessage() {}
 
 func (x *ListPluginsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_proto_msgTypes[13]
+	mi := &file_api_grpc_plugin_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -935,7 +935,7 @@ func (x *ListPluginsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPluginsRequest.ProtoReflect.Descriptor instead.
 func (*ListPluginsRequest) Descriptor() ([]byte, []int) {
-	return file_plugin_proto_rawDescGZIP(), []int{13}
+	return file_api_grpc_plugin_proto_rawDescGZIP(), []int{13}
 }
 
 // ListPluginsResponse contains the list of loaded plugins
@@ -949,7 +949,7 @@ type ListPluginsResponse struct {
 
 func (x *ListPluginsResponse) Reset() {
 	*x = ListPluginsResponse{}
-	mi := &file_plugin_proto_msgTypes[14]
+	mi := &file_api_grpc_plugin_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -961,7 +961,7 @@ func (x *ListPluginsResponse) String() string {
 func (*ListPluginsResponse) ProtoMessage() {}
 
 func (x *ListPluginsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_proto_msgTypes[14]
+	mi := &file_api_grpc_plugin_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -974,7 +974,7 @@ func (x *ListPluginsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPluginsResponse.ProtoReflect.Descriptor instead.
 func (*ListPluginsResponse) Descriptor() ([]byte, []int) {
-	return file_plugin_proto_rawDescGZIP(), []int{14}
+	return file_api_grpc_plugin_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ListPluginsResponse) GetPluginNames() []string {
@@ -984,11 +984,11 @@ func (x *ListPluginsResponse) GetPluginNames() []string {
 	return nil
 }
 
-var File_plugin_proto protoreflect.FileDescriptor
+var File_api_grpc_plugin_proto protoreflect.FileDescriptor
 
-const file_plugin_proto_rawDesc = "" +
+const file_api_grpc_plugin_proto_rawDesc = "" +
 	"\n" +
-	"\fplugin.proto\x12\x06plugin\"c\n" +
+	"\x15api/grpc/plugin.proto\x12\x06plugin\"c\n" +
 	"\x16EndpointRequestMessage\x12\x16\n" +
 	"\x06method\x18\x01 \x01(\tR\x06method\x121\n" +
 	"\arequest\x18\x02 \x01(\v2\x17.plugin.EndpointRequestR\arequest\"u\n" +
@@ -1086,20 +1086,20 @@ const file_plugin_proto_rawDesc = "" +
 	"\vListPlugins\x12\x1a.plugin.ListPluginsRequest\x1a\x1b.plugin.ListPluginsResponseB,Z*github.com/bgrewell/dtac-agent/api/grpc/gob\x06proto3"
 
 var (
-	file_plugin_proto_rawDescOnce sync.Once
-	file_plugin_proto_rawDescData []byte
+	file_api_grpc_plugin_proto_rawDescOnce sync.Once
+	file_api_grpc_plugin_proto_rawDescData []byte
 )
 
-func file_plugin_proto_rawDescGZIP() []byte {
-	file_plugin_proto_rawDescOnce.Do(func() {
-		file_plugin_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_plugin_proto_rawDesc), len(file_plugin_proto_rawDesc)))
+func file_api_grpc_plugin_proto_rawDescGZIP() []byte {
+	file_api_grpc_plugin_proto_rawDescOnce.Do(func() {
+		file_api_grpc_plugin_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_api_grpc_plugin_proto_rawDesc), len(file_api_grpc_plugin_proto_rawDesc)))
 	})
-	return file_plugin_proto_rawDescData
+	return file_api_grpc_plugin_proto_rawDescData
 }
 
-var file_plugin_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_plugin_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
-var file_plugin_proto_goTypes = []any{
+var file_api_grpc_plugin_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_api_grpc_plugin_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
+var file_api_grpc_plugin_proto_goTypes = []any{
 	(LogLevel)(0),                   // 0: plugin.LogLevel
 	(*EndpointRequestMessage)(nil),  // 1: plugin.EndpointRequestMessage
 	(*EndpointResponseMessage)(nil), // 2: plugin.EndpointResponseMessage
@@ -1123,7 +1123,7 @@ var file_plugin_proto_goTypes = []any{
 	nil,                             // 20: plugin.EndpointResponse.HeadersEntry
 	nil,                             // 21: plugin.EndpointResponse.ParametersEntry
 }
-var file_plugin_proto_depIdxs = []int32{
+var file_api_grpc_plugin_proto_depIdxs = []int32{
 	3,  // 0: plugin.EndpointRequestMessage.request:type_name -> plugin.EndpointRequest
 	4,  // 1: plugin.EndpointResponseMessage.response:type_name -> plugin.EndpointResponse
 	16, // 2: plugin.EndpointRequest.metadata:type_name -> plugin.EndpointRequest.MetadataEntry
@@ -1158,27 +1158,27 @@ var file_plugin_proto_depIdxs = []int32{
 	0,  // [0:17] is the sub-list for field type_name
 }
 
-func init() { file_plugin_proto_init() }
-func file_plugin_proto_init() {
-	if File_plugin_proto != nil {
+func init() { file_api_grpc_plugin_proto_init() }
+func file_api_grpc_plugin_proto_init() {
+	if File_api_grpc_plugin_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_plugin_proto_rawDesc), len(file_plugin_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_grpc_plugin_proto_rawDesc), len(file_api_grpc_plugin_proto_rawDesc)),
 			NumEnums:      1,
 			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   2,
 		},
-		GoTypes:           file_plugin_proto_goTypes,
-		DependencyIndexes: file_plugin_proto_depIdxs,
-		EnumInfos:         file_plugin_proto_enumTypes,
-		MessageInfos:      file_plugin_proto_msgTypes,
+		GoTypes:           file_api_grpc_plugin_proto_goTypes,
+		DependencyIndexes: file_api_grpc_plugin_proto_depIdxs,
+		EnumInfos:         file_api_grpc_plugin_proto_enumTypes,
+		MessageInfos:      file_api_grpc_plugin_proto_msgTypes,
 	}.Build()
-	File_plugin_proto = out.File
-	file_plugin_proto_goTypes = nil
-	file_plugin_proto_depIdxs = nil
+	File_api_grpc_plugin_proto = out.File
+	file_api_grpc_plugin_proto_goTypes = nil
+	file_api_grpc_plugin_proto_depIdxs = nil
 }

@@ -12,4 +12,6 @@ type Plugin interface {
 	Call(method string, args *endpoint.Request) (out *endpoint.Response, err error)
 	RootPath() string
 	LoggingStream(stream api.PluginService_LoggingStreamServer) error
+	SetBroker(broker PluginBroker) // Allow the agent to inject the broker
+	GetBroker() PluginBroker        // Allow plugins to access the broker
 }
