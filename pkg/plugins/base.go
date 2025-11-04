@@ -13,9 +13,11 @@ type PluginMethod func(input *endpoint.Request) (output *endpoint.Response, err 
 
 // PluginBase is a base struct that all plugins should embed as it implements the common shared methods
 type PluginBase struct {
-	LogChan  chan LogMessage
-	Methods  map[string]endpoint.Func
-	rootPath string
+	LogChan      chan LogMessage
+	Methods      map[string]endpoint.Func
+	rootPath     string
+	broker       PluginBroker // Legacy field for backward compatibility
+	brokerClient *BrokerClient
 }
 
 // Register is a default implementation of the Register method that must be implemented by the plugin therefor this one returns an error
@@ -104,4 +106,48 @@ func (p *PluginBase) Serialize(v interface{}) (string, error) {
 		return "", e
 	}
 	return string(b), nil
+}
+
+// SetBroker sets the plugin broker for this plugin
+func (p *PluginBase) SetBroker(broker PluginBroker) {
+	p.broker = broker
+}
+
+// GetBroker returns the plugin broker for this plugin
+func (p *PluginBase) GetBroker() PluginBroker {
+	return p.broker
+}
+
+// InitializeBrokerClient initializes the broker client with the given broker address
+// This should be called during plugin registration
+func (p *PluginBase) InitializeBrokerClient(brokerAddress string) error {
+	if brokerAddress == "" {
+		// Broker is not available, which is fine for plugins that don't need plugin-to-plugin communication
+		return nil
+	}
+
+	client, err := NewBrokerClient(brokerAddress)
+	if err != nil {
+		return fmt.Errorf("failed to initialize broker client: %w", err)
+	}
+
+	p.brokerClient = client
+	return nil
+}
+
+// CallPlugin is a helper method that plugins can use to call other plugins
+// This is the recommended way for plugins to communicate with each other
+func (p *PluginBase) CallPlugin(pluginName string, method string, action endpoint.Action, request *endpoint.Request) (*endpoint.Response, error) {
+	if p.brokerClient == nil {
+		return nil, fmt.Errorf("broker client is not initialized - call InitializeBrokerClient during plugin registration")
+	}
+	return p.brokerClient.CallPlugin(pluginName, method, action, request)
+}
+
+// ListAvailablePlugins returns a list of all plugins currently loaded in the agent
+func (p *PluginBase) ListAvailablePlugins() ([]string, error) {
+	if p.brokerClient == nil {
+		return nil, fmt.Errorf("broker client is not initialized - call InitializeBrokerClient during plugin registration")
+	}
+	return p.brokerClient.ListPlugins()
 }

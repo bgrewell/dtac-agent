@@ -17,6 +17,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"io"
+	"net"
 	"os"
 	"path"
 	"path/filepath"
@@ -47,6 +48,9 @@ type DefaultPluginLoader struct {
 	tlsCAFile               *string
 	defaultSecure           bool
 	logger                  *zap.Logger
+	broker                  PluginBroker
+	brokerServer            *grpc.Server
+	brokerAddress           string
 }
 
 // Initialize is used to initialize the plugin loader
@@ -54,6 +58,17 @@ func (pl *DefaultPluginLoader) Initialize(secure bool) (loadedPlugins []*PluginI
 
 	// Set default secure
 	pl.defaultSecure = secure
+
+	// Initialize the broker
+	pl.broker = NewPluginBroker(pl)
+
+	// Start the broker gRPC server
+	err = pl.startBrokerServer()
+	if err != nil {
+		pl.logger.Error("failed to start broker server", zap.Error(err))
+		return nil, err
+	}
+	pl.logger.Info("broker server started", zap.String("address", pl.brokerAddress))
 
 	// List plugins
 	loadedPlugins = make([]*PluginInfo, 0)
@@ -179,9 +194,13 @@ func (pl *DefaultPluginLoader) RegisterPlugin(pluginName string) (err error) {
 		return err
 	}
 
+	// Prepare registration request
+	// Note: BrokerAddress may be empty if broker failed to start, which is acceptable
+	// as plugin-to-plugin communication is an optional feature
 	ra := &api.RegisterRequest{
 		Config:        string(configJSON),
 		DefaultSecure: pl.defaultSecure,
+		BrokerAddress: pl.brokerAddress,
 	}
 
 	// Call the plugins register function
@@ -497,4 +516,49 @@ func (pl *DefaultPluginLoader) executePlugin(config *PluginConfig) (info *Plugin
 		info.HasExited = true
 	}()
 	return info, nil
+}
+
+// startBrokerServer starts the gRPC server for the agent broker service
+func (pl *DefaultPluginLoader) startBrokerServer() error {
+	// Setup security
+	var opts []grpc.ServerOption
+	if pl.tlsCertFile != nil && pl.tlsKeyFile != nil {
+		cert, err := tls.LoadX509KeyPair(*pl.tlsCertFile, *pl.tlsKeyFile)
+		if err != nil {
+			return fmt.Errorf("could not load server key pair: %s", err)
+		}
+		creds := credentials.NewServerTLSFromCert(&cert)
+		opts = append(opts, grpc.Creds(creds))
+	} else {
+		opts = append(opts, grpc.Creds(insecure.NewCredentials()))
+	}
+
+	// Create gRPC server
+	pl.brokerServer = grpc.NewServer(opts...)
+
+	// Register the agent service
+	agentService := NewAgentService(pl.broker)
+	api.RegisterAgentServiceServer(pl.brokerServer, agentService)
+
+	// Find an available port
+	port, err := utility.GetUnusedTCPPort()
+	if err != nil {
+		return fmt.Errorf("failed to get unused TCP port: %w", err)
+	}
+
+	// Start listening
+	pl.brokerAddress = fmt.Sprintf("localhost:%d", port)
+	listener, err := net.Listen("tcp", pl.brokerAddress)
+	if err != nil {
+		return fmt.Errorf("failed to listen on %s: %w", pl.brokerAddress, err)
+	}
+
+	// Start server in background
+	go func() {
+		if err := pl.brokerServer.Serve(listener); err != nil {
+			pl.logger.Error("broker server failed", zap.Error(err))
+		}
+	}()
+
+	return nil
 }
