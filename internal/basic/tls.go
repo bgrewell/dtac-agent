@@ -7,7 +7,7 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
+	"github.com/bgrewell/dtac-agent/internal/config"
 	"go.uber.org/zap"
 	"math/big"
 	"net"

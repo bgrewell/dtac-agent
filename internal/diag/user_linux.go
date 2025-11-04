@@ -2,7 +2,7 @@ package diag
 
 import (
 	"fmt"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
+	"github.com/bgrewell/dtac-agent/internal/types"
 	"os"
 	"os/user"
 	"syscall"

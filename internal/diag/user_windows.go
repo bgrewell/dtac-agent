@@ -1,7 +1,7 @@
 package diag
 
 import (
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
+	"github.com/bgrewell/dtac-agent/internal/types"
 	"os/user"
 )
 

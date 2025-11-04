@@ -1,7 +1,7 @@
 package authorization
 
 import (
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
+	"github.com/bgrewell/dtac-agent/internal/controller"
 	"go.uber.org/zap"
 	"os"
 )

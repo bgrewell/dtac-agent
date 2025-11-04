@@ -1,8 +1,8 @@
 package helpers
 
 import (
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
+	"github.com/bgrewell/dtac-agent/internal/types"
+	"github.com/bgrewell/dtac-agent/pkg/endpoint"
 	"time"
 )
 

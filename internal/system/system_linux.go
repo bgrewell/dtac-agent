@@ -3,7 +3,7 @@ package system
 import (
 	"bufio"
 	"fmt"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
+	"github.com/bgrewell/dtac-agent/internal/helpers"
 	"os"
 	"strings"
 )

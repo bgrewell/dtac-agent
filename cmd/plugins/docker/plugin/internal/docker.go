@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/docker/docker/api/types/swarm"
 	docker "github.com/fsouza/go-dockerclient"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/docker/plugin/internal/utilities"
+	"github.com/bgrewell/dtac-agent/cmd/plugins/docker/plugin/internal/utilities"
 )
 
 // NewDockerClientWrapper returns a new wrapper around the docker client

@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins"
+	"github.com/bgrewell/dtac-agent/pkg/plugins"
 	"net/http"
 	"os"
 	"path"

@@ -2,7 +2,7 @@ package api
 
 import (
 	"encoding/json"
-	structs2 "github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/maas/maasplugin/structs"
+	structs2 "github.com/bgrewell/dtac-agent/cmd/plugins/maas/maasplugin/structs"
 )
 
 // GetFabrics returns a list of fabrics from the MAAS server

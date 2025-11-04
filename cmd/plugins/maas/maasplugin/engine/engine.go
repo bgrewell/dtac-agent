@@ -1,8 +1,8 @@
 package engine
 
 import (
-	api2 "github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/maas/maasplugin/api"
-	structs2 "github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/maas/maasplugin/structs"
+	api2 "github.com/bgrewell/dtac-agent/cmd/plugins/maas/maasplugin/api"
+	structs2 "github.com/bgrewell/dtac-agent/cmd/plugins/maas/maasplugin/structs"
 )
 
 // Engine is the main engine for the MAAS plugin

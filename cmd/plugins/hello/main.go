@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/hello/helloplugin"
+	"github.com/bgrewell/dtac-agent/cmd/plugins/hello/helloplugin"
 	"log"
 
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins"
+	"github.com/bgrewell/dtac-agent/pkg/plugins"
 )
 
 func main() {

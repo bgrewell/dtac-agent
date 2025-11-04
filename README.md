@@ -1,8 +1,8 @@
 # DTAC AGENT
-[![Audit](https://github.com/intel-innersource/frameworks.automation.dtac.agent/actions/workflows/audit.yml/badge.svg)](https://github.com/intel-innersource/frameworks.automation.dtac.agent/actions/workflows/audit.yml)
-[![Goreleaser](https://github.com/intel-innersource/frameworks.automation.dtac.agent/actions/workflows/release.yml/badge.svg)](https://github.com/intel-innersource/frameworks.automation.dtac.agent/actions/workflows/release.yml)
+[![Audit](https://github.com/bgrewell/dtac-agent/actions/workflows/audit.yml/badge.svg)](https://github.com/bgrewell/dtac-agent/actions/workflows/audit.yml)
+[![Goreleaser](https://github.com/bgrewell/dtac-agent/actions/workflows/release.yml/badge.svg)](https://github.com/bgrewell/dtac-agent/actions/workflows/release.yml)
 
-![dtac logo](https://github.com/intel-innersource/frameworks.automation.dtac.agent/blob/main/assets/logo/DTAC.png?raw=true)
+![dtac logo](https://github.com/bgrewell/dtac-agent/blob/main/assets/logo/DTAC.png?raw=true)
 
 The Distributed Telemetry and Advanced Control (DTAC) framework is a collection of projects designed to reduce the time
 to completion of software projects and testbeds by providing a highly reusable and extensible framework for the
@@ -74,7 +74,7 @@ Before proceeding with the installation, make sure you have the following prereq
 
 1. Open a terminal and clone the repository by running the following command:
    ```bash
-   git clone https://github.com/intel-innersource/frameworks.automation.dtac.agent.git 
+   git clone https://github.com/bgrewell/dtac-agent.git 
    ```
 2. Navigate to the cloned repository:
    ```bash
@@ -354,9 +354,9 @@ explaining each section of code and why it is needed. This sample can also be fo
 package helloplugin
 
 import (
-   "github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins"
-   "github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins/utility"
-   "github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/types/endpoint"
+   "github.com/bgrewell/dtac-agent/pkg/plugins"
+   "github.com/bgrewell/dtac-agent/pkg/plugins/utility"
+   "github.com/bgrewell/dtac-agent/pkg/types/endpoint"
    "reflect"
    "strconv"
 )
@@ -380,7 +380,7 @@ func NewHelloPlugin() *HelloPlugin {
          Methods: make(map[string]endpoint.Func),
       },
       message: HelloMessage{
-         Message: "this is an example of how to create a plugin. See the source at https://github.com/intel-innersource/frameworks.automation.dtac.agent/tree/main/plugin/examples/hello",
+         Message: "this is an example of how to create a plugin. See the source at https://github.com/bgrewell/dtac-agent/tree/main/plugin/examples/hello",
       },
    }
    // Ensure we set our root path which will be appended to all of our methods to help namespace them
@@ -464,10 +464,10 @@ Once the HelloPlugin type has been defined you simply need to create a new insta
 package main
 
 import (
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/hello/helloplugin"
+	"github.com/bgrewell/dtac-agent/cmd/plugins/hello/helloplugin"
 	"log"
 
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins"
+	"github.com/bgrewell/dtac-agent/pkg/plugins"
 )
 
 func main() {

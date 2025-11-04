@@ -9,9 +9,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/BGrewell/go-execute"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins/utility"
+	"github.com/bgrewell/dtac-agent/internal/helpers"
+	"github.com/bgrewell/dtac-agent/pkg/endpoint"
+	"github.com/bgrewell/dtac-agent/pkg/plugins/utility"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -25,7 +25,7 @@ import (
 	"strings"
 	"time"
 
-	api "github.com/intel-innersource/frameworks.automation.dtac.agent/api/grpc/go"
+	api "github.com/bgrewell/dtac-agent/api/grpc/go"
 )
 
 // LoadUnloadArgs is a struct that defines the arguments for the load and unload endpoints

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/boltdb/bolt"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
+	"github.com/bgrewell/dtac-agent/internal/config"
 	"go.uber.org/zap"
 	"os"
 	"strings"

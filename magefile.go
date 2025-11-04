@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	packageName = "github.com/intel-innersource/frameworks.automation.dtac.agent"
+	packageName = "github.com/bgrewell/dtac-agent"
 )
 
 var (
@@ -43,16 +43,16 @@ func init() {
 
 	// Setup ldflags
 	buildVer := getBuildVersion()
-	ldflagsArr = append(ldflagsArr, fmt.Sprintf("github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version.version=%s", buildVer))
+	ldflagsArr = append(ldflagsArr, fmt.Sprintf("github.com/bgrewell/dtac-agent/internal/version.version=%s", buildVer))
 
 	buildDate := getBuildDate()
-	ldflagsArr = append(ldflagsArr, fmt.Sprintf("github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version.date=%s", buildDate))
+	ldflagsArr = append(ldflagsArr, fmt.Sprintf("github.com/bgrewell/dtac-agent/internal/version.date=%s", buildDate))
 
 	buildRev := getBuildRevision()
-	ldflagsArr = append(ldflagsArr, fmt.Sprintf("github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version.rev=%s", buildRev))
+	ldflagsArr = append(ldflagsArr, fmt.Sprintf("github.com/bgrewell/dtac-agent/internal/version.rev=%s", buildRev))
 
 	buildBranch := getBuildBranch()
-	ldflagsArr = append(ldflagsArr, fmt.Sprintf("github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version.branch=%s", buildBranch))
+	ldflagsArr = append(ldflagsArr, fmt.Sprintf("github.com/bgrewell/dtac-agent/internal/version.branch=%s", buildBranch))
 
 	ldflags += strings.Join(ldflagsArr, " -X ")
 }

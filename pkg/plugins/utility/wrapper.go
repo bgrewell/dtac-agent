@@ -1,7 +1,7 @@
 package utility
 
 import (
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
+	"github.com/bgrewell/dtac-agent/pkg/endpoint"
 	"time"
 )
 

@@ -2,7 +2,7 @@ package mocks
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
+	"github.com/bgrewell/dtac-agent/internal/config"
 	"github.com/shirou/gopsutil/net"
 	"go.uber.org/zap"
 )

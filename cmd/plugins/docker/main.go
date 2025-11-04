@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/docker/plugin"
+	"github.com/bgrewell/dtac-agent/cmd/plugins/docker/plugin"
 	"log"
 
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins"
+	"github.com/bgrewell/dtac-agent/pkg/plugins"
 )
 
 func main() {

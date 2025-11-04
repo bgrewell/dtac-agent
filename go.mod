@@ -1,4 +1,4 @@
-module github.com/intel-innersource/frameworks.automation.dtac.agent
+module github.com/bgrewell/dtac-agent
 
 go 1.21.2
 

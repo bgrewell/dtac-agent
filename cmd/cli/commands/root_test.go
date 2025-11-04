@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
+	"github.com/bgrewell/dtac-agent/internal/config"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/cli/commands"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
+	"github.com/bgrewell/dtac-agent/cmd/cli/commands"
+	"github.com/bgrewell/dtac-agent/internal/config"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )

@@ -17,7 +17,7 @@ builds:
     flags:
       - -trimpath
     ldflags:
-      - -s -w -X github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version.version={{.Version}} -X github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version.rev={{.ShortCommit}} -X github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version.date={{.Date}} -X github.com/intel-innersource/frameworks.automation.dtac.agent/internal/version.branch={{.Branch}}
+      - -s -w -X github.com/bgrewell/dtac-agent/internal/version.version={{.Version}} -X github.com/bgrewell/dtac-agent/internal/version.rev={{.ShortCommit}} -X github.com/bgrewell/dtac-agent/internal/version.date={{.Date}} -X github.com/bgrewell/dtac-agent/internal/version.branch={{.Branch}}
 
   -
     binary: hello.plugin

@@ -2,7 +2,7 @@ package plugins
 
 import (
 	"context"
-	api "github.com/intel-innersource/frameworks.automation.dtac.agent/api/grpc/go"
+	api "github.com/bgrewell/dtac-agent/api/grpc/go"
 )
 
 // PluginInfo struct that contains information about a running plugin

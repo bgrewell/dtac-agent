@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
+	"github.com/bgrewell/dtac-agent/pkg/endpoint"
 )
 
 // Middleware is the interface for middleware

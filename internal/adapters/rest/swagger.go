@@ -3,7 +3,7 @@ package rest
 import (
 	"encoding/json"
 	"errors"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
+	"github.com/bgrewell/dtac-agent/pkg/endpoint"
 
 	"github.com/getkin/kin-openapi/openapi3"
 )
