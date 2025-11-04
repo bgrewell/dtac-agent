@@ -1,3 +1,5 @@
 ---
 name: maas
 entry: main.go
+platforms:
+  - linux

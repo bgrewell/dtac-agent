@@ -29,9 +29,9 @@ func NewIperfPlugin() *IperfPlugin {
 	// 1. Uncomment the anonymous function below
 	// 2. Build the plugin like normal and execute via DTAC
 	// 3.
-	go func() {
-		fmt.Println(http.ListenAndServe("localhost:6060", nil))
-	}()
+	//go func() {
+	//	fmt.Println(http.ListenAndServe("localhost:6060", nil))
+	//}()
 
 	// Create a new instance of the plugin
 	p := &IperfPlugin{

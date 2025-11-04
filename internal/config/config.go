@@ -6,7 +6,9 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"reflect"
+	"sort"
 	"strings"
 
 	"github.com/fsnotify/fsnotify"
@@ -157,6 +159,7 @@ type GRPCAPIEntry struct {
 
 // Configuration is the struct for the configuration
 type Configuration struct {
+	Include         []string                         `json:"include" yaml:"include" mapstructure:"include"`
 	APIs            APIEntries                       `json:"apis" yaml:"apis" mapstructure:"apis"`
 	Auth            AuthEntry                        `json:"auth" yaml:"auth" mapstructure:"auth"`
 	Internal        InternalSettings                 `json:"-" yaml:"-" mapstructure:"internal"`
@@ -171,9 +174,8 @@ type Configuration struct {
 	logger          *zap.Logger
 }
 
-// NewConfiguration creates a new configuration
-func NewConfiguration(log *zap.Logger) (config *Configuration, err error) {
-	// Setup configuration file location(s)
+func NewConfiguration(log *zap.Logger) (*Configuration, error) {
+	// Setup viper (existing)
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(GlobalConfigLocation)
@@ -181,30 +183,24 @@ func NewConfiguration(log *zap.Logger) (config *Configuration, err error) {
 	viper.AddConfigPath(".")
 	viper.SetConfigPermissions(0600)
 
-	// Setup default values
-	kvp := DefaultConfig()
-	for k, v := range kvp {
+	// Defaults (existing)
+	for k, v := range DefaultConfig() {
 		viper.SetDefault(k, v)
 	}
 
+	// Read base config (existing create-if-missing logic unchanged) ...
 	if err := viper.ReadInConfig(); err != nil {
-		// If the error is something other than the configuration file isn't found then
-		// throw a fatal error for the user to handle.
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			return nil, fmt.Errorf("failed to read configuration file: %v", err)
 		}
-
-		// If the file is simply not found then create a default one and display a warning
-		// to the user
+		// your existing create-default logic...
 		log.Warn("configuration file not found")
 		if ensureDir(GlobalConfigLocation, true) && checkWriteAccess(GlobalConfigLocation) {
 			log.Info("[creating configuration file", zap.String("location", GlobalConfigLocation))
 			if err := os.MkdirAll(GlobalConfigLocation, 0700); err != nil {
 				log.Error("error creating global config directory", zap.Error(err))
 			}
-
-			err := writeConfigWithoutInternalKeys(path.Join(GlobalConfigLocation, "config.yaml"))
-			if err != nil {
+			if err := writeConfigWithoutInternalKeys(path.Join(GlobalConfigLocation, "config.yaml")); err != nil {
 				return nil, fmt.Errorf("failed to write log file: %v", err)
 			}
 		} else {
@@ -213,32 +209,65 @@ func NewConfiguration(log *zap.Logger) (config *Configuration, err error) {
 				log.Error("error creating user config directory", zap.Error(err))
 			}
 			log.Info("creating configuration file", zap.String("filename", path.Join(location, "config.yaml")))
-			err := writeConfigWithoutInternalKeys(path.Join(location, "config.yaml"))
-			if err != nil {
+			if err := writeConfigWithoutInternalKeys(path.Join(location, "config.yaml")); err != nil {
 				return nil, fmt.Errorf("failed to write log file: %v", err)
 			}
 		}
-		err := viper.ReadInConfig()
-		if err != nil {
+		if err := viper.ReadInConfig(); err != nil {
 			return nil, fmt.Errorf("failed to read configuration file: %v", err)
 		}
 	}
 
+	// === NEW: merge include fragments (SSH-like: last wins) ===
+	merged := viper.AllSettings()
+
+	// Pull include list (from the already-read base settings or defaults)
+	includes := viper.GetStringSlice("include")
+	for _, pattern := range includes {
+		// Expand env + ~
+		expanded := os.ExpandEnv(expandUser(pattern))
+
+		// Glob (ignore non-matches)
+		matches, _ := filepath.Glob(expanded)
+		if len(matches) == 0 {
+			continue
+		}
+
+		// Deterministic order (like ssh: lexicographic)
+		sort.Strings(matches)
+
+		// For each file: read via a fresh viper and deep-merge into merged
+		for _, f := range matches {
+			vf := viper.New()
+			vf.SetConfigFile(f)
+			if err := vf.ReadInConfig(); err != nil {
+				log.Warn("failed to read include fragment", zap.String("file", f), zap.Error(err))
+				continue
+			}
+			merged = deepMergeMaps(merged, vf.AllSettings())
+		}
+	}
+
+	// Unmarshal once into final struct
+	v := viper.New()
+	for k, val := range merged {
+		v.Set(k, val)
+	}
 	var c Configuration
-	if err := viper.Unmarshal(&c); err != nil {
+	if err := v.Unmarshal(&c); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal configuration: %v", err)
 	}
 
-	// Setup logger
+	// Logger + route registration (existing)
 	c.logger = log
-
-	// Register
 	c.register()
 
+	// Optional: keep watching the main file (fragments won’t auto-reload unless you add a custom watcher)
 	viper.OnConfigChange(func(e fsnotify.Event) {
 		log.Info("config file changed", zap.String("filename", e.Name))
 	})
 	viper.WatchConfig()
+
 	return &c, nil
 }
 
@@ -248,6 +277,11 @@ func DefaultConfig() map[string]interface{} {
 	hostname, _ := os.Hostname()
 
 	return map[string]interface{}{
+		"include": []string{
+			"$XDG_CONFIG_HOME/dtac/config.d/*.yaml",
+			"~/.config/dtac/config.d/*.yaml",
+			"/etc/dtac/config.d/*.yaml",
+		},
 		"auth.admin":                    "admin",
 		"auth.pass":                     "need_to_generate_a_random_password_on_install_or_first_run",
 		"auth.default_secure":           true,
@@ -447,4 +481,34 @@ func findField(v interface{}, key string) (interface{}, bool) {
 	}
 
 	return nil, false
+}
+
+// expandUser expands a leading "~" to the current user's home directory.
+func expandUser(p string) string {
+	if strings.HasPrefix(p, "~") {
+		if home, err := os.UserHomeDir(); err == nil && home != "" {
+			return filepath.Join(home, strings.TrimPrefix(p, "~"))
+		}
+	}
+	return p
+}
+
+// deepMergeMaps merges b into a (recursively). Later values override earlier (“last wins”).
+func deepMergeMaps(a, b map[string]any) map[string]any {
+	out := make(map[string]any, len(a))
+	for k, v := range a {
+		out[k] = v
+	}
+	for k, bv := range b {
+		if av, ok := out[k]; ok {
+			am, aok := av.(map[string]any)
+			bm, bok := bv.(map[string]any)
+			if aok && bok {
+				out[k] = deepMergeMaps(am, bm)
+				continue
+			}
+		}
+		out[k] = bv
+	}
+	return out
 }

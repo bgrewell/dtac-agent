@@ -1,3 +1,7 @@
+include:
+  - "$XDG_CONFIG_HOME/dtac/config.d/*.yaml"
+  - "~/.config/dtac/config.d/*.yaml"
+  - "/etc/dtac/config.d/*.yaml"
 auth:
   admin: admin
   default_secure: true
