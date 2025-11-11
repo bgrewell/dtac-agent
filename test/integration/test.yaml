@@ -1,6 +1,11 @@
 ---
 suite: DTAC Agent Integration Tests
 nodes:
+  - name: localhost
+    type: local
+    options:
+      shell: /bin/bash
+
   - name: dtac-agent
     type: lxd
     options:
@@ -25,6 +30,22 @@ setup:
       options:
         packages:
           - curl
+
+  - name: setup directories
+    node: dtac-agent
+    step:
+      type: execute
+      options:
+        command: "mkdir -p /opt/dtac/{plugins,bin}"
+
+  - name: copy dtac-agent binary
+    node: localhost
+    step:
+      type: execute
+      options:
+        command: >
+          lxc file push ./bin/dtac-agentd-amd64 dtac-agent/opt/dtac/bin/dtac-agentd
+          lxc file push ./bin/plugins/* dtac-agent/opt/dtac/plugins/
 
 tests:
   - name: start service
