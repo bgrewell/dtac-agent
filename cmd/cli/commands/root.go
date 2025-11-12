@@ -3,8 +3,8 @@ package commands
 import (
 	"context"
 
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/cli/consts"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
+	"github.com/bgrewell/dtac-agent/cmd/cli/consts"
+	"github.com/bgrewell/dtac-agent/internal/config"
 	"github.com/spf13/cobra"
 )
 

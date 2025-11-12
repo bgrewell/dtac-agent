@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/maas/maasplugin"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins"
+	"github.com/bgrewell/dtac-agent/cmd/plugins/maas/maasplugin"
+	"github.com/bgrewell/dtac-agent/pkg/plugins"
 	"log"
 )
 

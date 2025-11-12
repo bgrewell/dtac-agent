@@ -3,8 +3,8 @@ package network
 import (
 	"encoding/json"
 	"errors"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
+	"github.com/bgrewell/dtac-agent/internal/helpers"
+	"github.com/bgrewell/dtac-agent/pkg/endpoint"
 )
 
 func (s *Subsystem) getRoutesHandler(in *endpoint.Request) (out *endpoint.Response, err error) {

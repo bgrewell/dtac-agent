@@ -2,11 +2,11 @@ package plugin
 
 import (
 	"encoding/json"
-	api "github.com/intel-innersource/frameworks.automation.dtac.agent/api/grpc/go"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/docker/plugin/internal"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins/utility"
+	api "github.com/bgrewell/dtac-agent/api/grpc/go"
+	"github.com/bgrewell/dtac-agent/cmd/plugins/docker/plugin/internal"
+	"github.com/bgrewell/dtac-agent/pkg/endpoint"
+	"github.com/bgrewell/dtac-agent/pkg/plugins"
+	"github.com/bgrewell/dtac-agent/pkg/plugins/utility"
 	"github.com/shirou/gopsutil/docker"
 	_ "net/http/pprof" // Used for remote debugging of the plugin
 	"reflect"

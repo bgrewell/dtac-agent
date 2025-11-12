@@ -1,8 +1,10 @@
 package engine
 
 import (
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/maas/maasplugin/api"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/maas/maasplugin/structs"
+	"errors"
+
+	"github.com/bgrewell/dtac-agent/cmd/plugins/maas/maasplugin/api"
+	"github.com/bgrewell/dtac-agent/cmd/plugins/maas/maasplugin/structs"
 )
 
 // Engine is the main engine for the MAAS plugin
@@ -19,6 +21,7 @@ func (e *Engine) CreateMachine() (results []byte, err error) {
 	// TODO: Need to think of where the dividing lines are in this package, for example the engine probably shouldn't
 	//  be taking in grpc structs and working with them, but rather the engine should be working with the structs
 	//  defined in the maasplugin package. The engine should be agnostic to the grpc structs.
+	return []byte{}, errors.New("Not implemented")
 }
 
 // Machines returns a list of machines from the MAAS server

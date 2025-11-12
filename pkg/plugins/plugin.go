@@ -1,8 +1,8 @@
 package plugins
 
 import (
-	api "github.com/intel-innersource/frameworks.automation.dtac.agent/api/grpc/go"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
+	api "github.com/bgrewell/dtac-agent/api/grpc/go"
+	"github.com/bgrewell/dtac-agent/pkg/endpoint"
 )
 
 // Plugin interface that all plugins must implement

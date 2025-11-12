@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/maas/maasplugin/structs"
+	"github.com/bgrewell/dtac-agent/cmd/plugins/maas/maasplugin/structs"
 )
 
 // doRequest performs GET or DELETE requests to the MAAS server with OAuth authentication.

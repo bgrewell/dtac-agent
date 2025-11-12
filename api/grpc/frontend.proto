@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package frontend;
 
-option go_package = "github.com/intel-innersource/frameworks.automation.dtac.agent/api/grpc/go";
+option go_package = "github.com/bgrewell/dtac-agent/api/grpc/go";
 
 import "plugin.proto";
 

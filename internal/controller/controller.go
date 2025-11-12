@@ -2,9 +2,9 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/authndb"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/endpoints"
+	"github.com/bgrewell/dtac-agent/internal/authndb"
+	"github.com/bgrewell/dtac-agent/internal/config"
+	"github.com/bgrewell/dtac-agent/internal/endpoints"
 	"go.uber.org/zap"
 )
 

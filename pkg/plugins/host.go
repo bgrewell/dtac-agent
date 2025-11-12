@@ -1,7 +1,7 @@
 package plugins
 
 import (
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins/utility"
+	"github.com/bgrewell/dtac-agent/pkg/plugins/utility"
 )
 
 // PluginHost is the interface for the plugin host

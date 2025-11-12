@@ -3,13 +3,13 @@ package network
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
+	"github.com/bgrewell/dtac-agent/pkg/endpoint"
 	"github.com/shirou/gopsutil/net"
 
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/hardware"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
+	"github.com/bgrewell/dtac-agent/internal/controller"
+	"github.com/bgrewell/dtac-agent/internal/hardware"
+	"github.com/bgrewell/dtac-agent/internal/helpers"
+	"github.com/bgrewell/dtac-agent/internal/interfaces"
 	"go.uber.org/zap"
 )
 

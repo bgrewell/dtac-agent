@@ -2,8 +2,8 @@ package hardware
 
 import (
 	"encoding/json"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
+	"github.com/bgrewell/dtac-agent/internal/helpers"
+	"github.com/bgrewell/dtac-agent/pkg/endpoint"
 	"github.com/shirou/gopsutil/mem"
 	"go.uber.org/zap"
 )

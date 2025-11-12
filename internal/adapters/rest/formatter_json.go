@@ -3,7 +3,7 @@ package rest
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/config"
+	"github.com/bgrewell/dtac-agent/internal/config"
 	"go.uber.org/zap"
 	"net/http"
 	"time"

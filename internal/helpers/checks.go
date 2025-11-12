@@ -2,7 +2,7 @@ package helpers
 
 import (
 	"encoding/json"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/types"
+	"github.com/bgrewell/dtac-agent/internal/types"
 	"io"
 	"net/http"
 	"os"

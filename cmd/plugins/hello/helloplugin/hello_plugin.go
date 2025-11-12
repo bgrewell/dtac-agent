@@ -2,10 +2,10 @@ package helloplugin
 
 import (
 	"encoding/json"
-	api "github.com/intel-innersource/frameworks.automation.dtac.agent/api/grpc/go"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/plugins/utility"
+	api "github.com/bgrewell/dtac-agent/api/grpc/go"
+	"github.com/bgrewell/dtac-agent/pkg/endpoint"
+	"github.com/bgrewell/dtac-agent/pkg/plugins"
+	"github.com/bgrewell/dtac-agent/pkg/plugins/utility"
 	_ "net/http/pprof" // Used for remote debugging of the plugin
 	"reflect"
 	"strconv"
@@ -36,7 +36,7 @@ func NewHelloPlugin() *HelloPlugin {
 			Methods: make(map[string]endpoint.Func),
 		},
 		message: HelloMessage{
-			Message: "this is an example of how to create a plugin. See the source at https://github.com/intel-innersource/frameworks.automation.dtac.agent/tree/main/plugin/examples/hello",
+			Message: "this is an example of how to create a plugin. See the source at https://github.com/bgrewell/dtac-agent/tree/main/plugin/examples/hello",
 		},
 	}
 	// Ensure we set our root path which will be appended to all of our methods to help namespace them

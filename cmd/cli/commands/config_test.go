@@ -5,7 +5,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/cli/consts"
+	"github.com/bgrewell/dtac-agent/cmd/cli/consts"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"

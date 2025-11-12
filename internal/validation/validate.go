@@ -1,10 +1,10 @@
 package validation
 
 import (
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/controller"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/interfaces"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/middleware"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
+	"github.com/bgrewell/dtac-agent/internal/controller"
+	"github.com/bgrewell/dtac-agent/internal/interfaces"
+	"github.com/bgrewell/dtac-agent/internal/middleware"
+	"github.com/bgrewell/dtac-agent/pkg/endpoint"
 	"go.uber.org/zap"
 )
 

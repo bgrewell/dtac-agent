@@ -3,8 +3,8 @@ package hardware
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/internal/helpers"
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/pkg/endpoint"
+	"github.com/bgrewell/dtac-agent/internal/helpers"
+	"github.com/bgrewell/dtac-agent/pkg/endpoint"
 	"github.com/shirou/gopsutil/net"
 	"go.uber.org/zap"
 )

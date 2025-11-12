@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/docker/plugin/internal/utilities"
+	"github.com/bgrewell/dtac-agent/cmd/plugins/docker/plugin/internal/utilities"
 )
 
 // ImageInfo is a structure to abstract the docker image info in a more human friendly way

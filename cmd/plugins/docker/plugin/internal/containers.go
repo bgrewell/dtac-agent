@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"github.com/intel-innersource/frameworks.automation.dtac.agent/cmd/plugins/docker/plugin/internal/utilities"
+	"github.com/bgrewell/dtac-agent/cmd/plugins/docker/plugin/internal/utilities"
 )
 
 type listContainerOptions struct {
