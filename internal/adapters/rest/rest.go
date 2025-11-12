@@ -37,7 +37,6 @@ func NewAdapter(c *controller.Controller, tls *map[string]basic.TLSInfo) (adapte
 	// Setup CORS middleware if enabled
 	if c.Config.APIs.REST.CORS.Enabled {
 		corsConfig := cors.Config{
-			AllowOrigins:     c.Config.APIs.REST.CORS.AllowedOrigins,
 			AllowMethods:     c.Config.APIs.REST.CORS.AllowedMethods,
 			AllowHeaders:     c.Config.APIs.REST.CORS.AllowedHeaders,
 			ExposeHeaders:    c.Config.APIs.REST.CORS.ExposedHeaders,
@@ -46,9 +45,10 @@ func NewAdapter(c *controller.Controller, tls *map[string]basic.TLSInfo) (adapte
 		}
 		
 		// Handle wildcard origins
-		if len(corsConfig.AllowOrigins) == 1 && corsConfig.AllowOrigins[0] == "*" {
+		if len(c.Config.APIs.REST.CORS.AllowedOrigins) == 1 && c.Config.APIs.REST.CORS.AllowedOrigins[0] == "*" {
 			corsConfig.AllowAllOrigins = true
-			corsConfig.AllowOrigins = nil
+		} else {
+			corsConfig.AllowOrigins = c.Config.APIs.REST.CORS.AllowedOrigins
 		}
 		
 		router.Use(cors.New(corsConfig))
