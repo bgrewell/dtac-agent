@@ -63,7 +63,6 @@ tls:
     create_if_missing: true
     domains:
       - localhost
-      - bgrewell-DESK3
     enabled: true
     key: /etc/dtac/certs/tls.key
     type: self-signed

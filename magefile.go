@@ -4,9 +4,13 @@
 package main
 
 import (
+	"bytes"
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"gopkg.in/yaml.v3"
+	"io"
+	"io/fs"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -21,7 +25,17 @@ import (
 )
 
 const (
-	packageName = "github.com/intel-innersource/frameworks.automation.dtac.agent"
+	packageName     = "github.com/intel-innersource/frameworks.automation.dtac.agent"
+	installPrefix   = "/opt/dtac"
+	installBinDir   = "/opt/dtac/bin"
+	installPlugDir  = "/opt/dtac/plugins"
+	etcDtacDir      = "/etc/dtac"
+	etcDtacCfg      = "/etc/dtac/config.yaml"
+	systemdUnitSrc  = "service/systemd/dtac-agentd.service"
+	systemdUnitDest = "/etc/systemd/system/dtac-agentd.service"
+	usrBinSymlink   = "/usr/bin/dtac"
+	cfgSrcExample   = "configs/example.yaml"
+	cfgPassMarker   = "need_to_generate_a_random_password_on_install_or_first_run"
 )
 
 var (
@@ -427,4 +441,264 @@ func FindTODOs() error {
 	}
 
 	return nil
+}
+
+// Install sets up dtac (agent, cli, plugins, config, systemd, symlink)
+func Install() error {
+	if runtime.GOOS != "linux" {
+		return errors.New("Install is currently implemented for Linux only")
+	}
+	if err := requireRoot(); err != nil {
+		return err
+	}
+	if !hasSystemd() {
+		return errors.New("systemd not detected; Install requires systemd for service management")
+	}
+
+	// 1) Build: agent, cli, plugins (current code builds multiple platforms; for install we only need host)
+	// Reuse existing tasks so the artifacts exist in ./bin and ./bin/plugins
+	if err := buildHostOnly(); err != nil {
+		return err
+	}
+	//if err := Plugins(); err != nil {
+	//	return err
+	//}
+
+	// 2) Create /opt/dtac/{bin,plugins}
+	if err := ensureDir(installBinDir, 0o755); err != nil {
+		return err
+	}
+	if err := ensureDir(installPlugDir, 0o755); err != nil {
+		return err
+	}
+
+	// 3) Copy compiled agent & cli
+	agentSrc, cliSrc, err := hostBinaries()
+	if err != nil {
+		return err
+	}
+	if err := copyFile(agentSrc, filepath.Join(installBinDir, "dtac-agentd"), 0o755); err != nil {
+		return err
+	}
+	if err := copyFile(cliSrc, filepath.Join(installBinDir, "dtac"), 0o755); err != nil {
+		return err
+	}
+
+	// 4) Copy all plugins
+	if err := copyPlugins("bin/plugins", installPlugDir); err != nil {
+		return err
+	}
+
+	// 5) Create /etc/dtac
+	if err := ensureDir(etcDtacDir, 0o755); err != nil {
+		return err
+	}
+
+	// 6) Copy example config
+	if err := copyFile(cfgSrcExample, etcDtacCfg, 0o600); err != nil {
+		return err
+	}
+
+	// 7) Generate 8-char alnum password and replace placeholder
+	if err := replaceConfigPassword(etcDtacCfg, cfgPassMarker); err != nil {
+		return err
+	}
+
+	// 8) Install systemd service, reload, enable
+	if err := copyFile(systemdUnitSrc, systemdUnitDest, 0o644); err != nil {
+		return err
+	}
+	if err := runCmd("systemctl", "daemon-reload"); err != nil {
+		return err
+	}
+	if err := runCmd("systemctl", "enable", "dtac-agentd.service"); err != nil {
+		return err
+	}
+
+	// 9) Symlink /usr/bin/dtac -> /opt/dtac/bin/dtac
+	_ = os.Remove(usrBinSymlink) // best-effort remove if exists
+	if err := os.Symlink(filepath.Join(installBinDir, "dtac"), usrBinSymlink); err != nil {
+		return fmt.Errorf("create symlink %s -> %s: %w", usrBinSymlink, filepath.Join(installBinDir, "dtac"), err)
+	}
+
+	// 10) Start service
+	if err := runCmd("systemctl", "start", "dtac-agentd.service"); err != nil {
+		return err
+	}
+
+	fmt.Println("✅ dtac installed successfully.")
+	return nil
+}
+
+// Uninstall stops/disable service, removes installed files (keeps /etc/dtac/config.yaml)
+func Uninstall() error {
+	if runtime.GOOS != "linux" {
+		return errors.New("Uninstall is currently implemented for Linux only")
+	}
+	if err := requireRoot(); err != nil {
+		return err
+	}
+	if hasSystemd() {
+		_ = runCmd("systemctl", "stop", "dtac-agentd.service")
+		_ = runCmd("systemctl", "disable", "dtac-agentd.service")
+	}
+
+	// Remove systemd unit and reload
+	_ = os.Remove(systemdUnitDest)
+	if hasSystemd() {
+		_ = runCmd("systemctl", "daemon-reload")
+	}
+
+	// Remove symlink
+	_ = os.Remove(usrBinSymlink)
+
+	// Remove /opt/dtac tree
+	_ = os.RemoveAll(installPrefix)
+
+	// Keep /etc/dtac/config.yaml (user might have edited it)
+	fmt.Println("✅ dtac uninstalled (config preserved at /etc/dtac).")
+	return nil
+}
+
+// ---------- Helpers ----------
+
+// Build only host OS/arch binaries for install
+func buildHostOnly() error {
+	os := runtime.GOOS
+	arch := runtime.GOARCH
+
+	// agent
+	if err := build(os, arch); err != nil {
+		return err
+	}
+	// cli
+	if err := buildCli(os, arch); err != nil {
+		return err
+	}
+	return nil
+}
+
+func hostBinaries() (agentPath, cliPath string, err error) {
+
+	arch := runtime.GOARCH
+	var ext string
+	switch runtime.GOOS {
+	case "windows":
+		ext = ".exe"
+	case "darwin":
+		ext = ".app"
+	default:
+		ext = ""
+	}
+	agent := fmt.Sprintf("bin/%s-%s%s", binaryname, arch, ext)
+	cli := fmt.Sprintf("bin/%s-%s%s", "dtac", arch, ext)
+
+	if _, e := os.Stat(agent); e != nil {
+		return "", "", fmt.Errorf("agent binary not found: %s (build failed?)", agent)
+	}
+	if _, e := os.Stat(cli); e != nil {
+		return "", "", fmt.Errorf("cli binary not found: %s (build failed?)", cli)
+	}
+	return agent, cli, nil
+}
+
+func ensureDir(p string, mode fs.FileMode) error {
+	return os.MkdirAll(p, mode)
+}
+
+func copyFile(src, dst string, mode fs.FileMode) error {
+	in, err := os.Open(src)
+	if err != nil {
+		return fmt.Errorf("open %s: %w", src, err)
+	}
+	defer in.Close()
+
+	tmp := dst + ".tmp"
+	out, err := os.OpenFile(tmp, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, mode)
+	if err != nil {
+		return fmt.Errorf("create %s: %w", tmp, err)
+	}
+	if _, err := io.Copy(out, in); err != nil {
+		out.Close()
+		_ = os.Remove(tmp)
+		return fmt.Errorf("copy to %s: %w", tmp, err)
+	}
+	if err := out.Close(); err != nil {
+		_ = os.Remove(tmp)
+		return err
+	}
+	return os.Rename(tmp, dst)
+}
+
+func copyPlugins(srcDir, dstDir string) error {
+	entries, err := os.ReadDir(srcDir)
+	if err != nil {
+		return fmt.Errorf("read %s: %w", srcDir, err)
+	}
+	for _, e := range entries {
+		if e.IsDir() {
+			continue
+		}
+		// Only copy *.plugin* (linux: .plugin; other OS may have suffixes)
+		if !strings.HasPrefix(e.Name(), ".") && strings.Contains(e.Name(), ".plugin") {
+			src := filepath.Join(srcDir, e.Name())
+			dst := filepath.Join(dstDir, e.Name())
+			if err := copyFile(src, dst, 0o755); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func replaceConfigPassword(cfgPath, marker string) error {
+	data, err := os.ReadFile(cfgPath)
+	if err != nil {
+		return fmt.Errorf("read config: %w", err)
+	}
+	pw, err := randomPassword(8)
+	if err != nil {
+		return err
+	}
+	out := bytes.Replace(data, []byte(marker), []byte(pw), 1)
+	if bytes.Equal(out, data) {
+		return fmt.Errorf("password marker not found in %s", cfgPath)
+	}
+	return os.WriteFile(cfgPath, out, 0o600)
+}
+
+func randomPassword(n int) (string, error) {
+	const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	b := make([]byte, n)
+	// crypto/rand to generate unbiased alnum string
+	if _, err := rand.Read(b); err != nil {
+		return "", fmt.Errorf("rand.Read: %w", err)
+	}
+	for i := range b {
+		b[i] = alphabet[int(b[i])%len(alphabet)]
+	}
+	return string(b), nil
+}
+
+func runCmd(name string, args ...string) error {
+	cmd := exec.Command(name, args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
+func requireRoot() error {
+	if os.Geteuid() != 0 {
+		return errors.New("this operation requires root; re-run with sudo (e.g., sudo mage Install)")
+	}
+	return nil
+}
+
+func hasSystemd() bool {
+	// crude but effective: check presence of systemctl and systemd's pid 1 cgroup name
+	if _, err := exec.LookPath("systemctl"); err != nil {
+		return false
+	}
+	// Optional: further heuristics could be added here if needed
+	return true
 }
