@@ -16,6 +16,7 @@ require (
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/fsouza/go-dockerclient v1.12.2
 	github.com/getkin/kin-openapi v0.133.0
+	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-gonic/gin v1.11.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/invopop/jsonschema v0.13.0
@@ -54,7 +55,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.9 // indirect
 	github.com/gin-contrib/sse v1.1.0 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-openapi/jsonpointer v0.21.0 // indirect
@@ -63,7 +64,7 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.27.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
-	github.com/goccy/go-json v0.10.2 // indirect
+	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/goccy/go-yaml v1.18.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/uuid v1.6.0 // indirect
@@ -84,7 +85,7 @@ require (
 	github.com/moby/sys/user v0.4.0 // indirect
 	github.com/moby/sys/userns v0.1.0 // indirect
 	github.com/moby/term v0.0.0-20210619224110-3f7ff695adc6 // indirect
-	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
