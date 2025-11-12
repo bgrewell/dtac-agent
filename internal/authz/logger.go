@@ -74,17 +74,32 @@ func (l *CasbinLogger) LogCurrentPolicies(enforcer *casbin.Enforcer) {
 	}
 
 	l.logger.Info("Current Policies:")
-	for _, policy := range enforcer.GetPolicy() {
-		l.logger.Info("Policy:", zap.Any("policy", policy))
+	policies, err := enforcer.GetPolicy()
+	if err != nil {
+		l.logger.Error("failed to get policies", zap.Error(err))
+	} else {
+		for _, policy := range policies {
+			l.logger.Info("Policy:", zap.Any("policy", policy))
+		}
 	}
 
 	l.logger.Info("Current Grouping Policies:")
-	for _, gPolicy := range enforcer.GetGroupingPolicy() {
-		l.logger.Info("Grouping Policy:", zap.Any("grouping policy", gPolicy))
+	gPolicies, err := enforcer.GetGroupingPolicy()
+	if err != nil {
+		l.logger.Error("failed to get grouping policies", zap.Error(err))
+	} else {
+		for _, gPolicy := range gPolicies {
+			l.logger.Info("Grouping Policy:", zap.Any("grouping policy", gPolicy))
+		}
 	}
 
 	l.logger.Info("Current Role Hierarchies:")
-	for _, hierarchy := range enforcer.GetNamedGroupingPolicy("g2") {
-		l.logger.Info("Role Hierarchy:", zap.Any("role hierarchy", hierarchy))
+	hierarchies, err := enforcer.GetNamedGroupingPolicy("g2")
+	if err != nil {
+		l.logger.Error("failed to get named grouping policies", zap.Error(err))
+	} else {
+		for _, hierarchy := range hierarchies {
+			l.logger.Info("Role Hierarchy:", zap.Any("role hierarchy", hierarchy))
+		}
 	}
 }
