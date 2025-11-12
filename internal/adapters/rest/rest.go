@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/bgrewell/dtac-agent/internal/basic"
 	"github.com/bgrewell/dtac-agent/internal/controller"
@@ -32,6 +33,30 @@ func NewAdapter(c *controller.Controller, tls *map[string]basic.TLSInfo) (adapte
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 	router.Use(ginZapLoggerMiddleware(logger))
+
+	// Setup CORS middleware if enabled
+	if c.Config.APIs.REST.CORS.Enabled {
+		corsConfig := cors.Config{
+			AllowOrigins:     c.Config.APIs.REST.CORS.AllowedOrigins,
+			AllowMethods:     c.Config.APIs.REST.CORS.AllowedMethods,
+			AllowHeaders:     c.Config.APIs.REST.CORS.AllowedHeaders,
+			ExposeHeaders:    c.Config.APIs.REST.CORS.ExposedHeaders,
+			AllowCredentials: c.Config.APIs.REST.CORS.AllowCredentials,
+			MaxAge:           time.Duration(c.Config.APIs.REST.CORS.MaxAge) * time.Second,
+		}
+		
+		// Handle wildcard origins
+		if len(corsConfig.AllowOrigins) == 1 && corsConfig.AllowOrigins[0] == "*" {
+			corsConfig.AllowAllOrigins = true
+			corsConfig.AllowOrigins = nil
+		}
+		
+		router.Use(cors.New(corsConfig))
+		logger.Info("CORS middleware enabled",
+			zap.Strings("allowed_origins", c.Config.APIs.REST.CORS.AllowedOrigins),
+			zap.Strings("allowed_methods", c.Config.APIs.REST.CORS.AllowedMethods),
+		)
+	}
 
 	r := &Adapter{
 		controller:      c,

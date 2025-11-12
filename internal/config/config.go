@@ -128,6 +128,17 @@ type TLSSelection struct {
 	Profile string `json:"profile" yaml:"profile" mapstructure:"profile"`
 }
 
+// CORSConfig is the struct for CORS configuration
+type CORSConfig struct {
+	Enabled          bool     `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	AllowedOrigins   []string `json:"allowed_origins" yaml:"allowed_origins" mapstructure:"allowed_origins"`
+	AllowedMethods   []string `json:"allowed_methods" yaml:"allowed_methods" mapstructure:"allowed_methods"`
+	AllowedHeaders   []string `json:"allowed_headers" yaml:"allowed_headers" mapstructure:"allowed_headers"`
+	ExposedHeaders   []string `json:"exposed_headers" yaml:"exposed_headers" mapstructure:"exposed_headers"`
+	AllowCredentials bool     `json:"allow_credentials" yaml:"allow_credentials" mapstructure:"allow_credentials"`
+	MaxAge           int      `json:"max_age" yaml:"max_age" mapstructure:"max_age"`
+}
+
 // APIEntries is the struct for a api entries
 type APIEntries struct {
 	REST RESTAPIEntry `json:"rest" yaml:"rest" mapstructure:"rest"`
@@ -140,6 +151,7 @@ type RESTAPIEntry struct {
 	Enabled bool         `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 	Port    int          `json:"port" yaml:"port" mapstructure:"port"`
 	TLS     TLSSelection `json:"tls" yaml:"tls" mapstructure:"tls"`
+	CORS    CORSConfig   `json:"cors" yaml:"cors" mapstructure:"cors"`
 }
 
 // JSONAPIEntry is the struct for an api entry
@@ -294,6 +306,13 @@ func DefaultConfig() map[string]interface{} {
 		"apis.rest.port":                8180,
 		"apis.rest.tls.enabled":         true,
 		"apis.rest.tls.profile":         "default",
+		"apis.rest.cors.enabled":        false,
+		"apis.rest.cors.allowed_origins": []string{"*"},
+		"apis.rest.cors.allowed_methods": []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		"apis.rest.cors.allowed_headers": []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		"apis.rest.cors.exposed_headers": []string{"Content-Length"},
+		"apis.rest.cors.allow_credentials": false,
+		"apis.rest.cors.max_age":        3600,
 		"apis.grpc.enabled":             true,
 		"apis.grpc.port":                8181,
 		"apis.grpc.reflection":          false,
