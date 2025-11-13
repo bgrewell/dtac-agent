@@ -381,6 +381,21 @@ func (s *Subsystem) authorizeUser(bearerToken string) (user *authndb.User, err e
 		return nil, errors.New("invalid authorization header")
 	}
 
+	// Check if static testing token is configured and matches
+	// This provides a simple way to authenticate for testing without needing to
+	// request and manage JWT tokens. Should only be used in testing/development.
+	if s.Controller.Config.Auth.StaticTestingToken != "" && tokenStr == s.Controller.Config.Auth.StaticTestingToken {
+		s.Logger.Info("static testing token used for authentication")
+		// Return the admin user when static testing token is used
+		adminID := -1
+		user, err := s.Controller.AuthDB.ViewUser(adminID)
+		if err != nil {
+			s.Logger.Error("failed to get admin user for static testing token", zap.Error(err))
+			return nil, errors.New("unable to authorize token")
+		}
+		return user, nil
+	}
+
 	token, err := s.verifyToken(tokenStr)
 	if err != nil {
 		s.Logger.Error("failed to verify token", zap.Error(err))

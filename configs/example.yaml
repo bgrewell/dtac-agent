@@ -10,6 +10,10 @@ auth:
   policy: /etc/dtac/auth_policy.csv
   access_token_expiration: 15m
   refresh_token_expiration: 168h
+  # static_testing_token: A static token for testing purposes only. When set, this token
+  # bypasses normal JWT authentication and grants admin access. Leave empty in production.
+  # Example: static_testing_token: "my-static-test-token-DO-NOT-USE-IN-PRODUCTION"
+  static_testing_token: ""
 apis:
   grpc:
     enabled: true

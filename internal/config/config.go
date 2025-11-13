@@ -115,6 +115,10 @@ type AuthEntry struct {
 	Policy                 string `json:"policy" yaml:"policy" mapstructure:"policy"`
 	AccessTokenExpiration  string `json:"access_token_expiration" yaml:"access_token_expiration" mapstructure:"access_token_expiration"`
 	RefreshTokenExpiration string `json:"refresh_token_expiration" yaml:"refresh_token_expiration" mapstructure:"refresh_token_expiration"`
+	// StaticTestingToken is a static token for testing/development purposes only.
+	// When set, this token bypasses normal JWT authentication and grants admin access.
+	// Should be empty in production environments. Example: "my-test-token-DO-NOT-USE-IN-PROD"
+	StaticTestingToken     string `json:"static_testing_token" yaml:"static_testing_token" mapstructure:"static_testing_token"`
 }
 
 // OutputEntry is the struct for an output entry
@@ -303,6 +307,7 @@ func DefaultConfig() map[string]interface{} {
 		"auth.policy":                   DefaultAuthPolicyName,
 		"auth.access_token_expiration":  "15m",
 		"auth.refresh_token_expiration": "168h",
+		"auth.static_testing_token":     "",
 		"internal.product_name":         "DTAC Agent",
 		"internal.short_name":           "dtac",
 		"internal.file_name":            "dtac-agentd",

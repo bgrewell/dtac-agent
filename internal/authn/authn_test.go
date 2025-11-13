@@ -137,3 +137,115 @@ func TestCreateTokenWithConfiguredExpiration(t *testing.T) {
 		t.Errorf("Expected 0 for 'never', got: %v", duration)
 	}
 }
+
+func TestStaticTestingToken(t *testing.T) {
+	logger, _ := zap.NewDevelopment()
+
+	tests := []struct {
+		name              string
+		configToken       string
+		providedToken     string
+		expectError       bool
+		expectStaticMatch bool
+	}{
+		{
+			name:              "Static token matches - extract only",
+			configToken:       "test-static-token-12345",
+			providedToken:     "Bearer test-static-token-12345",
+			expectError:       false,
+			expectStaticMatch: true,
+		},
+		{
+			name:              "Static token does not match",
+			configToken:       "test-static-token-12345",
+			providedToken:     "Bearer wrong-token",
+			expectError:       false,
+			expectStaticMatch: false,
+		},
+		{
+			name:              "Static token not configured",
+			configToken:       "",
+			providedToken:     "Bearer some-token",
+			expectError:       false,
+			expectStaticMatch: false,
+		},
+		{
+			name:              "No bearer token provided",
+			configToken:       "test-static-token-12345",
+			providedToken:     "",
+			expectError:       true,
+			expectStaticMatch: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &Subsystem{
+				Logger: logger,
+			}
+
+			// Test extractToken
+			tokenStr := s.extractToken(tt.providedToken)
+			
+			if tt.expectError && tokenStr == "" {
+				return // Expected behavior
+			}
+			if !tt.expectError && tokenStr == "" && tt.providedToken != "" {
+				t.Errorf("Expected to extract token but got empty string")
+				return
+			}
+
+			// Check if static token would match (without full authorization)
+			if tt.configToken != "" && tokenStr == tt.configToken {
+				if !tt.expectStaticMatch {
+					t.Errorf("Static token matched but was not expected to match")
+				}
+			} else if tt.expectStaticMatch {
+				t.Errorf("Expected static token to match but it did not")
+			}
+		})
+	}
+}
+
+func TestExtractToken(t *testing.T) {
+	logger, _ := zap.NewDevelopment()
+	s := &Subsystem{
+		Logger: logger,
+	}
+
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "Valid Bearer token",
+			input:    "Bearer abc123",
+			expected: "abc123",
+		},
+		{
+			name:     "Empty string",
+			input:    "",
+			expected: "",
+		},
+		{
+			name:     "No Bearer prefix",
+			input:    "abc123",
+			expected: "",
+		},
+		{
+			name:     "Multiple spaces",
+			input:    "Bearer  token with spaces",
+			expected: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := s.extractToken(tt.input)
+			if result != tt.expected {
+				t.Errorf("extractToken(%q) = %q, want %q", tt.input, result, tt.expected)
+			}
+		})
+	}
+}
