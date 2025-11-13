@@ -108,11 +108,13 @@ type WatchdogEntry struct {
 
 // AuthEntry is the struct for an auth entry
 type AuthEntry struct {
-	User          string `json:"admin" yaml:"admin" mapstructure:"admin"`
-	Pass          string `json:"pass" yaml:"pass" mapstructure:"pass"`
-	DefaultSecure bool   `json:"default_secure" yaml:"default_secure" mapstructure:"default_secure"`
-	Model         string `json:"model" yaml:"model" mapstructure:"model"`
-	Policy        string `json:"policy" yaml:"policy" mapstructure:"policy"`
+	User                   string `json:"admin" yaml:"admin" mapstructure:"admin"`
+	Pass                   string `json:"pass" yaml:"pass" mapstructure:"pass"`
+	DefaultSecure          bool   `json:"default_secure" yaml:"default_secure" mapstructure:"default_secure"`
+	Model                  string `json:"model" yaml:"model" mapstructure:"model"`
+	Policy                 string `json:"policy" yaml:"policy" mapstructure:"policy"`
+	AccessTokenExpiration  string `json:"access_token_expiration" yaml:"access_token_expiration" mapstructure:"access_token_expiration"`
+	RefreshTokenExpiration string `json:"refresh_token_expiration" yaml:"refresh_token_expiration" mapstructure:"refresh_token_expiration"`
 }
 
 // OutputEntry is the struct for an output entry
@@ -299,6 +301,8 @@ func DefaultConfig() map[string]interface{} {
 		"auth.default_secure":           true,
 		"auth.model":                    DefaultAuthModelName,
 		"auth.policy":                   DefaultAuthPolicyName,
+		"auth.access_token_expiration":  "15m",
+		"auth.refresh_token_expiration": "168h",
 		"internal.product_name":         "DTAC Agent",
 		"internal.short_name":           "dtac",
 		"internal.file_name":            "dtac-agentd",

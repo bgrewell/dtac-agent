@@ -8,6 +8,8 @@ auth:
   model: /etc/dtac/auth_model.conf
   pass: need_to_generate_a_random_password_on_install_or_first_run
   policy: /etc/dtac/auth_policy.csv
+  access_token_expiration: 15m
+  refresh_token_expiration: 168h
 apis:
   grpc:
     enabled: true
