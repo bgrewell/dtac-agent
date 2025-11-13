@@ -5,10 +5,6 @@
 *.so
 *.dylib
 
-# Built binaries
-agent
-cli
-
 # Test binary, built with `go test -c`
 *.test
 
