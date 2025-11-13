@@ -10,6 +10,7 @@ auth:
   policy: /etc/dtac/auth_policy.csv
   access_token_expiration: 15m
   refresh_token_expiration: 168h
+  static_testing_token: ""
 apis:
   grpc:
     enabled: true
