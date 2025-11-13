@@ -382,6 +382,8 @@ func (s *Subsystem) authorizeUser(bearerToken string) (user *authndb.User, err e
 	}
 
 	// Check if static testing token is configured and matches
+	// This provides a simple way to authenticate for testing without needing to
+	// request and manage JWT tokens. Should only be used in testing/development.
 	if s.Controller.Config.Auth.StaticTestingToken != "" && tokenStr == s.Controller.Config.Auth.StaticTestingToken {
 		s.Logger.Info("static testing token used for authentication")
 		// Return the admin user when static testing token is used
