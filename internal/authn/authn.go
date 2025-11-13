@@ -228,10 +228,41 @@ func (s *Subsystem) loginHandler(in *endpoint.Request) (out *endpoint.Response, 
 
 func (s *Subsystem) createToken(userid int) (token *authndb.TokenDetails, err error) {
 
+	// Parse token expiration times from config
+	accessExpiration, err := s.parseTokenExpiration(s.Controller.Config.Auth.AccessTokenExpiration)
+	if err != nil {
+		s.Logger.Error("failed to parse access token expiration, using default 15m", zap.Error(err))
+		accessExpiration = time.Minute * 15
+	}
+
+	refreshExpiration, err := s.parseTokenExpiration(s.Controller.Config.Auth.RefreshTokenExpiration)
+	if err != nil {
+		s.Logger.Error("failed to parse refresh token expiration, using default 168h", zap.Error(err))
+		refreshExpiration = time.Hour * 24 * 7
+	}
+
+	// Calculate expiration times
+	var atExpires int64
+	var rtExpires int64
+	
+	if accessExpiration == 0 {
+		// "never" case - set to a very far future date (100 years from now)
+		atExpires = time.Now().Add(time.Hour * 24 * 365 * 100).Unix()
+	} else {
+		atExpires = time.Now().Add(accessExpiration).Unix()
+	}
+	
+	if refreshExpiration == 0 {
+		// "never" case - set to a very far future date (100 years from now)
+		rtExpires = time.Now().Add(time.Hour * 24 * 365 * 100).Unix()
+	} else {
+		rtExpires = time.Now().Add(refreshExpiration).Unix()
+	}
+
 	td := &authndb.TokenDetails{
-		AtExpires:   time.Now().Add(time.Minute * 15).Unix(),
+		AtExpires:   atExpires,
 		AccessUUID:  uuid.NewV4().String(),
-		RtExpires:   time.Now().Add(time.Hour * 24 * 7).Unix(),
+		RtExpires:   rtExpires,
 		RefreshUUID: uuid.NewV4().String(),
 	}
 
@@ -270,6 +301,30 @@ func (s *Subsystem) createToken(userid int) (token *authndb.TokenDetails, err er
 		return nil, err
 	}
 	return td, nil
+}
+
+// parseTokenExpiration parses a duration string and returns the corresponding time.Duration.
+// It supports standard Go duration format (e.g., "15m", "1h", "24h") and a special "never" value.
+// If "never" is specified, it returns 0 to indicate no expiration.
+func (s *Subsystem) parseTokenExpiration(expirationStr string) (time.Duration, error) {
+	// Handle the special "never" value
+	if strings.ToLower(strings.TrimSpace(expirationStr)) == "never" {
+		s.Logger.Info("token expiration set to 'never'")
+		return 0, nil
+	}
+
+	// Parse standard Go duration format
+	duration, err := time.ParseDuration(expirationStr)
+	if err != nil {
+		return 0, fmt.Errorf("invalid duration format '%s': %w", expirationStr, err)
+	}
+
+	// Validate that the duration is positive
+	if duration < 0 {
+		return 0, fmt.Errorf("duration must be positive, got: %s", expirationStr)
+	}
+
+	return duration, nil
 }
 
 func (s *Subsystem) createAuth(userid int, td *authndb.TokenDetails) (err error) {
