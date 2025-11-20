@@ -1,0 +1,7 @@
+---
+name: helloweb
+entry: main.go
+platforms:
+  - linux
+  - darwin
+  - windows
