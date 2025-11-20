@@ -12,6 +12,10 @@ import (
 const (
 	// EnvDTACWebhosts is the environment variable that indicates managed mode.
 	EnvDTACWebhosts = "DTAC_WEBHOSTS"
+
+	// Context keys for logger and token provider
+	contextKeyLogger        = "logger"
+	contextKeyTokenProvider = "tokenProvider"
 )
 
 // WebhostHost manages the lifecycle of a webhost module.
@@ -132,6 +136,10 @@ func (h *DefaultWebhostHost) runManaged(ctx context.Context) error {
 		Config:      make(map[string]interface{}),
 	}
 
+	// Create a new context with logger and token provider
+	ctx = context.WithValue(ctx, contextKeyLogger, h.logger)
+	ctx = context.WithValue(ctx, contextKeyTokenProvider, h.tokenProvider)
+
 	if err := h.module.OnInit(ctx, config); err != nil {
 		return fmt.Errorf("module OnInit failed: %w", err)
 	}
@@ -170,6 +178,10 @@ func (h *DefaultWebhostHost) runStandalone(ctx context.Context) error {
 		Permissions: Permissions{},
 		Config:      make(map[string]interface{}),
 	}
+
+	// Create a new context with logger and token provider
+	ctx = context.WithValue(ctx, contextKeyLogger, h.logger)
+	ctx = context.WithValue(ctx, contextKeyTokenProvider, h.tokenProvider)
 
 	if err := h.module.OnInit(ctx, config); err != nil {
 		return fmt.Errorf("module OnInit failed: %w", err)

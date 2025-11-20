@@ -35,8 +35,11 @@ func (m *DashboardModule) Name() string {
 // OnInit is called after the host completes initialization.
 func (m *DashboardModule) OnInit(ctx context.Context, config *webhost.InitConfig) error {
 	m.config = config
-	m.logger = ctx.Value("logger").(webhost.Logger)
-	if m.logger == nil {
+
+	// Extract logger from context
+	if logger, ok := ctx.Value("logger").(webhost.Logger); ok && logger != nil {
+		m.logger = logger
+	} else {
 		// Fallback to a basic logger if not provided in context
 		m.logger = &basicLogger{}
 	}
