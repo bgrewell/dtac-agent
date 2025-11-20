@@ -17,6 +17,8 @@ type WebModuleConfig struct {
 	StaticPath string `json:"static_path"`
 	// ProxyRoutes defines backend proxy configurations
 	ProxyRoutes []ProxyRouteConfig `json:"proxy_routes"`
+	// Debug enables request logging
+	Debug bool `json:"debug"`
 }
 
 // ProxyRouteConfig defines a proxy route to a backend service
@@ -67,6 +69,7 @@ func (w *WebModuleBase) Register(request *api.ModuleRegisterRequest, reply *api.
 		Port:        0, // auto-assign
 		StaticPath:  "/",
 		ProxyRoutes: []ProxyRouteConfig{},
+		Debug:       false, // debug logging disabled by default
 	}
 
 	// Log registration
@@ -98,7 +101,12 @@ func (w *WebModuleBase) Start() error {
 	// Serve static files if filesystem is provided
 	if staticFS := w.GetStaticFiles(); staticFS != nil {
 		fileServer := http.FileServer(http.FS(staticFS))
-		mux.Handle(w.config.StaticPath, http.StripPrefix(w.config.StaticPath, fileServer))
+		// Handle root path specially - don't strip prefix for "/"
+		if w.config.StaticPath == "/" {
+			mux.Handle("/", fileServer)
+		} else {
+			mux.Handle(w.config.StaticPath, http.StripPrefix(w.config.StaticPath, fileServer))
+		}
 	}
 
 	// Setup proxy routes (placeholder - will be implemented in future iterations)
@@ -116,9 +124,12 @@ func (w *WebModuleBase) Start() error {
 		port = 8080 // default port
 	}
 
+	// Wrap handler with logging middleware
+	handler := w.loggingMiddleware(mux)
+
 	w.server = &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
-		Handler: mux,
+		Handler: handler,
 	}
 
 	w.serverPort = port
@@ -127,7 +138,8 @@ func (w *WebModuleBase) Start() error {
 	// Start server in goroutine
 	go func() {
 		w.Log(LoggingLevelInfo, "starting web server", map[string]string{
-			"port": fmt.Sprintf("%d", w.serverPort),
+			"port":  fmt.Sprintf("%d", w.serverPort),
+			"debug": fmt.Sprintf("%t", w.config.Debug),
 		})
 		if err := w.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			w.Log(LoggingLevelError, "web server error", map[string]string{
@@ -164,6 +176,21 @@ func (w *WebModuleBase) GetPort() int {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	return w.serverPort
+}
+
+// loggingMiddleware wraps an http.Handler and logs request details when debug is enabled
+func (w *WebModuleBase) loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		if w.config.Debug {
+			w.Log(LoggingLevelDebug, "HTTP request received", map[string]string{
+				"method":      r.Method,
+				"path":        r.URL.Path,
+				"remote_addr": r.RemoteAddr,
+				"user_agent":  r.UserAgent(),
+			})
+		}
+		next.ServeHTTP(rw, r)
+	})
 }
 
 // SetConfig sets the web module configuration

@@ -27,11 +27,12 @@ func NewHelloWebModule() *HelloWebModule {
 	// Set root path
 	hwm.SetRootPath("helloweb")
 
-	// Set default configuration
+	// Set default configuration with debug enabled
 	hwm.SetConfig(modules.WebModuleConfig{
 		Port:        8090,
 		StaticPath:  "/",
 		ProxyRoutes: []modules.ProxyRouteConfig{},
+		Debug:       true, // Enable debug logging by default for this example
 	})
 
 	// Return the new instance
@@ -78,17 +79,29 @@ func (h *HelloWebModule) Register(request *api.ModuleRegisterRequest, reply *api
 		return err
 	}
 
+	// Build web config from parsed values
+	webConfig := modules.WebModuleConfig{
+		Port:        8090, // default
+		StaticPath:  "/",
+		ProxyRoutes: []modules.ProxyRouteConfig{},
+		Debug:       true, // default to debug enabled for examples
+	}
+
 	// Update port if provided in config
 	if port, ok := config["port"]; ok {
 		if portFloat, ok := port.(float64); ok {
-			webConfig := modules.WebModuleConfig{
-				Port:        int(portFloat),
-				StaticPath:  "/",
-				ProxyRoutes: []modules.ProxyRouteConfig{},
-			}
-			h.SetConfig(webConfig)
+			webConfig.Port = int(portFloat)
 		}
 	}
+
+	// Update debug if provided in config
+	if debug, ok := config["debug"]; ok {
+		if debugBool, ok := debug.(bool); ok {
+			webConfig.Debug = debugBool
+		}
+	}
+
+	h.SetConfig(webConfig)
 
 	// Log registration
 	h.Log(modules.LoggingLevelInfo, "hello web module registered", map[string]string{

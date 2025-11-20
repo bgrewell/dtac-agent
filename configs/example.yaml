@@ -91,6 +91,7 @@ modules:
     helloweb:
       config:
         port: 8090
+        debug: true  # Enable debug logging to see HTTP request details
       enabled: false
       hash: ""
       user: ""
