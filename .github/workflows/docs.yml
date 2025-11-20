@@ -27,8 +27,6 @@ env:
 
 jobs:
   build:
-    runs-on:
-      group: "gasp-k8s"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -56,8 +54,6 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     # Requires build job results
     needs: build
-    runs-on:
-      group: "gasp-k8s"
 
     steps:
       - name: Download artifact

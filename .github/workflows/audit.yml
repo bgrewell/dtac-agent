@@ -9,8 +9,6 @@ on:
 jobs:
 
   audit:
-    runs-on:
-      group: "gasp-k8s"
     steps:
       - uses: actions/checkout@v4
 
