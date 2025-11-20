@@ -27,6 +27,7 @@ env:
 
 jobs:
   build:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -54,7 +55,8 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     # Requires build job results
     needs: build
-
+    runs-on: ubuntu-latest
+    
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v3
