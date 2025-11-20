@@ -49,12 +49,13 @@ type WebModule interface {
 // WebModuleBase provides base functionality for web modules
 type WebModuleBase struct {
 	ModuleBase
-	config     WebModuleConfig
-	server     *http.Server
-	serverPort int
-	staticFS   embed.FS
-	mu         sync.RWMutex
-	isRunning  bool
+	config       WebModuleConfig
+	server       *http.Server
+	serverPort   int
+	staticFS     embed.FS
+	mu           sync.RWMutex
+	isRunning    bool
+	staticGetter func() fs.FS // Function to get static files from concrete implementation
 }
 
 // Register registers the web module with the module manager
@@ -95,11 +96,17 @@ func (w *WebModuleBase) Start() error {
 		return fmt.Errorf("web server is already running")
 	}
 
+	// Get static files using the registered getter function
+	var staticFS fs.FS
+	if w.staticGetter != nil {
+		staticFS = w.staticGetter()
+	}
+
 	// Create HTTP server
 	mux := http.NewServeMux()
 
 	// Serve static files if filesystem is provided
-	if staticFS := w.GetStaticFiles(); staticFS != nil {
+	if staticFS != nil {
 		fileServer := http.FileServer(http.FS(staticFS))
 		// Handle root path specially - don't strip prefix for "/"
 		if w.config.StaticPath == "/" {
@@ -136,7 +143,7 @@ func (w *WebModuleBase) Start() error {
 	w.isRunning = true
 
 	// Log static files configuration
-	if staticFS := w.GetStaticFiles(); staticFS != nil {
+	if staticFS != nil {
 		w.logStaticFiles(staticFS)
 	}
 
@@ -247,6 +254,13 @@ func (w *WebModuleBase) SetConfig(config WebModuleConfig) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	w.config = config
+}
+
+// SetStaticFilesGetter sets the function to retrieve static files from the concrete implementation
+func (w *WebModuleBase) SetStaticFilesGetter(getter func() fs.FS) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.staticGetter = getter
 }
 
 // logStaticFiles logs information about available static files and routes

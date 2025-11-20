@@ -27,6 +27,11 @@ func NewHelloWebModule() *HelloWebModule {
 	// Set root path
 	hwm.SetRootPath("helloweb")
 
+	// Register the static files getter so the base can call our GetStaticFiles method
+	hwm.SetStaticFilesGetter(func() fs.FS {
+		return hwm.GetStaticFiles()
+	})
+
 	// Set default configuration with debug enabled
 	hwm.SetConfig(modules.WebModuleConfig{
 		Port:        8090,
