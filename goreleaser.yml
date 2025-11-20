@@ -42,8 +42,8 @@ builds:
 # Set up the GitHub release
 release:
   github:
-    owner: intel-innersource
-    name: frameworks.automation.dtac.agent
+    owner: bgrewell
+    name: dtac-agent
   # If set to true, will not auto-publish the release.
   draft: false
   # If set to auto, will mark the release as not ready for production
