@@ -121,9 +121,16 @@ func (m *ModuleBase) Log(level LoggingLevel, message string, fields map[string]s
 		}
 		
 		if len(fields) > 0 {
-			// Format fields as key=value pairs
-			var fieldStrs []string
+			// Format fields as key=value pairs with pre-allocated capacity
+			fieldStrs := make([]string, 0, len(fields))
 			for k, v := range fields {
+				// Escape newlines and tabs to prevent log injection
+				k = strings.ReplaceAll(k, "\n", "\\n")
+				k = strings.ReplaceAll(k, "\r", "\\r")
+				k = strings.ReplaceAll(k, "\t", "\\t")
+				v = strings.ReplaceAll(v, "\n", "\\n")
+				v = strings.ReplaceAll(v, "\r", "\\r")
+				v = strings.ReplaceAll(v, "\t", "\\t")
 				fieldStrs = append(fieldStrs, fmt.Sprintf("%s=%s", k, v))
 			}
 			log.Printf("[%s] %s {%s}\n", levelStr, message, strings.Join(fieldStrs, ", "))
