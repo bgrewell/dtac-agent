@@ -8,6 +8,7 @@ import "plugin.proto";
 
 service ModuleService {
   rpc Register(ModuleRegisterRequest) returns (ModuleRegisterResponse);
+  rpc Call (plugin.EndpointRequestMessage) returns (plugin.EndpointResponseMessage);
   rpc LoggingStream(plugin.LoggingArgs) returns (stream plugin.LogMessage);
   rpc RequestToken(TokenRequest) returns (TokenResponse);
   rpc RefreshToken(TokenRefreshRequest) returns (TokenResponse);
@@ -27,6 +28,8 @@ message ModuleRegisterResponse {
   string module_type = 1;
   // Capabilities lists what the module supports (e.g., "static_files", "proxy", "api")
   repeated string capabilities = 2;
+  // Endpoints lists the API endpoints this module exposes through DTAC
+  repeated plugin.PluginEndpoint endpoints = 3;
 }
 
 // TokenRequest is used by modules to request JWT tokens from DTAC

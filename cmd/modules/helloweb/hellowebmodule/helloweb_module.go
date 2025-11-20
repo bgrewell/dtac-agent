@@ -68,6 +68,7 @@ func (h *HelloWebModule) Register(request *api.ModuleRegisterRequest, reply *api
 	*reply = api.ModuleRegisterResponse{
 		ModuleType:   "web",
 		Capabilities: []string{"static_files", "http_server", "logging"},
+		Endpoints:    make([]*api.PluginEndpoint, 0),
 	}
 
 	// Parse configuration
@@ -107,6 +108,11 @@ func (h *HelloWebModule) Register(request *api.ModuleRegisterRequest, reply *api
 	h.Log(modules.LoggingLevelInfo, "web server started successfully", map[string]string{
 		"port": fmt.Sprintf("%d", h.GetPort()),
 	})
+
+	// Note: Web modules can optionally expose API endpoints through DTAC
+	// For this example, we're only serving static files
+	// To add API endpoints, create endpoint.Endpoint objects, register them with RegisterMethods,
+	// and add them to reply.Endpoints
 
 	return nil
 }

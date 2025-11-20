@@ -82,7 +82,9 @@ type ModuleRegisterResponse struct {
 	// ModuleType indicates the type of module (e.g., "web", "daemon")
 	ModuleType string `protobuf:"bytes,1,opt,name=module_type,json=moduleType,proto3" json:"module_type,omitempty"`
 	// Capabilities lists what the module supports (e.g., "static_files", "proxy", "api")
-	Capabilities  []string `protobuf:"bytes,2,rep,name=capabilities,proto3" json:"capabilities,omitempty"`
+	Capabilities []string `protobuf:"bytes,2,rep,name=capabilities,proto3" json:"capabilities,omitempty"`
+	// Endpoints lists the API endpoints this module exposes through DTAC
+	Endpoints     []*PluginEndpoint `protobuf:"bytes,3,rep,name=endpoints,proto3" json:"endpoints,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -127,6 +129,13 @@ func (x *ModuleRegisterResponse) GetModuleType() string {
 func (x *ModuleRegisterResponse) GetCapabilities() []string {
 	if x != nil {
 		return x.Capabilities
+	}
+	return nil
+}
+
+func (x *ModuleRegisterResponse) GetEndpoints() []*PluginEndpoint {
+	if x != nil {
+		return x.Endpoints
 	}
 	return nil
 }
@@ -312,11 +321,12 @@ const file_module_proto_rawDesc = "" +
 	"\fmodule.proto\x12\x06module\x1a\fplugin.proto\"V\n" +
 	"\x15ModuleRegisterRequest\x12\x16\n" +
 	"\x06config\x18\x01 \x01(\tR\x06config\x12%\n" +
-	"\x0edefault_secure\x18\x02 \x01(\bR\rdefaultSecure\"]\n" +
+	"\x0edefault_secure\x18\x02 \x01(\bR\rdefaultSecure\"\x93\x01\n" +
 	"\x16ModuleRegisterResponse\x12\x1f\n" +
 	"\vmodule_type\x18\x01 \x01(\tR\n" +
 	"moduleType\x12\"\n" +
-	"\fcapabilities\x18\x02 \x03(\tR\fcapabilities\"E\n" +
+	"\fcapabilities\x18\x02 \x03(\tR\fcapabilities\x124\n" +
+	"\tendpoints\x18\x03 \x03(\v2\x16.plugin.PluginEndpointR\tendpoints\"E\n" +
 	"\fTokenRequest\x12\x16\n" +
 	"\x06scopes\x18\x01 \x03(\tR\x06scopes\x12\x1d\n" +
 	"\n" +
@@ -329,9 +339,10 @@ const file_module_proto_rawDesc = "" +
 	"\n" +
 	"expires_in\x18\x03 \x01(\x03R\texpiresIn\x12\x1d\n" +
 	"\n" +
-	"token_type\x18\x04 \x01(\tR\ttokenType2\x97\x02\n" +
+	"token_type\x18\x04 \x01(\tR\ttokenType2\xe0\x02\n" +
 	"\rModuleService\x12I\n" +
-	"\bRegister\x12\x1d.module.ModuleRegisterRequest\x1a\x1e.module.ModuleRegisterResponse\x12:\n" +
+	"\bRegister\x12\x1d.module.ModuleRegisterRequest\x1a\x1e.module.ModuleRegisterResponse\x12G\n" +
+	"\x04Call\x12\x1e.plugin.EndpointRequestMessage\x1a\x1f.plugin.EndpointResponseMessage\x12:\n" +
 	"\rLoggingStream\x12\x13.plugin.LoggingArgs\x1a\x12.plugin.LogMessage0\x01\x12;\n" +
 	"\fRequestToken\x12\x14.module.TokenRequest\x1a\x15.module.TokenResponse\x12B\n" +
 	"\fRefreshToken\x12\x1b.module.TokenRefreshRequest\x1a\x15.module.TokenResponseB,Z*github.com/bgrewell/dtac-agent/api/grpc/gob\x06proto3"
@@ -350,28 +361,34 @@ func file_module_proto_rawDescGZIP() []byte {
 
 var file_module_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_module_proto_goTypes = []any{
-	(*ModuleRegisterRequest)(nil),  // 0: module.ModuleRegisterRequest
-	(*ModuleRegisterResponse)(nil), // 1: module.ModuleRegisterResponse
-	(*TokenRequest)(nil),           // 2: module.TokenRequest
-	(*TokenRefreshRequest)(nil),    // 3: module.TokenRefreshRequest
-	(*TokenResponse)(nil),          // 4: module.TokenResponse
-	(*LoggingArgs)(nil),            // 5: plugin.LoggingArgs
-	(*LogMessage)(nil),             // 6: plugin.LogMessage
+	(*ModuleRegisterRequest)(nil),   // 0: module.ModuleRegisterRequest
+	(*ModuleRegisterResponse)(nil),  // 1: module.ModuleRegisterResponse
+	(*TokenRequest)(nil),            // 2: module.TokenRequest
+	(*TokenRefreshRequest)(nil),     // 3: module.TokenRefreshRequest
+	(*TokenResponse)(nil),           // 4: module.TokenResponse
+	(*PluginEndpoint)(nil),          // 5: plugin.PluginEndpoint
+	(*EndpointRequestMessage)(nil),  // 6: plugin.EndpointRequestMessage
+	(*LoggingArgs)(nil),             // 7: plugin.LoggingArgs
+	(*EndpointResponseMessage)(nil), // 8: plugin.EndpointResponseMessage
+	(*LogMessage)(nil),              // 9: plugin.LogMessage
 }
 var file_module_proto_depIdxs = []int32{
-	0, // 0: module.ModuleService.Register:input_type -> module.ModuleRegisterRequest
-	5, // 1: module.ModuleService.LoggingStream:input_type -> plugin.LoggingArgs
-	2, // 2: module.ModuleService.RequestToken:input_type -> module.TokenRequest
-	3, // 3: module.ModuleService.RefreshToken:input_type -> module.TokenRefreshRequest
-	1, // 4: module.ModuleService.Register:output_type -> module.ModuleRegisterResponse
-	6, // 5: module.ModuleService.LoggingStream:output_type -> plugin.LogMessage
-	4, // 6: module.ModuleService.RequestToken:output_type -> module.TokenResponse
-	4, // 7: module.ModuleService.RefreshToken:output_type -> module.TokenResponse
-	4, // [4:8] is the sub-list for method output_type
-	0, // [0:4] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	5, // 0: module.ModuleRegisterResponse.endpoints:type_name -> plugin.PluginEndpoint
+	0, // 1: module.ModuleService.Register:input_type -> module.ModuleRegisterRequest
+	6, // 2: module.ModuleService.Call:input_type -> plugin.EndpointRequestMessage
+	7, // 3: module.ModuleService.LoggingStream:input_type -> plugin.LoggingArgs
+	2, // 4: module.ModuleService.RequestToken:input_type -> module.TokenRequest
+	3, // 5: module.ModuleService.RefreshToken:input_type -> module.TokenRefreshRequest
+	1, // 6: module.ModuleService.Register:output_type -> module.ModuleRegisterResponse
+	8, // 7: module.ModuleService.Call:output_type -> plugin.EndpointResponseMessage
+	9, // 8: module.ModuleService.LoggingStream:output_type -> plugin.LogMessage
+	4, // 9: module.ModuleService.RequestToken:output_type -> module.TokenResponse
+	4, // 10: module.ModuleService.RefreshToken:output_type -> module.TokenResponse
+	6, // [6:11] is the sub-list for method output_type
+	1, // [1:6] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_module_proto_init() }

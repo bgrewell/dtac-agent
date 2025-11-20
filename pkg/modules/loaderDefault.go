@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/BGrewell/go-execute"
 	api "github.com/bgrewell/dtac-agent/api/grpc/go"
+	"github.com/bgrewell/dtac-agent/pkg/endpoint"
 	"github.com/bgrewell/dtac-agent/pkg/modules/utility"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -16,6 +17,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -23,12 +25,20 @@ import (
 	"time"
 )
 
+// HandlerEntry is used to map a route to a module and handler function
+type HandlerEntry struct {
+	ModuleName string
+	HandleFunc string
+}
+
 // DefaultModuleLoader is the default implementation of the ModuleLoader interface
 type DefaultModuleLoader struct {
 	ModuleDirectory         string
 	ModuleConfigs           map[string]*ModuleConfig
 	loadUnconfiguredModules bool
 	modules                 map[string]*ModuleInfo
+	routeMap                map[string]*HandlerEntry
+	endpoints               []*endpoint.Endpoint
 	moduleRoot              string
 	tlsCertFile             *string
 	tlsKeyFile              *string
@@ -170,6 +180,34 @@ func (ml *DefaultModuleLoader) RegisterModule(moduleName string) (err error) {
 	// Store module metadata
 	mod.ModuleType = reply.ModuleType
 	mod.Capabilities = reply.Capabilities
+
+	// Convert the endpoints
+	mod.Endpoints = reply.Endpoints
+
+	// Record routes
+	endpoints := make([]*endpoint.Endpoint, 0)
+	for _, aep := range mod.Endpoints {
+		// Ensure action is valid
+		_, err := endpoint.ParseAction(aep.Action)
+		if err != nil {
+			return err
+		}
+
+		// Register endpoints
+		handleFuncName := aep.Path
+		aep.Path = path.Join(mod.RootPath, aep.Path)
+		ep := utility.ConvertPluginEndpointToEndpoint(aep)
+		endpoints = append(endpoints, ep)
+
+		// Record route map
+		key := fmt.Sprintf("%s:%s", aep.Action, aep.Path)
+		entry := &HandlerEntry{
+			ModuleName: mod.Name,
+			HandleFunc: handleFuncName,
+		}
+		ml.routeMap[key] = entry
+	}
+	ml.endpoints = append(ml.endpoints, endpoints...)
 
 	return nil
 }
@@ -344,4 +382,44 @@ func (ml *DefaultModuleLoader) executeModule(config *ModuleConfig) (info *Module
 		info.HasExited = true
 	}()
 	return info, nil
+}
+
+// Endpoints returns the endpoints for all loaded modules
+func (ml *DefaultModuleLoader) Endpoints() []*endpoint.Endpoint {
+return ml.endpoints
+}
+
+// CallShim is a shim that calls the appropriate module method
+func (ml *DefaultModuleLoader) CallShim(ep *endpoint.Endpoint, in *endpoint.Request) (out *endpoint.Response, err error) {
+// Get the module name and handler function from the route map
+key := fmt.Sprintf("%s:%s", ep.Action, ep.Path)
+entry, ok := ml.routeMap[key]
+if !ok {
+return nil, fmt.Errorf("no route found for %s", key)
+}
+
+// Get the module
+mod, ok := ml.modules[entry.ModuleName]
+if !ok {
+return nil, fmt.Errorf("no module found with name %s", entry.ModuleName)
+}
+
+// Build the method key (action:path format)
+methodKey := fmt.Sprintf("%s:%s", ep.Action, entry.HandleFunc)
+
+// Convert the request
+apiRequest := utility.EndpointRequestToAPIEndpointRequest(in)
+
+// Call the module
+apiResponse, err := mod.RPC.Call(context.Background(), &api.EndpointRequestMessage{
+Method:  methodKey,
+Request: apiRequest,
+})
+if err != nil {
+return nil, err
+}
+
+// Convert the response
+out = utility.APIEndpointResponseToEndpointResponse(apiResponse.Response)
+return out, nil
 }

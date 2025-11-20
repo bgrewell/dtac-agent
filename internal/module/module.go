@@ -33,11 +33,12 @@ func NewSubsystem(log *zap.Logger, cfg *config.Configuration, tls *map[string]ba
 
 // Subsystem handles module related functionalities
 type Subsystem struct {
-	Logger  *zap.Logger
-	Config  *config.Configuration
-	tls     *map[string]basic.TLSInfo
-	enabled bool
-	name    string // Subsystem name
+	Logger    *zap.Logger
+	Config    *config.Configuration
+	tls       *map[string]basic.TLSInfo
+	enabled   bool
+	name      string // Subsystem name
+	endpoints []*endpoint.Endpoint
 }
 
 // register registers the routes that this module handles.
@@ -123,6 +124,24 @@ func (s *Subsystem) register() {
 			zap.Strings("capabilities", mod.Capabilities),
 			zap.String("path", mod.Path))
 	}
+
+	// Manipulate the endpoints
+	for _, ep := range loader.Endpoints() {
+		// Intentionally shadow 'ep' so the closure captures the correct value
+		ep := ep
+
+		// If modules have a group namespace then append it
+		if group != "" {
+			ep.Path = path.Join(group, ep.Path)
+		}
+
+		// Ensure all functions point to the module loaders shim
+		ep.Function = func(in *endpoint.Request) (out *endpoint.Response, err error) {
+			return loader.CallShim(ep, in)
+		}
+	}
+
+	s.endpoints = loader.Endpoints()
 }
 
 // Enabled returns true if the subsystem is enabled
@@ -135,11 +154,9 @@ func (s *Subsystem) Name() string {
 	return s.name
 }
 
-// Endpoints returns the endpoints for the subsystem (modules don't expose endpoints directly)
+// Endpoints returns the endpoints for the subsystem
 func (s *Subsystem) Endpoints() []*endpoint.Endpoint {
-	// Modules don't expose REST/gRPC endpoints like plugins do
-	// They may host web servers or other services independently
-	return nil
+	return s.endpoints
 }
 
 // ComputeSHA256 computes the SHA256 hash of a file

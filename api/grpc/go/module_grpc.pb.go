@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	ModuleService_Register_FullMethodName      = "/module.ModuleService/Register"
+	ModuleService_Call_FullMethodName          = "/module.ModuleService/Call"
 	ModuleService_LoggingStream_FullMethodName = "/module.ModuleService/LoggingStream"
 	ModuleService_RequestToken_FullMethodName  = "/module.ModuleService/RequestToken"
 	ModuleService_RefreshToken_FullMethodName  = "/module.ModuleService/RefreshToken"
@@ -30,6 +31,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ModuleServiceClient interface {
 	Register(ctx context.Context, in *ModuleRegisterRequest, opts ...grpc.CallOption) (*ModuleRegisterResponse, error)
+	Call(ctx context.Context, in *EndpointRequestMessage, opts ...grpc.CallOption) (*EndpointResponseMessage, error)
 	LoggingStream(ctx context.Context, in *LoggingArgs, opts ...grpc.CallOption) (grpc.ServerStreamingClient[LogMessage], error)
 	RequestToken(ctx context.Context, in *TokenRequest, opts ...grpc.CallOption) (*TokenResponse, error)
 	RefreshToken(ctx context.Context, in *TokenRefreshRequest, opts ...grpc.CallOption) (*TokenResponse, error)
@@ -47,6 +49,16 @@ func (c *moduleServiceClient) Register(ctx context.Context, in *ModuleRegisterRe
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ModuleRegisterResponse)
 	err := c.cc.Invoke(ctx, ModuleService_Register_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *moduleServiceClient) Call(ctx context.Context, in *EndpointRequestMessage, opts ...grpc.CallOption) (*EndpointResponseMessage, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EndpointResponseMessage)
+	err := c.cc.Invoke(ctx, ModuleService_Call_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -97,6 +109,7 @@ func (c *moduleServiceClient) RefreshToken(ctx context.Context, in *TokenRefresh
 // for forward compatibility.
 type ModuleServiceServer interface {
 	Register(context.Context, *ModuleRegisterRequest) (*ModuleRegisterResponse, error)
+	Call(context.Context, *EndpointRequestMessage) (*EndpointResponseMessage, error)
 	LoggingStream(*LoggingArgs, grpc.ServerStreamingServer[LogMessage]) error
 	RequestToken(context.Context, *TokenRequest) (*TokenResponse, error)
 	RefreshToken(context.Context, *TokenRefreshRequest) (*TokenResponse, error)
@@ -112,6 +125,9 @@ type UnimplementedModuleServiceServer struct{}
 
 func (UnimplementedModuleServiceServer) Register(context.Context, *ModuleRegisterRequest) (*ModuleRegisterResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
+}
+func (UnimplementedModuleServiceServer) Call(context.Context, *EndpointRequestMessage) (*EndpointResponseMessage, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Call not implemented")
 }
 func (UnimplementedModuleServiceServer) LoggingStream(*LoggingArgs, grpc.ServerStreamingServer[LogMessage]) error {
 	return status.Errorf(codes.Unimplemented, "method LoggingStream not implemented")
@@ -157,6 +173,24 @@ func _ModuleService_Register_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ModuleServiceServer).Register(ctx, req.(*ModuleRegisterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ModuleService_Call_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EndpointRequestMessage)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ModuleServiceServer).Call(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ModuleService_Call_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ModuleServiceServer).Call(ctx, req.(*EndpointRequestMessage))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -218,6 +252,10 @@ var ModuleService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Register",
 			Handler:    _ModuleService_Register_Handler,
+		},
+		{
+			MethodName: "Call",
+			Handler:    _ModuleService_Call_Handler,
 		},
 		{
 			MethodName: "RequestToken",

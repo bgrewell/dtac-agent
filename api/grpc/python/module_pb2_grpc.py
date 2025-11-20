@@ -20,6 +20,11 @@ class ModuleServiceStub(object):
                 request_serializer=module__pb2.ModuleRegisterRequest.SerializeToString,
                 response_deserializer=module__pb2.ModuleRegisterResponse.FromString,
                 )
+        self.Call = channel.unary_unary(
+                '/module.ModuleService/Call',
+                request_serializer=plugin__pb2.EndpointRequestMessage.SerializeToString,
+                response_deserializer=plugin__pb2.EndpointResponseMessage.FromString,
+                )
         self.LoggingStream = channel.unary_stream(
                 '/module.ModuleService/LoggingStream',
                 request_serializer=plugin__pb2.LoggingArgs.SerializeToString,
@@ -41,6 +46,12 @@ class ModuleServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def Register(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Call(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -71,6 +82,11 @@ def add_ModuleServiceServicer_to_server(servicer, server):
                     servicer.Register,
                     request_deserializer=module__pb2.ModuleRegisterRequest.FromString,
                     response_serializer=module__pb2.ModuleRegisterResponse.SerializeToString,
+            ),
+            'Call': grpc.unary_unary_rpc_method_handler(
+                    servicer.Call,
+                    request_deserializer=plugin__pb2.EndpointRequestMessage.FromString,
+                    response_serializer=plugin__pb2.EndpointResponseMessage.SerializeToString,
             ),
             'LoggingStream': grpc.unary_stream_rpc_method_handler(
                     servicer.LoggingStream,
@@ -111,6 +127,23 @@ class ModuleService(object):
         return grpc.experimental.unary_unary(request, target, '/module.ModuleService/Register',
             module__pb2.ModuleRegisterRequest.SerializeToString,
             module__pb2.ModuleRegisterResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def Call(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/module.ModuleService/Call',
+            plugin__pb2.EndpointRequestMessage.SerializeToString,
+            plugin__pb2.EndpointResponseMessage.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

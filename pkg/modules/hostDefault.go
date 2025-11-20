@@ -48,6 +48,25 @@ func (mh *DefaultModuleHost) Register(ctx context.Context, request *api.ModuleRe
 	return response, nil
 }
 
+// Call acts as a shim between the gRPC interface and the module interface. It handles conversion then calls the
+// module's Call method.
+func (mh *DefaultModuleHost) Call(ctx context.Context, request *api.EndpointRequestMessage) (*api.EndpointResponseMessage, error) {
+	// Call the module
+	in := utility.APIEndpointRequestToEndpointRequest(request.Request)
+	ret, err := mh.Module.Call(request.Method, in)
+	if err != nil {
+		return nil, err
+	}
+
+	// Return result
+	out := utility.EndpointResponseToAPIEndpointResponse(ret)
+	return &api.EndpointResponseMessage{
+		Id:       1,  // Unused
+		Error:    "", // Unused - hold-over from previous implementation doesn't make sense here since we return an actual error object
+		Response: out,
+	}, nil
+}
+
 // LoggingStream acts as a shim between the gRPC interface and the module interface. It handles setting up the logging
 // channel so the module can send structure logging messages back to the agent.
 func (mh *DefaultModuleHost) LoggingStream(req *api.LoggingArgs, stream api.ModuleService_LoggingStreamServer) error {

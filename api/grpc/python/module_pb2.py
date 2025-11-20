@@ -14,7 +14,7 @@ _sym_db = _symbol_database.Default()
 import plugin_pb2 as plugin__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0cmodule.proto\x12\x06module\x1a\x0cplugin.proto\"?\n\x15ModuleRegisterRequest\x12\x0e\n\x06\x63onfig\x18\x01 \x01(\t\x12\x16\n\x0e\x64\x65\x66\x61ult_secure\x18\x02 \x01(\x08\"C\n\x16ModuleRegisterResponse\x12\x13\n\x0bmodule_type\x18\x01 \x01(\t\x12\x14\n\x0c\x63\x61pabilities\x18\x02 \x03(\t\"2\n\x0cTokenRequest\x12\x0e\n\x06scopes\x18\x01 \x03(\t\x12\x12\n\nexpires_in\x18\x02 \x01(\x03\",\n\x13TokenRefreshRequest\x12\x15\n\rrefresh_token\x18\x01 \x01(\t\"d\n\rTokenResponse\x12\x14\n\x0c\x61\x63\x63\x65ss_token\x18\x01 \x01(\t\x12\x15\n\rrefresh_token\x18\x02 \x01(\t\x12\x12\n\nexpires_in\x18\x03 \x01(\x03\x12\x12\n\ntoken_type\x18\x04 \x01(\t2\x97\x02\n\rModuleService\x12I\n\x08Register\x12\x1d.module.ModuleRegisterRequest\x1a\x1e.module.ModuleRegisterResponse\x12:\n\rLoggingStream\x12\x13.plugin.LoggingArgs\x1a\x12.plugin.LogMessage0\x01\x12;\n\x0cRequestToken\x12\x14.module.TokenRequest\x1a\x15.module.TokenResponse\x12\x42\n\x0cRefreshToken\x12\x1b.module.TokenRefreshRequest\x1a\x15.module.TokenResponseB,Z*github.com/bgrewell/dtac-agent/api/grpc/gob\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0cmodule.proto\x12\x06module\x1a\x0cplugin.proto\"?\n\x15ModuleRegisterRequest\x12\x0e\n\x06\x63onfig\x18\x01 \x01(\t\x12\x16\n\x0e\x64\x65\x66\x61ult_secure\x18\x02 \x01(\x08\"n\n\x16ModuleRegisterResponse\x12\x13\n\x0bmodule_type\x18\x01 \x01(\t\x12\x14\n\x0c\x63\x61pabilities\x18\x02 \x03(\t\x12)\n\tendpoints\x18\x03 \x03(\x0b\x32\x16.plugin.PluginEndpoint\"2\n\x0cTokenRequest\x12\x0e\n\x06scopes\x18\x01 \x03(\t\x12\x12\n\nexpires_in\x18\x02 \x01(\x03\",\n\x13TokenRefreshRequest\x12\x15\n\rrefresh_token\x18\x01 \x01(\t\"d\n\rTokenResponse\x12\x14\n\x0c\x61\x63\x63\x65ss_token\x18\x01 \x01(\t\x12\x15\n\rrefresh_token\x18\x02 \x01(\t\x12\x12\n\nexpires_in\x18\x03 \x01(\x03\x12\x12\n\ntoken_type\x18\x04 \x01(\t2\xe0\x02\n\rModuleService\x12I\n\x08Register\x12\x1d.module.ModuleRegisterRequest\x1a\x1e.module.ModuleRegisterResponse\x12G\n\x04\x43\x61ll\x12\x1e.plugin.EndpointRequestMessage\x1a\x1f.plugin.EndpointResponseMessage\x12:\n\rLoggingStream\x12\x13.plugin.LoggingArgs\x1a\x12.plugin.LogMessage0\x01\x12;\n\x0cRequestToken\x12\x14.module.TokenRequest\x1a\x15.module.TokenResponse\x12\x42\n\x0cRefreshToken\x12\x1b.module.TokenRefreshRequest\x1a\x15.module.TokenResponseB,Z*github.com/bgrewell/dtac-agent/api/grpc/gob\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -25,13 +25,13 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _globals['_MODULEREGISTERREQUEST']._serialized_start=38
   _globals['_MODULEREGISTERREQUEST']._serialized_end=101
   _globals['_MODULEREGISTERRESPONSE']._serialized_start=103
-  _globals['_MODULEREGISTERRESPONSE']._serialized_end=170
-  _globals['_TOKENREQUEST']._serialized_start=172
-  _globals['_TOKENREQUEST']._serialized_end=222
-  _globals['_TOKENREFRESHREQUEST']._serialized_start=224
-  _globals['_TOKENREFRESHREQUEST']._serialized_end=268
-  _globals['_TOKENRESPONSE']._serialized_start=270
-  _globals['_TOKENRESPONSE']._serialized_end=370
-  _globals['_MODULESERVICE']._serialized_start=373
-  _globals['_MODULESERVICE']._serialized_end=652
+  _globals['_MODULEREGISTERRESPONSE']._serialized_end=213
+  _globals['_TOKENREQUEST']._serialized_start=215
+  _globals['_TOKENREQUEST']._serialized_end=265
+  _globals['_TOKENREFRESHREQUEST']._serialized_start=267
+  _globals['_TOKENREFRESHREQUEST']._serialized_end=311
+  _globals['_TOKENRESPONSE']._serialized_start=313
+  _globals['_TOKENRESPONSE']._serialized_end=413
+  _globals['_MODULESERVICE']._serialized_start=416
+  _globals['_MODULESERVICE']._serialized_end=768
 # @@protoc_insertion_point(module_scope)

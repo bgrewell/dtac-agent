@@ -2,7 +2,9 @@ package modules
 
 import (
 	"errors"
+	"fmt"
 	api "github.com/bgrewell/dtac-agent/api/grpc/go"
+	"github.com/bgrewell/dtac-agent/pkg/endpoint"
 )
 
 // LoggingLevel is an enum for the various logging levels
@@ -26,12 +28,23 @@ type LogMessage struct {
 // ModuleBase is a base struct that all modules should embed as it implements the common shared methods
 type ModuleBase struct {
 	LogChan  chan LogMessage
+	Methods  map[string]endpoint.Func
 	rootPath string
 }
 
 // Register is a default implementation of the Register method that must be implemented by the module therefor this one returns an error
 func (m *ModuleBase) Register(request *api.ModuleRegisterRequest, reply *api.ModuleRegisterResponse) error {
 	return errors.New("this method must be implemented by the module")
+}
+
+// Call is a shim that calls the appropriate method on the module
+func (m *ModuleBase) Call(method string, args *endpoint.Request) (out *endpoint.Response, err error) {
+	key := method
+	if f, exists := m.Methods[key]; exists {
+		return f(args)
+	}
+
+	return nil, fmt.Errorf("method %s not found", method)
 }
 
 // LoggingStream is a function that sets up the logging channel for modules to use so that they can log messages back
@@ -58,6 +71,16 @@ func (m *ModuleBase) LoggingStream(stream api.ModuleService_LoggingStreamServer)
 		if err != nil {
 			return err
 		}
+	}
+}
+
+// RegisterMethods is used to create the call map for the module
+func (m *ModuleBase) RegisterMethods(endpoints []*endpoint.Endpoint) {
+	if m.Methods == nil {
+		m.Methods = make(map[string]endpoint.Func)
+	}
+	for _, ep := range endpoints {
+		m.Methods[fmt.Sprintf("%s:%s", ep.Action, ep.Path)] = ep.Function
 	}
 }
 

@@ -12,6 +12,7 @@ type ModuleInfo struct {
 	RootPath      string
 	ModuleType    string
 	Capabilities  []string
+	Endpoints     []*api.PluginEndpoint
 	Pid           int
 	RPCProto      string
 	Proto         string

@@ -2,7 +2,7 @@ import plugin_pb2 as _plugin_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from typing import ClassVar as _ClassVar, Iterable as _Iterable, Optional as _Optional
+from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -15,12 +15,14 @@ class ModuleRegisterRequest(_message.Message):
     def __init__(self, config: _Optional[str] = ..., default_secure: bool = ...) -> None: ...
 
 class ModuleRegisterResponse(_message.Message):
-    __slots__ = ["module_type", "capabilities"]
+    __slots__ = ["module_type", "capabilities", "endpoints"]
     MODULE_TYPE_FIELD_NUMBER: _ClassVar[int]
     CAPABILITIES_FIELD_NUMBER: _ClassVar[int]
+    ENDPOINTS_FIELD_NUMBER: _ClassVar[int]
     module_type: str
     capabilities: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, module_type: _Optional[str] = ..., capabilities: _Optional[_Iterable[str]] = ...) -> None: ...
+    endpoints: _containers.RepeatedCompositeFieldContainer[_plugin_pb2.PluginEndpoint]
+    def __init__(self, module_type: _Optional[str] = ..., capabilities: _Optional[_Iterable[str]] = ..., endpoints: _Optional[_Iterable[_Union[_plugin_pb2.PluginEndpoint, _Mapping]]] = ...) -> None: ...
 
 class TokenRequest(_message.Message):
     __slots__ = ["scopes", "expires_in"]

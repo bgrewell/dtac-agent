@@ -4,6 +4,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"github.com/bgrewell/dtac-agent/pkg/endpoint"
 	"go.uber.org/zap"
 	"os"
 	"strings"
@@ -18,6 +19,8 @@ type ModuleLoader interface {
 	RegisterModule(moduleName string) (err error)
 	UnregisterModule(moduleName string) (err error)
 	CloseModule(moduleName string) (err error)
+	Endpoints() []*endpoint.Endpoint
+	CallShim(ep *endpoint.Endpoint, in *endpoint.Request) (out *endpoint.Response, err error)
 }
 
 // NewModuleLoader takes in the module directory, the sanity cookie and the routeGroup.
