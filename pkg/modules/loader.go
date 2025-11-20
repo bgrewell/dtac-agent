@@ -34,6 +34,8 @@ func NewModuleLoader(moduleDirectory string, moduleRoot string, modConfigs map[s
 		ModuleConfigs:           modConfigs,
 		loadUnconfiguredModules: loadUnconfiguredModules,
 		modules:                 make(map[string]*ModuleInfo),
+		routeMap:                make(map[string]*HandlerEntry),
+		endpoints:               make([]*endpoint.Endpoint, 0),
 		moduleRoot:              moduleRoot,
 		tlsCertFile:             tlsCertFile,
 		tlsKeyFile:              tlsKeyFile,
