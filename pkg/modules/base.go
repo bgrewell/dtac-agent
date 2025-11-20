@@ -5,6 +5,7 @@ import (
 	"fmt"
 	api "github.com/bgrewell/dtac-agent/api/grpc/go"
 	"github.com/bgrewell/dtac-agent/pkg/endpoint"
+	"log"
 )
 
 // LoggingLevel is an enum for the various logging levels
@@ -27,9 +28,10 @@ type LogMessage struct {
 
 // ModuleBase is a base struct that all modules should embed as it implements the common shared methods
 type ModuleBase struct {
-	LogChan  chan LogMessage
-	Methods  map[string]endpoint.Func
-	rootPath string
+	LogChan        chan LogMessage
+	Methods        map[string]endpoint.Func
+	rootPath       string
+	standaloneMode bool
 }
 
 // Register is a default implementation of the Register method that must be implemented by the module therefor this one returns an error
@@ -99,8 +101,33 @@ func (m *ModuleBase) SetRootPath(rootPath string) {
 	m.rootPath = rootPath
 }
 
-// Log logs a message to the logging channel
+// Log logs a message to the logging channel or stdout in standalone mode
 func (m *ModuleBase) Log(level LoggingLevel, message string, fields map[string]string) {
+	if m.standaloneMode {
+		// Log to stdout in standalone mode
+		levelStr := ""
+		switch level {
+		case LoggingLevelDebug:
+			levelStr = "DEBUG"
+		case LoggingLevelInfo:
+			levelStr = "INFO"
+		case LoggingLevelWarning:
+			levelStr = "WARN"
+		case LoggingLevelError:
+			levelStr = "ERROR"
+		case LoggingLevelFatal:
+			levelStr = "FATAL"
+		}
+		
+		if len(fields) > 0 {
+			log.Printf("[%s] %s %v\n", levelStr, message, fields)
+		} else {
+			log.Printf("[%s] %s\n", levelStr, message)
+		}
+		return
+	}
+	
+	// Use RPC logging when running under DTAC
 	if m.LogChan == nil {
 		m.LogChan = make(chan LogMessage, 4096)
 	}
@@ -109,4 +136,9 @@ func (m *ModuleBase) Log(level LoggingLevel, message string, fields map[string]s
 		Message: message,
 		Fields:  fields,
 	}
+}
+
+// SetStandaloneMode sets whether the module is running in standalone mode
+func (m *ModuleBase) SetStandaloneMode(standalone bool) {
+	m.standaloneMode = standalone
 }
