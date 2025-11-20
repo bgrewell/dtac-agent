@@ -2,12 +2,13 @@
 
 ## Overview
 
-The DTAC Module System provides a framework for extending DTAC with separately-managed processes that can host web frontends, background services, or other extensible components. Modules complement the existing plugin system, which focuses on backend telemetry and control capabilities.
+The DTAC Module System provides a framework for extending DTAC with separately-managed processes that can host web frontends, expose REST APIs, run background services, or other extensible components. Modules complement the existing plugin system, which focuses on backend telemetry and control capabilities.
 
 ## Key Features
 
 - **Process Isolation**: Modules run as separate processes managed by the DTAC agent
 - **gRPC Communication**: Stdio-based RPC with encryption for secure inter-process communication
+- **API Endpoint Registration**: Modules can register REST/gRPC endpoints with DTAC (like plugins)
 - **Structured Logging**: Modules can send structured log messages back to the DTAC agent
 - **Web Module Support**: Built-in support for hosting web frontends with embedded static assets
 - **Configuration Management**: Agent pushes configuration to modules during registration
@@ -29,12 +30,14 @@ The DTAC Module System provides a framework for extending DTAC with separately-m
 
 #### Basic Module
 - Simple background process
+- Can expose API endpoints through DTAC
 - Structured logging
 - Configuration from agent
 
 #### Web Module
 - HTTP server hosting static assets
 - Embedded files using Go's embed.FS
+- Can also expose API endpoints through DTAC
 - Configurable port and routes
 - Future: Proxy routes for backend APIs
 
@@ -265,13 +268,15 @@ Log levels:
 
 See the following example modules:
 
-1. **hello**: Basic module demonstrating minimal implementation
+1. **hello**: Basic module with API endpoint registration
    - Location: `cmd/modules/hello`
-   - Features: Registration, logging
+   - Features: Registration, logging, REST API endpoint
+   - Demonstrates: How to expose endpoints through DTAC
 
 2. **helloweb**: Web module with embedded HTML
    - Location: `cmd/modules/helloweb`
    - Features: Static file serving, embedded assets, HTTP server
+   - Note: Can also register API endpoints if needed
 
 ## Future Enhancements
 
@@ -328,6 +333,7 @@ ProxyRoutes: []modules.ProxyRouteConfig{
 type Module interface {
     Name() string
     Register(args *api.ModuleRegisterRequest, reply *api.ModuleRegisterResponse) error
+    Call(method string, args *endpoint.Request) (out *endpoint.Response, err error)
     RootPath() string
     LoggingStream(stream api.ModuleService_LoggingStreamServer) error
 }
@@ -336,9 +342,11 @@ type Module interface {
 ### ModuleBase
 
 Provides default implementations and helper methods:
-- `Log(level, message, fields)`
-- `SetRootPath(path)`
-- `RootPath()`
+- `Call(method, args)` - Routes method calls to registered handlers
+- `RegisterMethods(endpoints)` - Registers endpoint handlers
+- `Log(level, message, fields)` - Send structured logs to agent
+- `SetRootPath(path)` - Set module's root path
+- `RootPath()` - Get module's root path
 
 ### WebModuleBase
 
@@ -362,3 +370,75 @@ When creating new module types or extending the module system:
 ## License
 
 Same as the DTAC agent project.
+
+## Exposing API Endpoints
+
+Modules can register API endpoints with DTAC, allowing them to expose REST/gRPC APIs that are managed by the agent's authentication, authorization, and routing infrastructure.
+
+### Registering Endpoints
+
+```go
+func (m *MyModule) Register(request *api.ModuleRegisterRequest, reply *api.ModuleRegisterResponse) error {
+    *reply = api.ModuleRegisterResponse{
+        ModuleType:   "basic",
+        Capabilities: []string{"api"},
+        Endpoints:    make([]*api.PluginEndpoint, 0),
+    }
+
+    // Define endpoints
+    authz := endpoint.AuthGroupAdmin.String()
+    endpoints := []*endpoint.Endpoint{
+        endpoint.NewEndpoint("users", endpoint.ActionRead, 
+            "list users", m.ListUsers, request.DefaultSecure, authz),
+        endpoint.NewEndpoint("users", endpoint.ActionCreate, 
+            "create user", m.CreateUser, request.DefaultSecure, authz),
+    }
+
+    // Register methods (maps endpoints to handler functions)
+    m.RegisterMethods(endpoints)
+
+    // Convert and add to response
+    for _, ep := range endpoints {
+        aep := utility.ConvertEndpointToPluginEndpoint(ep)
+        reply.Endpoints = append(reply.Endpoints, aep)
+    }
+
+    return nil
+}
+
+// Handler function
+func (m *MyModule) ListUsers(in *endpoint.Request) (*endpoint.Response, error) {
+    // Your logic here
+    users := []string{"alice", "bob"}
+    body, _ := json.Marshal(users)
+    
+    return &endpoint.Response{
+        Headers: map[string][]string{"Content-Type": {"application/json"}},
+        Value:   body,
+    }, nil
+}
+```
+
+### Endpoint Paths
+
+Endpoints are automatically namespaced under the module's root path and the configured module group:
+- Module root path: `hello`
+- Module group: `modules`
+- Endpoint: `users`
+- Final path: `/modules/hello/users`
+
+### Use Cases
+
+This is particularly useful for web modules that need to:
+- Manage user data via REST API
+- Expose configuration endpoints
+- Provide programmatic access to module functionality
+- Integrate with the DTAC authentication/authorization system
+
+Rather than building a separate REST API server in your module, you can register endpoints with DTAC and leverage its existing infrastructure for:
+- JWT authentication
+- Role-based authorization
+- Request validation
+- Error handling
+- Logging and metrics
+
