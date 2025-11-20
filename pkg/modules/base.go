@@ -6,6 +6,7 @@ import (
 	api "github.com/bgrewell/dtac-agent/api/grpc/go"
 	"github.com/bgrewell/dtac-agent/pkg/endpoint"
 	"log"
+	"strings"
 )
 
 // LoggingLevel is an enum for the various logging levels
@@ -120,7 +121,12 @@ func (m *ModuleBase) Log(level LoggingLevel, message string, fields map[string]s
 		}
 		
 		if len(fields) > 0 {
-			log.Printf("[%s] %s %v\n", levelStr, message, fields)
+			// Format fields as key=value pairs
+			var fieldStrs []string
+			for k, v := range fields {
+				fieldStrs = append(fieldStrs, fmt.Sprintf("%s=%s", k, v))
+			}
+			log.Printf("[%s] %s {%s}\n", levelStr, message, strings.Join(fieldStrs, ", "))
 		} else {
 			log.Printf("[%s] %s\n", levelStr, message)
 		}
