@@ -88,15 +88,77 @@ func (mh *DefaultModuleHost) RefreshToken(ctx context.Context, request *api.Toke
 
 // Serve starts the module host
 func (mh *DefaultModuleHost) Serve() error {
-	// Verify that the ENV variable is set else exit with helpful message
-	if os.Getenv("DTAC_MODULES") == "" {
-		fmt.Println("============================ WARNING ============================")
-		fmt.Println("This is a DTAC module and is not designed to be executed directly")
-		fmt.Println("Please use the DTAC agent to load this module")
-		fmt.Println("==================================================================")
-		os.Exit(-1)
+	// Check if DTAC_MODULES env variable is set
+	isDTACMode := os.Getenv("DTAC_MODULES") != ""
+	
+	if !isDTACMode {
+		// Running in standalone mode - check if this is a web module
+		if webModule, ok := mh.Module.(WebModule); ok {
+			return mh.serveStandaloneWeb(webModule)
+		}
+		// For non-web modules, run in standalone mode with basic info
+		return mh.serveStandaloneBasic()
 	}
+	
+	// Running under DTAC - use gRPC mode
+	return mh.serveDTACMode()
+}
 
+// serveStandaloneWeb runs a web module in standalone mode
+func (mh *DefaultModuleHost) serveStandaloneWeb(webModule WebModule) error {
+	// Enable standalone mode for logging
+	if base, ok := mh.Module.(interface{ SetStandaloneMode(bool) }); ok {
+		base.SetStandaloneMode(true)
+	}
+	
+	log.Printf("Starting %s in standalone mode (without DTAC)\n", mh.Module.Name())
+	
+	// Register the module (this may start the web server)
+	request := &api.ModuleRegisterRequest{
+		Config:        "{}",
+		DefaultSecure: false,
+	}
+	response := &api.ModuleRegisterResponse{}
+	err := mh.Module.Register(request, response)
+	if err != nil {
+		return fmt.Errorf("failed to register module: %w", err)
+	}
+	
+	// If the web server hasn't been started yet, start it now
+	port := webModule.GetPort()
+	if port == 0 {
+		err = webModule.Start()
+		if err != nil {
+			return fmt.Errorf("failed to start web server: %w", err)
+		}
+		port = webModule.GetPort()
+	}
+	
+	log.Printf("Web server listening on http://localhost:%d\n", port)
+	log.Println("Press Ctrl+C to stop")
+	
+	// Block forever
+	select {}
+}
+
+// serveStandaloneBasic runs a non-web module in standalone mode
+func (mh *DefaultModuleHost) serveStandaloneBasic() error {
+	// Enable standalone mode for logging
+	if base, ok := mh.Module.(interface{ SetStandaloneMode(bool) }); ok {
+		base.SetStandaloneMode(true)
+	}
+	
+	log.Printf("Module %s started in standalone mode (without DTAC)\n", mh.Module.Name())
+	log.Println("Note: This module provides API endpoints that require DTAC to function.")
+	log.Println("To use this module's functionality, please run it through the DTAC agent.")
+	log.Println("Press Ctrl+C to exit")
+	
+	// Block forever
+	select {}
+}
+
+// serveDTACMode runs the module in DTAC mode with gRPC
+func (mh *DefaultModuleHost) serveDTACMode() error {
 	// Check for certificate and key files passed via ENV variables
 	cert := os.Getenv("DTAC_TLS_CERT")
 	key := os.Getenv("DTAC_TLS_KEY")
