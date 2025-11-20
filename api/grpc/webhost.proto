@@ -1,0 +1,174 @@
+syntax = "proto3";
+
+package webhost;
+
+option go_package = "github.com/bgrewell/dtac-agent/api/grpc/go";
+
+// WebhostService provides the control API for DTAC-managed webhost modules.
+// Modules implement a gRPC server exposing this service; DTAC acts as client.
+service WebhostService {
+  // Init is called by DTAC to provide the module with its runtime configuration.
+  // This includes listen address/port, proxy definitions, permissions, and module-specific config.
+  rpc Init(WebhostInitRequest) returns (WebhostInitResponse);
+
+  // RequestToken allows the module to request access tokens (JWTs) for proxying
+  // to upstream services. DTAC validates the request against Casbin policies.
+  rpc RequestToken(TokenRequest) returns (TokenResponse);
+
+  // EventStream is a bidirectional stream for structured logging and events.
+  // The module sends events/logs to DTAC, which acknowledges receipt.
+  rpc EventStream(stream WebhostEvent) returns (stream WebhostEventAck);
+}
+
+// WebhostInitRequest contains all configuration DTAC provides to the module on startup.
+message WebhostInitRequest {
+  // module_name is the unique identifier for this module instance.
+  string module_name = 1;
+
+  // listen specifies where the module's HTTP server should bind.
+  ListenConfig listen = 2;
+
+  // proxies defines the reverse-proxy routes the module should expose.
+  repeated ProxyConfig proxies = 3;
+
+  // permissions defines what scopes and roles this module is allowed to use.
+  Permissions permissions = 4;
+
+  // config is optional module-specific configuration (JSON string).
+  string config = 5;
+}
+
+// WebhostInitResponse is returned by the module after successful initialization.
+message WebhostInitResponse {
+  // success indicates whether initialization completed successfully.
+  bool success = 1;
+
+  // error contains an error message if success is false.
+  string error = 2;
+
+  // version is the module's version string.
+  string version = 3;
+}
+
+// ListenConfig specifies the network binding for the module's HTTP server.
+message ListenConfig {
+  // addr is the IP address to bind to (e.g., "127.0.0.1", "0.0.0.0").
+  string addr = 1;
+
+  // port is the TCP port to bind to.
+  int32 port = 2;
+
+  // tls_profile optionally specifies a TLS configuration profile name.
+  string tls_profile = 3;
+
+  // tls_cert_path is the path to the TLS certificate file (if TLS enabled).
+  string tls_cert_path = 4;
+
+  // tls_key_path is the path to the TLS key file (if TLS enabled).
+  string tls_key_path = 5;
+}
+
+// ProxyConfig defines a reverse-proxy route that the module should expose.
+message ProxyConfig {
+  // id is a unique identifier for this proxy route.
+  string id = 1;
+
+  // from_path is the path prefix on the module's HTTP server (e.g., "/api/metrics").
+  string from_path = 2;
+
+  // target_url is the upstream URL to proxy to (e.g., "http://internal-metrics:9090").
+  string target_url = 3;
+
+  // auth specifies the authentication mechanism for upstream requests.
+  ProxyAuth auth = 4;
+
+  // strip_prefix indicates whether to strip from_path before forwarding.
+  bool strip_prefix = 5;
+}
+
+// ProxyAuth defines authentication for a proxy route.
+message ProxyAuth {
+  // type specifies the auth mechanism (e.g., "jwt_from_dtac", "none").
+  string type = 1;
+
+  // scopes is the list of permission scopes required for this proxy.
+  repeated string scopes = 2;
+
+  // additional_headers are extra headers to inject into upstream requests.
+  map<string, string> additional_headers = 3;
+}
+
+// Permissions defines what roles and scopes the module is allowed to use.
+message Permissions {
+  // roles is the list of roles assigned to this module.
+  repeated string roles = 1;
+
+  // allowed_scopes is the set of scopes this module can request tokens for.
+  repeated string allowed_scopes = 2;
+
+  // default_scopes is the set of scopes granted by default if none specified.
+  repeated string default_scopes = 3;
+}
+
+// TokenRequest is sent by the module to request an access token.
+message TokenRequest {
+  // scopes is the list of permission scopes requested.
+  repeated string scopes = 1;
+
+  // audience optionally specifies the intended token audience.
+  string audience = 2;
+
+  // expires_in is the requested token lifetime in seconds (DTAC may override).
+  int64 expires_in = 3;
+
+  // for_proxy optionally identifies which proxy this token is for.
+  string for_proxy = 4;
+}
+
+// TokenResponse is returned by DTAC with the issued token or an error.
+message TokenResponse {
+  // success indicates whether the token was issued successfully.
+  bool success = 1;
+
+  // token is the JWT access token (if success is true).
+  string token = 2;
+
+  // expires_at is the Unix timestamp when the token expires.
+  int64 expires_at = 3;
+
+  // error contains an error message if success is false.
+  string error = 4;
+
+  // token_type is typically "Bearer".
+  string token_type = 5;
+}
+
+// WebhostEvent is sent by the module over EventStream for logging/telemetry.
+message WebhostEvent {
+  // timestamp is the Unix timestamp (seconds) when the event occurred.
+  int64 timestamp = 1;
+
+  // level is the log level (e.g., "DEBUG", "INFO", "WARN", "ERROR").
+  string level = 2;
+
+  // message is the human-readable log message.
+  string message = 3;
+
+  // fields is a map of structured key-value pairs.
+  map<string, string> fields = 4;
+
+  // event_type optionally categorizes the event (e.g., "log", "metric", "audit").
+  string event_type = 5;
+}
+
+// WebhostEventAck is sent by DTAC to acknowledge receipt of an event.
+message WebhostEventAck {
+  // ack_timestamp is the Unix timestamp when DTAC processed the event.
+  int64 ack_timestamp = 1;
+
+  // success indicates whether the event was processed successfully.
+  bool success = 2;
+
+  // error contains an error message if success is false.
+  string error = 3;
+}

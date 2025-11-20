@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DTAC Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        .status {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+            border-radius: 6px;
+            margin-bottom: 30px;
+        }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            background: #10b981;
+            border-radius: 50%;
+            margin-right: 12px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .status-text {
+            color: #1e40af;
+            font-weight: 500;
+        }
+        .features {
+            list-style: none;
+            margin-bottom: 30px;
+        }
+        .features li {
+            padding: 12px 0;
+            border-bottom: 1px solid #e5e7eb;
+            color: #4b5563;
+            display: flex;
+            align-items: center;
+        }
+        .features li:last-child {
+            border-bottom: none;
+        }
+        .features li::before {
+            content: "✓";
+            color: #10b981;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        .footer {
+            text-align: center;
+            color: #9ca3af;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        .endpoints {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+        .endpoints h3 {
+            color: #374151;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .endpoint {
+            font-family: 'Courier New', monospace;
+            color: #6b7280;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .endpoint:last-child {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 DTAC Dashboard</h1>
+        <p class="subtitle">Webhost Module - Example Implementation</p>
+        
+        <div class="status">
+            <div class="status-indicator"></div>
+            <div class="status-text">Module is healthy and running</div>
+        </div>
+
+        <h2 style="color: #374151; font-size: 20px; margin-bottom: 15px;">Features</h2>
+        <ul class="features">
+            <li>Embedded static web UI</li>
+            <li>Health check endpoint</li>
+            <li>Proxy route support</li>
+            <li>Standalone & managed modes</li>
+            <li>JWT token integration</li>
+        </ul>
+
+        <div class="endpoints">
+            <h3>Available Endpoints</h3>
+            <div class="endpoint">GET / - Dashboard UI</div>
+            <div class="endpoint">GET /healthz - Health check</div>
+        </div>
+
+        <div class="footer">
+            DTAC Webhost Module • Version 1.0.0
+        </div>
+    </div>
+</body>
+</html>
