@@ -1,6 +1,6 @@
 module github.com/bgrewell/dtac-agent
 
-go 1.25.0
+go 1.22.2
 
 replace github.com/docker/docker => github.com/moby/moby v28.5.1+incompatible
 
