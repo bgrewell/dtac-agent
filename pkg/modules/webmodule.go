@@ -135,11 +135,17 @@ func (w *WebModuleBase) Start() error {
 	w.serverPort = port
 	w.isRunning = true
 
+	// Log static files configuration
+	if staticFS := w.GetStaticFiles(); staticFS != nil {
+		w.logStaticFiles(staticFS)
+	}
+
 	// Start server in goroutine
 	go func() {
 		w.Log(LoggingLevelInfo, "starting web server", map[string]string{
-			"port":  fmt.Sprintf("%d", w.serverPort),
-			"debug": fmt.Sprintf("%t", w.config.Debug),
+			"port":        fmt.Sprintf("%d", w.serverPort),
+			"static_path": w.config.StaticPath,
+			"debug":       fmt.Sprintf("%t", w.config.Debug),
 		})
 		if err := w.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			w.Log(LoggingLevelError, "web server error", map[string]string{
@@ -178,18 +184,61 @@ func (w *WebModuleBase) GetPort() int {
 	return w.serverPort
 }
 
-// loggingMiddleware wraps an http.Handler and logs request details when debug is enabled
+// responseWriter wraps http.ResponseWriter to capture status code
+type responseWriter struct {
+	http.ResponseWriter
+	statusCode int
+	written    bool
+}
+
+func (rw *responseWriter) WriteHeader(code int) {
+	if !rw.written {
+		rw.statusCode = code
+		rw.written = true
+		rw.ResponseWriter.WriteHeader(code)
+	}
+}
+
+func (rw *responseWriter) Write(b []byte) (int, error) {
+	if !rw.written {
+		rw.statusCode = http.StatusOK
+		rw.written = true
+	}
+	return rw.ResponseWriter.Write(b)
+}
+
+// loggingMiddleware wraps an http.Handler and logs request/response details when debug is enabled
 func (w *WebModuleBase) loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		if w.config.Debug {
+			// Wrap response writer to capture status code
+			wrapped := &responseWriter{
+				ResponseWriter: rw,
+				statusCode:     http.StatusOK,
+				written:        false,
+			}
+			
+			// Log request
 			w.Log(LoggingLevelDebug, "HTTP request received", map[string]string{
 				"method":      r.Method,
 				"path":        r.URL.Path,
 				"remote_addr": r.RemoteAddr,
 				"user_agent":  r.UserAgent(),
 			})
+			
+			// Process request
+			next.ServeHTTP(wrapped, r)
+			
+			// Log response
+			w.Log(LoggingLevelDebug, "HTTP response sent", map[string]string{
+				"method":      r.Method,
+				"path":        r.URL.Path,
+				"status_code": fmt.Sprintf("%d", wrapped.statusCode),
+				"status_text": http.StatusText(wrapped.statusCode),
+			})
+		} else {
+			next.ServeHTTP(rw, r)
 		}
-		next.ServeHTTP(rw, r)
 	})
 }
 
@@ -198,4 +247,45 @@ func (w *WebModuleBase) SetConfig(config WebModuleConfig) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	w.config = config
+}
+
+// logStaticFiles logs information about available static files and routes
+func (w *WebModuleBase) logStaticFiles(staticFS fs.FS) {
+	fileCount := 0
+	var files []string
+	
+	// Walk the filesystem to enumerate files
+	fs.WalkDir(staticFS, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() {
+			fileCount++
+			// Build the URL path
+			urlPath := w.config.StaticPath
+			if urlPath == "/" {
+				urlPath = "/" + path
+			} else {
+				urlPath = urlPath + "/" + path
+			}
+			files = append(files, urlPath)
+		}
+		return nil
+	})
+	
+	// Log summary
+	w.Log(LoggingLevelInfo, "static files configured", map[string]string{
+		"file_count":  fmt.Sprintf("%d", fileCount),
+		"static_path": w.config.StaticPath,
+	})
+	
+	// Log individual file routes if in debug mode
+	if w.config.Debug {
+		for _, filePath := range files {
+			w.Log(LoggingLevelDebug, "static file route", map[string]string{
+				"route": fmt.Sprintf("http://localhost:%d%s", w.serverPort, filePath),
+				"path":  filePath,
+			})
+		}
+	}
 }
