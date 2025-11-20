@@ -26,8 +26,6 @@ permissions:
 
 jobs:
   goreleaser:
-    runs-on:
-      group: "gasp-k8s"
     steps:
       -
         name: Checkout
