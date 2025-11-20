@@ -1,10 +1,10 @@
 package utility
 
 import (
-	pluginutil "github.com/bgrewell/dtac-agent/pkg/plugins/utility"
+	sharedutil "github.com/bgrewell/dtac-agent/pkg/shared/utility"
 )
 
 // GetUnusedTCPPort returns an unused TCP port
 func GetUnusedTCPPort() (int, error) {
-	return pluginutil.GetUnusedTCPPort()
+	return sharedutil.GetUnusedTCPPort()
 }
