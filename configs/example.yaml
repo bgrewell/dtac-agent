@@ -74,6 +74,27 @@ plugins:
       enabled: true
       hash: ""
       user: ""
+modules:
+  dir: /opt/dtac/modules/
+  enabled: false
+  group: modules
+  load_unconfigured: false
+  tls:
+    enabled: true
+    profile: default
+  entries:
+    hello:
+      config: {}
+      enabled: false
+      hash: ""
+      user: ""
+    helloweb:
+      config:
+        port: 8090
+        debug: true  # Enable debug logging to see HTTP request details
+      enabled: false
+      hash: ""
+      user: ""
 subsystems:
   auth: true
   diag: true

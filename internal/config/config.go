@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/bgrewell/dtac-agent/pkg/modules"
 	"github.com/bgrewell/dtac-agent/pkg/plugins"
 	"net/http"
 	"os"
@@ -57,6 +58,16 @@ type PluginEntry struct {
 	LoadUnconfigured bool                             `json:"load_unconfigured" yaml:"load_unconfigured" mapstructure:"load_unconfigured"`
 	TLS              TLSSelection                     `json:"tls" yaml:"tls" mapstructure:"tls"`
 	Entries          map[string]*plugins.PluginConfig `json:"entries" yaml:"entries" mapstructure:"entries"`
+}
+
+// ModuleEntry is the struct for a module entry
+type ModuleEntry struct {
+	Enabled          bool                             `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	ModuleDir        string                           `json:"dir" yaml:"dir" mapstructure:"dir"`
+	ModuleGroup      string                           `json:"group" yaml:"group" mapstructure:"group"`
+	LoadUnconfigured bool                             `json:"load_unconfigured" yaml:"load_unconfigured" mapstructure:"load_unconfigured"`
+	TLS              TLSSelection                     `json:"tls" yaml:"tls" mapstructure:"tls"`
+	Entries          map[string]*modules.ModuleConfig `json:"entries" yaml:"entries" mapstructure:"entries"`
 }
 
 // RouteEntry is the struct for a route entry
@@ -187,6 +198,7 @@ type Configuration struct {
 	Updater         UpdaterEntry                     `json:"updater" yaml:"updater" mapstructure:"updater"`
 	WifiWatchdog    WatchdogEntry                    `json:"wifi_watchdog" yaml:"wifi_watchdog" mapstructure:"wifi_watchdog"`
 	Plugins         PluginEntry                      `json:"plugins" yaml:"plugins" mapstructure:"plugins"`
+	Modules         ModuleEntry                      `json:"modules" yaml:"modules" mapstructure:"modules"`
 	CustomEndpoints []map[string]*RouteEntry         `json:"custom_endpoints" yaml:"custom_endpoints" mapstructure:"custom_endpoints"` //TODO: Needs to be updated for new architecture
 	Output          OutputEntry                      `json:"output" yaml:"output" mapstructure:"output"`
 	logger          *zap.Logger

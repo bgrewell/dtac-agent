@@ -28,6 +28,7 @@ const (
 	installPrefix   = "/opt/dtac"
 	installBinDir   = "/opt/dtac/bin"
 	installPlugDir  = "/opt/dtac/plugins"
+	installModDir   = "/opt/dtac/modules"
 	etcDtacDir      = "/etc/dtac"
 	etcDtacCfg      = "/etc/dtac/config.yaml"
 	systemdUnitSrc  = "service/systemd/dtac-agentd.service"
@@ -283,6 +284,9 @@ func Container() error {
 	if err := Plugins(); err != nil {
 		return err
 	}
+	if err := Modules(); err != nil {
+		return err
+	}
 	if err := runWith(nil, "cp", "-r", "bin", "deployments/docker"); err != nil {
 		return err
 	}
@@ -384,6 +388,69 @@ func buildPlugins(source string, os string, arch string, binary string) error {
 	return runWith(env, goexe, "build", "-tags", buildTags(), "-o", output, source)
 }
 
+func Modules() error {
+	fmt.Println("Building modules")
+	// Define a struct to unmarshal the build.yaml contents into.
+	type BuildInfo struct {
+		Name      string   `yaml:"name"`
+		Entry     string   `yaml:"entry"`
+		Platforms []string `yaml:"platforms"`
+	}
+
+	buildFiles, err := findBuildYAMLFiles("cmd/modules")
+	if err != nil {
+		return err
+	}
+
+	for _, filename := range buildFiles {
+		var buildInfo BuildInfo
+
+		data, err := ioutil.ReadFile(filename)
+		if err != nil {
+			return fmt.Errorf("failed reading %s: %v", filename, err)
+		}
+
+		err = yaml.Unmarshal(data, &buildInfo)
+		if err != nil {
+			return fmt.Errorf("failed unmarshaling %s: %v", filename, err)
+		}
+
+		// Run the go build command using the extracted name, entry, and platforms values.
+		for _, platform := range buildInfo.Platforms {
+			parts := strings.Split(platform, ":")
+			os := parts[0]
+			arch := "amd64"
+			if len(parts) > 1 {
+				arch = parts[1]
+			}
+
+			fmt.Printf("  Compiling %s for %s %s\n", buildInfo.Name, os, arch)
+			inPath := filepath.Dir(filename)
+			outPath := fmt.Sprintf("bin/modules/%s.module", buildInfo.Name)
+			err := buildModules(path.Join(inPath, buildInfo.Entry), os, arch, outPath)
+			if err != nil {
+				return fmt.Errorf("failed building module %s: %v", buildInfo.Name, err)
+			}
+		}
+	}
+
+	return nil
+}
+
+func buildModules(source string, os string, arch string, binary string) error {
+	extension := ""
+	if os == "windows" {
+		extension = ".exe"
+	} else if os == "darwin" {
+		extension = ".app"
+	}
+	env := flagEnv()
+	env["GOOS"] = os
+	env["GOARCH"] = arch
+	output := fmt.Sprintf("%s%s", binary, extension)
+	return runWith(env, goexe, "build", "-tags", buildTags(), "-o", output, source)
+}
+
 func Clean() error {
 	os.RemoveAll("dist")
 	os.RemoveAll("bin")
@@ -455,20 +522,26 @@ func Install() error {
 		return errors.New("systemd not detected; Install requires systemd for service management")
 	}
 
-	// 1) Build: agent, cli, plugins (current code builds multiple platforms; for install we only need host)
-	// Reuse existing tasks so the artifacts exist in ./bin and ./bin/plugins
+	// 1) Build: agent, cli, plugins, modules (current code builds multiple platforms; for install we only need host)
+	// Reuse existing tasks so the artifacts exist in ./bin, ./bin/plugins, and ./bin/modules
 	if err := buildHostOnly(); err != nil {
 		return err
 	}
 	//if err := Plugins(); err != nil {
 	//	return err
 	//}
+	//if err := Modules(); err != nil {
+	//	return err
+	//}
 
-	// 2) Create /opt/dtac/{bin,plugins}
+	// 2) Create /opt/dtac/{bin,plugins,modules}
 	if err := ensureDir(installBinDir, 0o755); err != nil {
 		return err
 	}
 	if err := ensureDir(installPlugDir, 0o755); err != nil {
+		return err
+	}
+	if err := ensureDir(installModDir, 0o755); err != nil {
 		return err
 	}
 
@@ -489,22 +562,27 @@ func Install() error {
 		return err
 	}
 
-	// 5) Create /etc/dtac
+	// 5) Copy all modules
+	if err := copyModules("bin/modules", installModDir); err != nil {
+		return err
+	}
+
+	// 6) Create /etc/dtac
 	if err := ensureDir(etcDtacDir, 0o755); err != nil {
 		return err
 	}
 
-	// 6) Copy example config
+	// 7) Copy example config
 	if err := copyFile(cfgSrcExample, etcDtacCfg, 0o600); err != nil {
 		return err
 	}
 
-	// 7) Generate 8-char alnum password and replace placeholder
+	// 8) Generate 8-char alnum password and replace placeholder
 	if err := replaceConfigPassword(etcDtacCfg, cfgPassMarker); err != nil {
 		return err
 	}
 
-	// 8) Install systemd service, reload, enable
+	// 9) Install systemd service, reload, enable
 	if err := copyFile(systemdUnitSrc, systemdUnitDest, 0o644); err != nil {
 		return err
 	}
@@ -515,13 +593,13 @@ func Install() error {
 		return err
 	}
 
-	// 9) Symlink /usr/bin/dtac -> /opt/dtac/bin/dtac
+	// 10) Symlink /usr/bin/dtac -> /opt/dtac/bin/dtac
 	_ = os.Remove(usrBinSymlink) // best-effort remove if exists
 	if err := os.Symlink(filepath.Join(installBinDir, "dtac"), usrBinSymlink); err != nil {
 		return fmt.Errorf("create symlink %s -> %s: %w", usrBinSymlink, filepath.Join(installBinDir, "dtac"), err)
 	}
 
-	// 10) Start service
+	// 11) Start service
 	if err := runCmd("systemctl", "start", "dtac-agentd.service"); err != nil {
 		return err
 	}
@@ -641,6 +719,27 @@ func copyPlugins(srcDir, dstDir string) error {
 		}
 		// Only copy *.plugin* (linux: .plugin; other OS may have suffixes)
 		if !strings.HasPrefix(e.Name(), ".") && strings.Contains(e.Name(), ".plugin") {
+			src := filepath.Join(srcDir, e.Name())
+			dst := filepath.Join(dstDir, e.Name())
+			if err := copyFile(src, dst, 0o755); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func copyModules(srcDir, dstDir string) error {
+	entries, err := os.ReadDir(srcDir)
+	if err != nil {
+		return fmt.Errorf("read %s: %w", srcDir, err)
+	}
+	for _, e := range entries {
+		if e.IsDir() {
+			continue
+		}
+		// Only copy *.module* (linux: .module; other OS may have suffixes)
+		if !strings.HasPrefix(e.Name(), ".") && strings.Contains(e.Name(), ".module") {
 			src := filepath.Join(srcDir, e.Name())
 			dst := filepath.Join(dstDir, e.Name())
 			if err := copyFile(src, dst, 0o755); err != nil {

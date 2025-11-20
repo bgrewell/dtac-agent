@@ -19,6 +19,7 @@ import (
 	"github.com/bgrewell/dtac-agent/internal/helpers"
 	"github.com/bgrewell/dtac-agent/internal/interfaces"
 	"github.com/bgrewell/dtac-agent/internal/middleware"
+	"github.com/bgrewell/dtac-agent/internal/module"
 	"github.com/bgrewell/dtac-agent/internal/network"
 	"github.com/bgrewell/dtac-agent/internal/plugin"
 	"github.com/bgrewell/dtac-agent/internal/system"
@@ -191,6 +192,7 @@ func main() {
 			AsSubsystem(authn.NewSubsystem),         // Authentication Subsystem
 			AsSubsystem(authz.NewSubsystem),         // Authorization Subsystem
 			AsSubsystem(plugin.NewSubsystem),        // Plugin Subsystem
+			AsSubsystem(module.NewSubsystem),        // Module Subsystem
 			AsSubsystem(network.NewSubsystem),       // Network Subsystem
 			AsSubsystem(hardware.NewSubsystem),      // Hardware Subsystem
 			AsSubsystem(system.NewSubsystem),        // System Subsystem

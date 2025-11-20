@@ -23,6 +23,10 @@ dist/
 update/
 package/
 
+# Binary in root (from build)
+/agent
+/dtac-agentd
+
 # Local directories
 .old/
 .scripts/

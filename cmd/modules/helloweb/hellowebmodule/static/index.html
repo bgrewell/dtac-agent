@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DTAC Hello Web Module</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        p {
+            color: #666;
+            line-height: 1.6;
+        }
+        .info {
+            background-color: #e7f3ff;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>DTAC Hello Web Module</h1>
+        <p>This is an example web module for the DTAC framework.</p>
+        
+        <div class="info">
+            <strong>Module Type:</strong> Web Module with Embedded Static Assets<br>
+            <strong>Technology:</strong> Go + fs.embed<br>
+            <strong>Purpose:</strong> Demonstrate the DTAC module system for hosting web frontends
+        </div>
+        
+        <h2>Features</h2>
+        <ul>
+            <li>Embedded static assets (no external file dependencies)</li>
+            <li>Integrated with DTAC module system</li>
+            <li>Structured logging to DTAC agent</li>
+            <li>Extensible for proxy routes and authentication</li>
+        </ul>
+        
+        <p><em>This module runs as a separate process managed by the DTAC agent.</em></p>
+    </div>
+</body>
+</html>

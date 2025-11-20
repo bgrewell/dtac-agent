@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Go
-protoc --proto_path=. --go_out=paths=source_relative:go/. --go-grpc_out=paths=source_relative:go/. ./plugin.proto ./frontend.proto
+protoc --proto_path=. --go_out=paths=source_relative:go/. --go-grpc_out=paths=source_relative:go/. ./plugin.proto ./frontend.proto ./module.proto
 
 # Python - There is a work around here due to Python having a broken protoc package/plugin/integration
 # Check for the existence of the virtual environment directory
@@ -20,7 +20,7 @@ if [ -f "requirements.txt" ]; then
 fi
 
 # Run the protobuf compilation command
-python3 -m grpc_tools.protoc --proto_path=. --python_out=./python --pyi_out=./python --grpc_python_out=./python plugin.proto
+python3 -m grpc_tools.protoc --proto_path=. --python_out=./python --pyi_out=./python --grpc_python_out=./python plugin.proto module.proto
 
 # Deactivate the virtual environment
 deactivate

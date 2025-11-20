@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package module;
+
+option go_package = "github.com/bgrewell/dtac-agent/api/grpc/go";
+
+import "plugin.proto";
+
+service ModuleService {
+  rpc Register(ModuleRegisterRequest) returns (ModuleRegisterResponse);
+  rpc Call (plugin.EndpointRequestMessage) returns (plugin.EndpointResponseMessage);
+  rpc LoggingStream(plugin.LoggingArgs) returns (stream plugin.LogMessage);
+  rpc RequestToken(TokenRequest) returns (TokenResponse);
+  rpc RefreshToken(TokenRefreshRequest) returns (TokenResponse);
+}
+
+// ModuleRegisterRequest contains the configuration and metadata for module registration
+message ModuleRegisterRequest {
+  // Config contains module-specific configuration as JSON
+  string config = 1;
+  // DefaultSecure indicates if endpoints should be secure by default
+  bool default_secure = 2;
+}
+
+// ModuleRegisterResponse contains module registration details
+message ModuleRegisterResponse {
+  // ModuleType indicates the type of module (e.g., "web", "daemon")
+  string module_type = 1;
+  // Capabilities lists what the module supports (e.g., "static_files", "proxy", "api")
+  repeated string capabilities = 2;
+  // Endpoints lists the API endpoints this module exposes through DTAC
+  repeated plugin.PluginEndpoint endpoints = 3;
+}
+
+// TokenRequest is used by modules to request JWT tokens from DTAC
+message TokenRequest {
+  // Scopes are the requested permissions/scopes for the token
+  repeated string scopes = 1;
+  // ExpiresIn is the requested token lifetime in seconds (agent may override)
+  int64 expires_in = 2;
+}
+
+// TokenRefreshRequest is used to refresh an existing token
+message TokenRefreshRequest {
+  // RefreshToken is the refresh token to exchange for a new access token
+  string refresh_token = 1;
+}
+
+// TokenResponse contains the issued JWT token
+message TokenResponse {
+  // AccessToken is the JWT access token
+  string access_token = 1;
+  // RefreshToken is the refresh token (if applicable)
+  string refresh_token = 2;
+  // ExpiresIn is the token lifetime in seconds
+  int64 expires_in = 3;
+  // TokenType is typically "Bearer"
+  string token_type = 4;
+}
