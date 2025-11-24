@@ -92,6 +92,17 @@ modules:
       config:
         port: 8090
         debug: true  # Enable debug logging to see HTTP request details
+        # Runtime environment variables for frontend applications
+        # These are exposed via /config.js for React/Vite apps to consume at runtime
+        # instead of build time. Access in JS via: window.__DTAC_CONFIG__.API_URL
+        # When runtime_env is configured, the config.js script tag is automatically
+        # injected into all HTML pages. Set inject_config: false to disable this.
+        # inject_config: false  # Uncomment to disable automatic script injection
+        runtime_env:
+          API_URL: https://api.example.com
+          API_TOKEN: your-api-token
+          FEATURE_FLAGS: "true"
+          APP_VERSION: "1.0.0"
         proxy_routes:
           # Example 1: MAAS API proxy with OAuth 1.0a authentication
           # MAAS requires a 3-part API key: consumer_key:token_key:token_secret
