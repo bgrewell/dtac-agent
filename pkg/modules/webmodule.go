@@ -30,6 +30,11 @@ type WebModuleConfig struct {
 	// These can be used by React/Vite applications that need runtime configuration
 	// Example: {"API_URL": "https://api.example.com", "FEATURE_FLAG": "true"}
 	RuntimeEnv map[string]string `json:"runtime_env"`
+	// InjectConfig automatically injects the config.js script tag into HTML pages
+	// When true (default), the module intercepts HTML responses and adds
+	// <script src="/config.js"></script> before </head>
+	// Set to false to disable automatic injection and manually include the script
+	InjectConfig *bool `json:"inject_config"`
 }
 
 // ProxyRouteConfig defines a proxy route to a backend service
@@ -194,8 +199,18 @@ func (w *WebModuleBase) Start() error {
 		port = 8080 // default port
 	}
 
+	// Build handler chain
+	var handler http.Handler = mux
+	
+	// Apply HTML injection middleware if enabled (default: true when runtime_env is configured)
+	// Note: We check config directly here since we already hold the lock
+	injectEnabled := w.config.InjectConfig == nil || *w.config.InjectConfig
+	if injectEnabled && len(w.config.RuntimeEnv) > 0 {
+		handler = w.htmlInjectionMiddleware(handler)
+	}
+	
 	// Wrap handler with logging middleware
-	handler := w.loggingMiddleware(mux)
+	handler = w.loggingMiddleware(handler)
 
 	w.server = &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
@@ -310,6 +325,130 @@ func (w *WebModuleBase) loggingMiddleware(next http.Handler) http.Handler {
 			next.ServeHTTP(rw, r)
 		}
 	})
+}
+
+// htmlInjectionMiddleware intercepts HTML responses and injects the config.js script tag
+func (w *WebModuleBase) htmlInjectionMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		// Skip injection for the config.js endpoint itself
+		if r.URL.Path == "/config.js" {
+			next.ServeHTTP(rw, r)
+			return
+		}
+
+		// Create a response wrapper to capture the response
+		wrapper := &htmlInjectionResponseWriter{
+			ResponseWriter: rw,
+			request:        r,
+			statusCode:     http.StatusOK,
+		}
+
+		// Call the next handler
+		next.ServeHTTP(wrapper, r)
+
+		// If we buffered HTML content, inject and write it now
+		if wrapper.bufferedHTML != nil {
+			// Inject the config.js script tag before </head>
+			html := wrapper.bufferedHTML
+			injectedHTML := injectConfigScript(html)
+			
+			// Update Content-Length header (must be set before WriteHeader)
+			rw.Header().Set("Content-Length", fmt.Sprintf("%d", len(injectedHTML)))
+			rw.WriteHeader(wrapper.statusCode)
+			rw.Write(injectedHTML)
+		}
+	})
+}
+
+// htmlInjectionResponseWriter wraps http.ResponseWriter to intercept HTML responses
+type htmlInjectionResponseWriter struct {
+	http.ResponseWriter
+	request      *http.Request
+	statusCode   int
+	bufferedHTML []byte
+	wroteHeader  bool
+	isHTML       bool
+	checked      bool
+}
+
+func (w *htmlInjectionResponseWriter) WriteHeader(code int) {
+	w.statusCode = code
+	
+	// Check if this is an HTML response
+	if !w.checked {
+		w.checked = true
+		contentType := w.Header().Get("Content-Type")
+		w.isHTML = strings.Contains(contentType, "text/html")
+	}
+	
+	// For non-HTML responses, write header immediately
+	if !w.isHTML {
+		w.wroteHeader = true
+		w.ResponseWriter.WriteHeader(code)
+	}
+	// For HTML responses, delay writing header until we inject the script
+}
+
+func (w *htmlInjectionResponseWriter) Write(b []byte) (int, error) {
+	// Check content type on first write if not already checked
+	if !w.checked {
+		w.checked = true
+		contentType := w.Header().Get("Content-Type")
+		w.isHTML = strings.Contains(contentType, "text/html")
+		
+		// For non-HTML responses, write header if needed
+		if !w.isHTML && !w.wroteHeader {
+			w.wroteHeader = true
+			w.ResponseWriter.WriteHeader(w.statusCode)
+		}
+	}
+
+	// For HTML responses, buffer the content
+	if w.isHTML {
+		w.bufferedHTML = append(w.bufferedHTML, b...)
+		return len(b), nil
+	}
+
+	// For non-HTML responses, write directly
+	if !w.wroteHeader {
+		w.wroteHeader = true
+		w.ResponseWriter.WriteHeader(w.statusCode)
+	}
+	return w.ResponseWriter.Write(b)
+}
+
+// injectConfigScript injects the config.js script tag into HTML content
+func injectConfigScript(html []byte) []byte {
+	htmlStr := string(html)
+	scriptTag := `<script src="/config.js"></script>`
+	
+	// Try to inject before </head>
+	headCloseIdx := strings.Index(strings.ToLower(htmlStr), "</head>")
+	if headCloseIdx != -1 {
+		return []byte(htmlStr[:headCloseIdx] + scriptTag + "\n" + htmlStr[headCloseIdx:])
+	}
+	
+	// Fallback: inject after <head> if </head> not found
+	headOpenIdx := strings.Index(strings.ToLower(htmlStr), "<head>")
+	if headOpenIdx != -1 {
+		insertPos := headOpenIdx + 6 // length of "<head>"
+		return []byte(htmlStr[:insertPos] + "\n" + scriptTag + htmlStr[insertPos:])
+	}
+	
+	// Fallback: inject at the beginning of <body>
+	lowerHTML := strings.ToLower(htmlStr)
+	bodyOpenIdx := strings.Index(lowerHTML, "<body")
+	if bodyOpenIdx != -1 {
+		// Find the closing > of the body tag (use lowercase version for consistency)
+		closeIdx := strings.Index(lowerHTML[bodyOpenIdx:], ">")
+		if closeIdx != -1 {
+			insertPos := bodyOpenIdx + closeIdx + 1
+			return []byte(htmlStr[:insertPos] + "\n" + scriptTag + htmlStr[insertPos:])
+		}
+	}
+	
+	// Last resort: prepend to the content
+	return []byte(scriptTag + "\n" + htmlStr)
 }
 
 // SetConfig sets the web module configuration
@@ -648,6 +787,11 @@ func ParseWebModuleConfig(configMap map[string]interface{}) WebModuleConfig {
 				}
 			}
 		}
+	}
+
+	// Parse inject_config (defaults to true if not specified)
+	if injectConfig, ok := configMap["inject_config"].(bool); ok {
+		config.InjectConfig = &injectConfig
 	}
 	
 	return config

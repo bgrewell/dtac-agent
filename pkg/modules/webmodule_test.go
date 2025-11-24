@@ -921,3 +921,46 @@ if config.RuntimeEnv["NUMBER_VAL"] != "42" {
 t.Errorf("Expected NUMBER_VAL '42', got '%s'", config.RuntimeEnv["NUMBER_VAL"])
 }
 }
+
+// TestInjectConfigScript tests the HTML injection function
+func TestInjectConfigScript(t *testing.T) {
+tests := []struct {
+name     string
+html     string
+expected string
+}{
+{
+name:     "inject before </head>",
+html:     `<!DOCTYPE html><html><head><title>Test</title></head><body></body></html>`,
+expected: `<!DOCTYPE html><html><head><title>Test</title><script src="/config.js"></script>
+</head><body></body></html>`,
+},
+{
+name:     "inject after <head> if no </head>",
+html:     `<!DOCTYPE html><html><head><title>Test</title><body></body></html>`,
+expected: `<!DOCTYPE html><html><head>
+<script src="/config.js"></script><title>Test</title><body></body></html>`,
+},
+{
+name:     "inject after <body> if no head",
+html:     `<!DOCTYPE html><html><body><p>content</p></body></html>`,
+expected: `<!DOCTYPE html><html><body>
+<script src="/config.js"></script><p>content</p></body></html>`,
+},
+{
+name:     "case insensitive HEAD",
+html:     `<!DOCTYPE html><html><HEAD><title>Test</title></HEAD><body></body></html>`,
+expected: `<!DOCTYPE html><html><HEAD><title>Test</title><script src="/config.js"></script>
+</HEAD><body></body></html>`,
+},
+}
+
+for _, tt := range tests {
+t.Run(tt.name, func(t *testing.T) {
+result := string(injectConfigScript([]byte(tt.html)))
+if result != tt.expected {
+t.Errorf("Expected:\n%s\n\nGot:\n%s", tt.expected, result)
+}
+})
+}
+}

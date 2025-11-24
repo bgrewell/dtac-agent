@@ -540,7 +540,25 @@ window.__DTAC_CONFIG__ = {
 
 ### Using in Your Frontend
 
-1. **Add the script to your HTML** (in your React/Vite app's `index.html`):
+**Automatic Injection (Default)**
+
+When `runtime_env` is configured, DTAC automatically injects the `<script src="/config.js"></script>` tag into all HTML pages served by the web module. This means you don't need to manually edit your HTML files - it just works!
+
+To disable automatic injection, set `inject_config: false`:
+
+```yaml
+modules:
+  entries:
+    mywebapp:
+      config:
+        inject_config: false  # Disable automatic script injection
+        runtime_env:
+          API_URL: "https://api.example.com"
+```
+
+**Manual Injection**
+
+If you prefer manual control, disable automatic injection and add the script to your HTML (in your React/Vite app's `index.html`):
 
 ```html
 <!DOCTYPE html>
