@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strings"
 	"sync"
+	"time"
 )
 
 // WebModuleConfig represents configuration specific to web modules
@@ -77,6 +78,7 @@ type WebModuleBase struct {
 	mu           sync.RWMutex
 	isRunning    bool
 	staticGetter func() fs.FS // Function to get static files from concrete implementation
+	httpClient   *http.Client  // Shared HTTP client for proxy requests
 }
 
 // Register registers the web module with the module manager
@@ -115,6 +117,13 @@ func (w *WebModuleBase) Start() error {
 
 	if w.isRunning {
 		return fmt.Errorf("web server is already running")
+	}
+
+	// Initialize HTTP client for proxy requests if not already done
+	if w.httpClient == nil {
+		w.httpClient = &http.Client{
+			Timeout: 30 * time.Second,
+		}
 	}
 
 	// Get static files using the registered getter function
@@ -341,6 +350,17 @@ func (w *WebModuleBase) logStaticFiles(staticFS fs.FS) {
 	}
 }
 
+// normalizePath ensures a path starts with "/" if not empty, or returns "/" if empty
+func normalizePath(path string) string {
+	if path == "" {
+		return "/"
+	}
+	if !strings.HasPrefix(path, "/") {
+		return "/" + path
+	}
+	return path
+}
+
 // createProxyHandler creates an HTTP handler that proxies requests to a backend service
 func (w *WebModuleBase) createProxyHandler(route ProxyRouteConfig, frontendPath string) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
@@ -362,19 +382,11 @@ func (w *WebModuleBase) createProxyHandler(route ProxyRouteConfig, frontendPath 
 			prefix := strings.TrimSuffix(frontendPath, "/")
 			if strings.HasPrefix(backendPath, prefix) {
 				backendPath = strings.TrimPrefix(backendPath, prefix)
-				// Ensure backendPath starts with / if it's not empty
-				if backendPath != "" && !strings.HasPrefix(backendPath, "/") {
-					backendPath = "/" + backendPath
-				}
 			}
 		}
 
-		// Ensure backendPath starts with / if not empty
-		if backendPath == "" {
-			backendPath = "/"
-		} else if !strings.HasPrefix(backendPath, "/") {
-			backendPath = "/" + backendPath
-		}
+		// Normalize the backend path
+		backendPath = normalizePath(backendPath)
 
 		// Combine target base path with backend path
 		targetURL.Path = strings.TrimSuffix(targetURL.Path, "/") + backendPath
@@ -416,9 +428,8 @@ func (w *WebModuleBase) createProxyHandler(route ProxyRouteConfig, frontendPath 
 			})
 		}
 
-		// Execute the proxy request
-		client := &http.Client{}
-		resp, err := client.Do(proxyReq)
+		// Execute the proxy request using shared HTTP client
+		resp, err := w.httpClient.Do(proxyReq)
 		if err != nil {
 			w.Log(LoggingLevelError, "proxy request failed", map[string]string{
 				"target": targetURL.String(),
