@@ -106,6 +106,80 @@ func (h *HelloWebModule) Register(request *api.ModuleRegisterRequest, reply *api
 		}
 	}
 
+	// Parse proxy routes if provided in config
+	if proxyRoutes, ok := config["proxy_routes"]; ok {
+		if routesSlice, ok := proxyRoutes.([]interface{}); ok {
+			for _, routeInterface := range routesSlice {
+				if routeMap, ok := routeInterface.(map[string]interface{}); ok {
+					route := modules.ProxyRouteConfig{}
+					
+					// Parse name
+					if name, ok := routeMap["name"].(string); ok {
+						route.Name = name
+					}
+					
+					// Parse path (optional)
+					if path, ok := routeMap["path"].(string); ok {
+						route.Path = path
+					}
+					
+					// Parse target
+					if target, ok := routeMap["target"].(string); ok {
+						route.Target = target
+					}
+					
+					// Parse strip_path
+					if stripPath, ok := routeMap["strip_path"].(bool); ok {
+						route.StripPath = stripPath
+					}
+					
+					// Parse auth_type
+					if authType, ok := routeMap["auth_type"].(string); ok {
+						route.AuthType = authType
+					}
+					
+					// Parse credentials
+					if credsInterface, ok := routeMap["credentials"]; ok {
+						if credsMap, ok := credsInterface.(map[string]interface{}); ok {
+							creds := modules.ProxyCredentials{}
+							
+							// Parse token
+							if token, ok := credsMap["token"].(string); ok {
+								creds.Token = token
+							}
+							
+							// Parse username
+							if username, ok := credsMap["username"].(string); ok {
+								creds.Username = username
+							}
+							
+							// Parse password
+							if password, ok := credsMap["password"].(string); ok {
+								creds.Password = password
+							}
+							
+							// Parse headers
+							if headersInterface, ok := credsMap["headers"]; ok {
+								if headersMap, ok := headersInterface.(map[string]interface{}); ok {
+									creds.Headers = make(map[string]string)
+									for k, v := range headersMap {
+										if strVal, ok := v.(string); ok {
+											creds.Headers[k] = strVal
+										}
+									}
+								}
+							}
+							
+							route.Credentials = creds
+						}
+					}
+					
+					webConfig.ProxyRoutes = append(webConfig.ProxyRoutes, route)
+				}
+			}
+		}
+	}
+
 	h.SetConfig(webConfig)
 
 	// Log registration
