@@ -52,8 +52,9 @@ func TestProxyRouteConfig_NamedEndpoint(t *testing.T) {
 	// Give the server time to start
 	time.Sleep(100 * time.Millisecond)
 
-	// Test request to the proxy endpoint
-	resp, err := http.Get(fmt.Sprintf("http://localhost:%d/api/maas/blah/machines?id=1234", webModule.GetPort()))
+	// Test request to the proxy endpoint using realistic MAAS API path
+	// This simulates: GET /api/maas/machines/ which would proxy to the MAAS machines endpoint
+	resp, err := http.Get(fmt.Sprintf("http://localhost:%d/api/maas/machines/?hostname=server1", webModule.GetPort()))
 	if err != nil {
 		t.Fatalf("Failed to make request: %v", err)
 	}
@@ -71,14 +72,14 @@ func TestProxyRouteConfig_NamedEndpoint(t *testing.T) {
 		t.Fatalf("Failed to decode response: %v", err)
 	}
 
-	// Verify the backend received the correct path
-	if result["path"] != "/blah/machines" {
-		t.Errorf("Expected path '/blah/machines', got '%s'", result["path"])
+	// Verify the backend received the correct path (with trailing slash as MAAS expects)
+	if result["path"] != "/machines/" {
+		t.Errorf("Expected path '/machines/', got '%s'", result["path"])
 	}
 
 	// Verify query string was preserved
-	if result["query"] != "id=1234" {
-		t.Errorf("Expected query 'id=1234', got '%s'", result["query"])
+	if result["query"] != "hostname=server1" {
+		t.Errorf("Expected query 'hostname=server1', got '%s'", result["query"])
 	}
 }
 

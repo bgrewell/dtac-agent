@@ -93,8 +93,9 @@ modules:
         port: 8090
         debug: true  # Enable debug logging to see HTTP request details
         proxy_routes:
-          # Example 1: Named endpoint with bearer authentication
+          # Example 1: MAAS API proxy with OAuth bearer token
           # Requests to /api/maas/* will be proxied to the MAAS API
+          # Example: GET /api/maas/machines/ -> GET http://192.168.1.100:5240/MAAS/api/2.0/machines/
           - name: maas
             target: http://192.168.1.100:5240/MAAS/api/2.0
             strip_path: true

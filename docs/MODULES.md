@@ -347,8 +347,8 @@ proxy_routes:
       token: your-token
 ```
 
-Request to: `/api/maas/machines?id=1234`  
-Proxied to: `http://maas-server:5240/MAAS/api/2.0/machines?id=1234`
+Request to: `/api/maas/machines/`  
+Proxied to: `http://maas-server:5240/MAAS/api/2.0/machines/`
 
 #### Custom Paths
 
@@ -425,12 +425,12 @@ proxy_routes:
 The `strip_path` option controls how paths are forwarded:
 
 - `strip_path: true` - Removes the frontend path prefix before proxying
-  - Request: `/api/maas/machines`
-  - Proxied: `http://target/machines`
+  - Request: `/api/maas/machines/`
+  - Proxied: `http://target/machines/`
 
 - `strip_path: false` - Keeps the full path when proxying
-  - Request: `/api/maas/machines`
-  - Proxied: `http://target/api/maas/machines`
+  - Request: `/api/maas/machines/`
+  - Proxied: `http://target/api/maas/machines/`
 
 ### Complete Example
 
