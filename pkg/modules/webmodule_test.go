@@ -574,3 +574,134 @@ func TestProxyRouteConfig_EdgeCases(t *testing.T) {
 		}
 	})
 }
+
+// TestProxyRouteConfig_OAuthAuth tests OAuth 1.0a authentication (MAAS-style)
+func TestProxyRouteConfig_OAuthAuth(t *testing.T) {
+	expectedConsumerKey := "test-consumer-key"
+	expectedToken := "test-token"
+	expectedSecret := "test-secret"
+	
+	// Create a mock backend server that checks OAuth headers
+	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		auth := r.Header.Get("Authorization")
+		
+		// Check that it's an OAuth header
+		if !strings.HasPrefix(auth, "OAuth ") {
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(map[string]string{
+				"error": "missing OAuth header",
+			})
+			return
+		}
+		
+		// Verify OAuth components are present
+		if !strings.Contains(auth, fmt.Sprintf("oauth_consumer_key=\"%s\"", expectedConsumerKey)) {
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(map[string]string{
+				"error": "invalid consumer key",
+			})
+			return
+		}
+		
+		if !strings.Contains(auth, fmt.Sprintf("oauth_token=\"%s\"", expectedToken)) {
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(map[string]string{
+				"error": "invalid token",
+			})
+			return
+		}
+		
+		// Check signature format (PLAINTEXT method: &{token_secret})
+		expectedSig := fmt.Sprintf("%%26%s", expectedSecret)
+		if !strings.Contains(auth, fmt.Sprintf("oauth_signature=\"%s\"", expectedSig)) {
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(map[string]string{
+				"error": "invalid signature",
+				"auth":  auth,
+			})
+			return
+		}
+		
+		// Verify required OAuth parameters
+		requiredParams := []string{
+			"oauth_signature_method=\"PLAINTEXT\"",
+			"oauth_timestamp=",
+			"oauth_nonce=",
+			"oauth_version=\"1.0\"",
+		}
+		
+		for _, param := range requiredParams {
+			if !strings.Contains(auth, param) {
+				w.WriteHeader(http.StatusUnauthorized)
+				json.NewEncoder(w).Encode(map[string]string{
+					"error": fmt.Sprintf("missing parameter: %s", param),
+				})
+				return
+			}
+		}
+		
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{
+			"status": "authenticated",
+		})
+	}))
+	defer backend.Close()
+
+	// Create web module with OAuth proxy configuration
+	webModule := &WebModuleBase{}
+	webModule.SetRootPath("test")
+	webModule.config = WebModuleConfig{
+		Port:       0,
+		StaticPath: "/",
+		ProxyRoutes: []ProxyRouteConfig{
+			{
+				Name:      "maas",
+				Target:    backend.URL,
+				StripPath: true,
+				AuthType:  "oauth",
+				Credentials: ProxyCredentials{
+					OAuthConsumerKey: expectedConsumerKey,
+					OAuthToken:       expectedToken,
+					OAuthTokenSecret: expectedSecret,
+				},
+			},
+		},
+		Debug: true,
+	}
+
+	// Start the web module
+	err := webModule.Start()
+	if err != nil {
+		t.Fatalf("Failed to start web module: %v", err)
+	}
+	defer webModule.Stop()
+
+	// Give the server time to start
+	time.Sleep(100 * time.Millisecond)
+
+	// Test request to the proxy endpoint
+	resp, err := http.Get(fmt.Sprintf("http://localhost:%d/api/maas/machines/", webModule.GetPort()))
+	if err != nil {
+		t.Fatalf("Failed to make request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Check response status
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		t.Errorf("Expected status 200, got %d. Body: %s", resp.StatusCode, string(body))
+		return
+	}
+
+	// Parse response
+	var result map[string]string
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		t.Fatalf("Failed to decode response: %v", err)
+	}
+
+	// Verify authentication worked
+	if result["status"] != "authenticated" {
+		t.Errorf("Expected status 'authenticated', got '%s'", result["status"])
+	}
+}

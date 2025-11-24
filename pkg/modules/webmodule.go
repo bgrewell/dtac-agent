@@ -1,11 +1,13 @@
 package modules
 
 import (
+	"crypto/rand"
 	"embed"
 	"fmt"
 	api "github.com/bgrewell/dtac-agent/api/grpc/go"
 	"io"
 	"io/fs"
+	"math/big"
 	"net/http"
 	"net/url"
 	"strings"
@@ -51,6 +53,12 @@ type ProxyCredentials struct {
 	Username string `json:"username"`
 	// Password for basic authentication
 	Password string `json:"password"`
+	// OAuthConsumerKey for OAuth 1.0a authentication (part 1 of 3-part key)
+	OAuthConsumerKey string `json:"oauth_consumer_key"`
+	// OAuthToken for OAuth 1.0a authentication (part 2 of 3-part key)
+	OAuthToken string `json:"oauth_token"`
+	// OAuthTokenSecret for OAuth 1.0a authentication (part 3 of 3-part key)
+	OAuthTokenSecret string `json:"oauth_token_secret"`
 	// Headers contains custom headers to add to proxied requests
 	Headers map[string]string `json:"headers"`
 }
@@ -481,6 +489,16 @@ func (w *WebModuleBase) addAuthHeaders(req *http.Request, route ProxyRouteConfig
 		if route.Credentials.Username != "" {
 			req.SetBasicAuth(route.Credentials.Username, route.Credentials.Password)
 		}
+	case "oauth":
+		if route.Credentials.OAuthConsumerKey != "" {
+			// Generate OAuth 1.0a header (PLAINTEXT signature method as used by MAAS)
+			oauthHeader := w.generateOAuthHeader(
+				route.Credentials.OAuthConsumerKey,
+				route.Credentials.OAuthToken,
+				route.Credentials.OAuthTokenSecret,
+			)
+			req.Header.Set("Authorization", oauthHeader)
+		}
 	case "none", "":
 		// No authentication
 	default:
@@ -488,4 +506,168 @@ func (w *WebModuleBase) addAuthHeaders(req *http.Request, route ProxyRouteConfig
 			"auth_type": route.AuthType,
 		})
 	}
+}
+
+// generateOAuthHeader generates an OAuth 1.0a authorization header using PLAINTEXT signature method
+// This is compatible with MAAS API authentication
+func (w *WebModuleBase) generateOAuthHeader(consumerKey, token, tokenSecret string) string {
+	// Generate random nonce
+	nonce := generateNonce()
+	
+	// Get current timestamp
+	timestamp := fmt.Sprintf("%d", time.Now().Unix())
+	
+	// Build OAuth header using PLAINTEXT signature method
+	// Signature format: &{token_secret} (note the & prefix and no consumer secret)
+	signature := fmt.Sprintf("%%26%s", tokenSecret)
+	
+	header := fmt.Sprintf(
+		"OAuth oauth_consumer_key=\"%s\",oauth_token=\"%s\",oauth_signature_method=\"PLAINTEXT\","+
+			"oauth_timestamp=\"%s\",oauth_nonce=\"%s\",oauth_version=\"1.0\",oauth_signature=\"%s\"",
+		consumerKey, token, timestamp, nonce, signature,
+	)
+	
+	return header
+}
+
+// generateNonce generates a random nonce for OAuth requests
+func generateNonce() string {
+	// Generate a random number up to 10^10
+	max := big.NewInt(10000000000) // 10^10
+	n, err := rand.Int(rand.Reader, max)
+	if err != nil {
+		// Fallback to timestamp-based nonce if crypto/rand fails
+		return fmt.Sprintf("%d", time.Now().UnixNano())
+	}
+	return n.String()
+}
+
+// ParseWebModuleConfig parses a configuration map into a WebModuleConfig struct
+// This centralizes all configuration parsing logic for web modules
+func ParseWebModuleConfig(configMap map[string]interface{}) WebModuleConfig {
+	config := WebModuleConfig{
+		Port:        8080, // default port
+		StaticPath:  "/",
+		ProxyRoutes: []ProxyRouteConfig{},
+		Debug:       false,
+	}
+	
+	// Parse port
+	if port, ok := configMap["port"]; ok {
+		if portFloat, ok := port.(float64); ok {
+			config.Port = int(portFloat)
+		} else if portInt, ok := port.(int); ok {
+			config.Port = portInt
+		}
+	}
+	
+	// Parse static_path
+	if staticPath, ok := configMap["static_path"].(string); ok {
+		config.StaticPath = staticPath
+	}
+	
+	// Parse debug
+	if debug, ok := configMap["debug"].(bool); ok {
+		config.Debug = debug
+	}
+	
+	// Parse proxy_routes
+	if proxyRoutes, ok := configMap["proxy_routes"]; ok {
+		if routesSlice, ok := proxyRoutes.([]interface{}); ok {
+			for _, routeInterface := range routesSlice {
+				if routeMap, ok := routeInterface.(map[string]interface{}); ok {
+					route := parseProxyRoute(routeMap)
+					config.ProxyRoutes = append(config.ProxyRoutes, route)
+				}
+			}
+		}
+	}
+	
+	return config
+}
+
+// parseProxyRoute extracts a single proxy route configuration from a map
+func parseProxyRoute(routeMap map[string]interface{}) ProxyRouteConfig {
+	route := ProxyRouteConfig{}
+	
+	// Parse name
+	if name, ok := routeMap["name"].(string); ok {
+		route.Name = name
+	}
+	
+	// Parse path (optional)
+	if path, ok := routeMap["path"].(string); ok {
+		route.Path = path
+	}
+	
+	// Parse target
+	if target, ok := routeMap["target"].(string); ok {
+		route.Target = target
+	}
+	
+	// Parse strip_path
+	if stripPath, ok := routeMap["strip_path"].(bool); ok {
+		route.StripPath = stripPath
+	}
+	
+	// Parse auth_type
+	if authType, ok := routeMap["auth_type"].(string); ok {
+		route.AuthType = authType
+	}
+	
+	// Parse credentials
+	if credsInterface, ok := routeMap["credentials"]; ok {
+		if credsMap, ok := credsInterface.(map[string]interface{}); ok {
+			route.Credentials = parseProxyCredentials(credsMap)
+		}
+	}
+	
+	return route
+}
+
+// parseProxyCredentials extracts credential information from a map
+func parseProxyCredentials(credsMap map[string]interface{}) ProxyCredentials {
+	creds := ProxyCredentials{}
+	
+	// Parse token (for bearer auth)
+	if token, ok := credsMap["token"].(string); ok {
+		creds.Token = token
+	}
+	
+	// Parse username (for basic auth)
+	if username, ok := credsMap["username"].(string); ok {
+		creds.Username = username
+	}
+	
+	// Parse password (for basic auth)
+	if password, ok := credsMap["password"].(string); ok {
+		creds.Password = password
+	}
+	
+	// Parse OAuth credentials
+	if oauthConsumerKey, ok := credsMap["oauth_consumer_key"].(string); ok {
+		creds.OAuthConsumerKey = oauthConsumerKey
+	}
+	
+	if oauthToken, ok := credsMap["oauth_token"].(string); ok {
+		creds.OAuthToken = oauthToken
+	}
+	
+	if oauthTokenSecret, ok := credsMap["oauth_token_secret"].(string); ok {
+		creds.OAuthTokenSecret = oauthTokenSecret
+	}
+	
+	// Parse headers (for custom header auth)
+	if headersInterface, ok := credsMap["headers"]; ok {
+		if headersMap, ok := headersInterface.(map[string]interface{}); ok {
+			creds.Headers = make(map[string]string)
+			for k, v := range headersMap {
+				if strVal, ok := v.(string); ok {
+					creds.Headers[k] = strVal
+				}
+			}
+		}
+	}
+	
+	return creds
 }

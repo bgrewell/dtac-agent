@@ -93,15 +93,18 @@ modules:
         port: 8090
         debug: true  # Enable debug logging to see HTTP request details
         proxy_routes:
-          # Example 1: MAAS API proxy with OAuth bearer token
+          # Example 1: MAAS API proxy with OAuth 1.0a authentication
+          # MAAS requires a 3-part API key: consumer_key:token_key:token_secret
           # Requests to /api/maas/* will be proxied to the MAAS API
           # Example: GET /api/maas/machines/ -> GET http://192.168.1.100:5240/MAAS/api/2.0/machines/
           - name: maas
             target: http://192.168.1.100:5240/MAAS/api/2.0
             strip_path: true
-            auth_type: bearer
+            auth_type: oauth
             credentials:
-              token: your-maas-api-token-here
+              oauth_consumer_key: eLck5PkZFx7huB1Ccu
+              oauth_token: ZclTMGR9siVm565E3k
+              oauth_token_secret: 2BeUziHI5Gf3K7sRhn5c4YFZHqxd36Qh
           
           # Example 2: Named endpoint with basic authentication
           - name: jenkins

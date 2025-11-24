@@ -77,37 +77,23 @@ func (h *HelloWebModule) Register(request *api.ModuleRegisterRequest, reply *api
 		Endpoints:    make([]*api.PluginEndpoint, 0),
 	}
 
-	// Parse configuration
-	var config map[string]interface{}
-	err := json.Unmarshal([]byte(request.Config), &config)
+	// Parse configuration using centralized parser
+	var configMap map[string]interface{}
+	err := json.Unmarshal([]byte(request.Config), &configMap)
 	if err != nil {
 		return err
 	}
 
-	// Build web config from parsed values
-	webConfig := modules.WebModuleConfig{
-		Port:        8090, // default
-		StaticPath:  "/",
-		ProxyRoutes: []modules.ProxyRouteConfig{},
-		Debug:       true, // default to debug enabled for examples
+	// Use centralized parsing from modules package
+	webConfig := modules.ParseWebModuleConfig(configMap)
+	
+	// Override defaults for this example module if needed
+	if webConfig.Port == 8080 {
+		webConfig.Port = 8090 // example module default
 	}
-
-	// Update port if provided in config
-	if port, ok := config["port"]; ok {
-		if portFloat, ok := port.(float64); ok {
-			webConfig.Port = int(portFloat)
-		}
+	if !webConfig.Debug {
+		webConfig.Debug = true // enable debug by default for examples
 	}
-
-	// Update debug if provided in config
-	if debug, ok := config["debug"]; ok {
-		if debugBool, ok := debug.(bool); ok {
-			webConfig.Debug = debugBool
-		}
-	}
-
-	// Parse proxy routes if provided in config
-	webConfig.ProxyRoutes = parseProxyRoutes(config)
 
 	h.SetConfig(webConfig)
 
@@ -136,104 +122,4 @@ func (h *HelloWebModule) Register(request *api.ModuleRegisterRequest, reply *api
 	// and add them to reply.Endpoints
 
 	return nil
-}
-
-// parseProxyRoutes extracts proxy route configurations from the config map
-func parseProxyRoutes(config map[string]interface{}) []modules.ProxyRouteConfig {
-	routes := []modules.ProxyRouteConfig{}
-	
-	proxyRoutes, ok := config["proxy_routes"]
-	if !ok {
-		return routes
-	}
-	
-	routesSlice, ok := proxyRoutes.([]interface{})
-	if !ok {
-		return routes
-	}
-	
-	for _, routeInterface := range routesSlice {
-		routeMap, ok := routeInterface.(map[string]interface{})
-		if !ok {
-			continue
-		}
-		
-		route := parseProxyRoute(routeMap)
-		routes = append(routes, route)
-	}
-	
-	return routes
-}
-
-// parseProxyRoute extracts a single proxy route configuration from a map
-func parseProxyRoute(routeMap map[string]interface{}) modules.ProxyRouteConfig {
-	route := modules.ProxyRouteConfig{}
-	
-	// Parse name
-	if name, ok := routeMap["name"].(string); ok {
-		route.Name = name
-	}
-	
-	// Parse path (optional)
-	if path, ok := routeMap["path"].(string); ok {
-		route.Path = path
-	}
-	
-	// Parse target
-	if target, ok := routeMap["target"].(string); ok {
-		route.Target = target
-	}
-	
-	// Parse strip_path
-	if stripPath, ok := routeMap["strip_path"].(bool); ok {
-		route.StripPath = stripPath
-	}
-	
-	// Parse auth_type
-	if authType, ok := routeMap["auth_type"].(string); ok {
-		route.AuthType = authType
-	}
-	
-	// Parse credentials
-	if credsInterface, ok := routeMap["credentials"]; ok {
-		if credsMap, ok := credsInterface.(map[string]interface{}); ok {
-			route.Credentials = parseProxyCredentials(credsMap)
-		}
-	}
-	
-	return route
-}
-
-// parseProxyCredentials extracts credential information from a map
-func parseProxyCredentials(credsMap map[string]interface{}) modules.ProxyCredentials {
-	creds := modules.ProxyCredentials{}
-	
-	// Parse token
-	if token, ok := credsMap["token"].(string); ok {
-		creds.Token = token
-	}
-	
-	// Parse username
-	if username, ok := credsMap["username"].(string); ok {
-		creds.Username = username
-	}
-	
-	// Parse password
-	if password, ok := credsMap["password"].(string); ok {
-		creds.Password = password
-	}
-	
-	// Parse headers
-	if headersInterface, ok := credsMap["headers"]; ok {
-		if headersMap, ok := headersInterface.(map[string]interface{}); ok {
-			creds.Headers = make(map[string]string)
-			for k, v := range headersMap {
-				if strVal, ok := v.(string); ok {
-					creds.Headers[k] = strVal
-				}
-			}
-		}
-	}
-	
-	return creds
 }

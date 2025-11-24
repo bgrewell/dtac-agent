@@ -322,13 +322,15 @@ modules:
         port: 8090
         debug: true
         proxy_routes:
-          # Named endpoint - automatically creates /api/<name>/ route
+          # Named endpoint with OAuth 1.0a - automatically creates /api/<name>/ route
           - name: maas
             target: http://192.168.1.100:5240/MAAS/api/2.0
             strip_path: true
-            auth_type: bearer
+            auth_type: oauth
             credentials:
-              token: your-maas-api-token-here
+              oauth_consumer_key: eLck5PkZFx7huB1Ccu
+              oauth_token: ZclTMGR9siVm565E3k
+              oauth_token_secret: 2BeUziHI5Gf3K7sRhn5c4YFZHqxd36Qh
 ```
 
 ### Proxy Route Configuration Options
@@ -342,9 +344,11 @@ proxy_routes:
   - name: maas
     target: http://maas-server:5240/MAAS/api/2.0
     strip_path: true
-    auth_type: bearer
+    auth_type: oauth
     credentials:
-      token: your-token
+      oauth_consumer_key: your-consumer-key
+      oauth_token: your-token-key
+      oauth_token_secret: your-token-secret
 ```
 
 Request to: `/api/maas/machines/`  
