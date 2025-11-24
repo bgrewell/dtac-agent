@@ -462,3 +462,114 @@ func TestProxyRouteConfig_CustomPath(t *testing.T) {
 		t.Errorf("Expected path '/test', got '%s'", result["path"])
 	}
 }
+
+// TestProxyRouteConfig_EdgeCases tests edge cases in path handling
+func TestProxyRouteConfig_EdgeCases(t *testing.T) {
+	// Create a mock backend server
+	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{
+			"path": r.URL.Path,
+		})
+	}))
+	defer backend.Close()
+
+	// Test case 1: Empty path after stripping
+	t.Run("EmptyPathAfterStripping", func(t *testing.T) {
+		webModule := &WebModuleBase{}
+		webModule.SetRootPath("test")
+		webModule.config = WebModuleConfig{
+			Port:       0,
+			StaticPath: "/static",
+			ProxyRoutes: []ProxyRouteConfig{
+				{
+					Name:      "edge-api",
+					Path:      "/edge/",
+					Target:    backend.URL,
+					StripPath: true,
+					AuthType:  "none",
+				},
+			},
+			Debug: true,
+		}
+
+		err := webModule.Start()
+		if err != nil {
+			t.Fatalf("Failed to start web module: %v", err)
+		}
+		defer webModule.Stop()
+
+		time.Sleep(100 * time.Millisecond)
+
+		// Request to exactly the prefix - should result in / after stripping
+		resp, err := http.Get(fmt.Sprintf("http://localhost:%d/edge/", webModule.GetPort()))
+		if err != nil {
+			t.Fatalf("Failed to make request: %v", err)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			t.Errorf("Expected status 200, got %d", resp.StatusCode)
+		}
+
+		var result map[string]string
+		err = json.NewDecoder(resp.Body).Decode(&result)
+		if err != nil {
+			t.Fatalf("Failed to decode response: %v", err)
+		}
+
+		// Should get "/" as the path
+		if result["path"] != "/" {
+			t.Errorf("Expected path '/', got '%s'", result["path"])
+		}
+	})
+
+	// Test case 2: Path without leading slash after stripping
+	t.Run("NoLeadingSlashAfterStripping", func(t *testing.T) {
+		webModule := &WebModuleBase{}
+		webModule.SetRootPath("test")
+		webModule.config = WebModuleConfig{
+			Port:       0,
+			StaticPath: "/static",
+			ProxyRoutes: []ProxyRouteConfig{
+				{
+					Name:      "slash-api",
+					Path:      "/api/",
+					Target:    backend.URL + "/base",
+					StripPath: true,
+					AuthType:  "none",
+				},
+			},
+			Debug: true,
+		}
+
+		err := webModule.Start()
+		if err != nil {
+			t.Fatalf("Failed to start web module: %v", err)
+		}
+		defer webModule.Stop()
+
+		time.Sleep(100 * time.Millisecond)
+
+		resp, err := http.Get(fmt.Sprintf("http://localhost:%d/api/users", webModule.GetPort()))
+		if err != nil {
+			t.Fatalf("Failed to make request: %v", err)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			t.Errorf("Expected status 200, got %d", resp.StatusCode)
+		}
+
+		var result map[string]string
+		err = json.NewDecoder(resp.Body).Decode(&result)
+		if err != nil {
+			t.Fatalf("Failed to decode response: %v", err)
+		}
+
+		// Should get "/base/users" as the path
+		if result["path"] != "/base/users" {
+			t.Errorf("Expected path '/base/users', got '%s'", result["path"])
+		}
+	})
+}

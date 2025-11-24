@@ -359,7 +359,21 @@ func (w *WebModuleBase) createProxyHandler(route ProxyRouteConfig, frontendPath 
 		backendPath := r.URL.Path
 		if route.StripPath {
 			// Remove the frontend path prefix
-			backendPath = strings.TrimPrefix(backendPath, strings.TrimSuffix(frontendPath, "/"))
+			prefix := strings.TrimSuffix(frontendPath, "/")
+			if strings.HasPrefix(backendPath, prefix) {
+				backendPath = strings.TrimPrefix(backendPath, prefix)
+				// Ensure backendPath starts with / if it's not empty
+				if backendPath != "" && !strings.HasPrefix(backendPath, "/") {
+					backendPath = "/" + backendPath
+				}
+			}
+		}
+
+		// Ensure backendPath starts with / if not empty
+		if backendPath == "" {
+			backendPath = "/"
+		} else if !strings.HasPrefix(backendPath, "/") {
+			backendPath = "/" + backendPath
 		}
 
 		// Combine target base path with backend path
