@@ -304,6 +304,191 @@ ProxyRoutes: []modules.ProxyRouteConfig{
 }
 ```
 
+## Web Module Proxy Routes
+
+Web modules now support proxy routes to forward requests to backend services with authentication. This feature is useful for:
+- Creating a unified API gateway through DTAC
+- Adding authentication to backend services
+- Proxying to internal services (e.g., MAAS, Jenkins, etc.)
+- Injecting custom headers or credentials
+
+### Basic Proxy Configuration
+
+```yaml
+modules:
+  entries:
+    helloweb:
+      config:
+        port: 8090
+        debug: true
+        proxy_routes:
+          # Named endpoint with OAuth 1.0a - automatically creates /api/<name>/ route
+          - name: maas
+            target: http://192.168.1.100:5240/MAAS/api/2.0
+            strip_path: true
+            auth_type: oauth
+            credentials:
+              oauth_consumer_key: eLck5PkZFx7huB1Ccu
+              oauth_token: ZclTMGR9siVm565E3k
+              oauth_token_secret: 2BeUziHI5Gf3K7sRhn5c4YFZHqxd36Qh
+```
+
+### Proxy Route Configuration Options
+
+#### Named Endpoints
+
+When using the `name` field, the module automatically creates a route at `/api/<name>/`:
+
+```yaml
+proxy_routes:
+  - name: maas
+    target: http://maas-server:5240/MAAS/api/2.0
+    strip_path: true
+    auth_type: oauth
+    credentials:
+      oauth_consumer_key: your-consumer-key
+      oauth_token: your-token-key
+      oauth_token_secret: your-token-secret
+```
+
+Request to: `/api/maas/machines/`  
+Proxied to: `http://maas-server:5240/MAAS/api/2.0/machines/`
+
+#### Custom Paths
+
+You can specify a custom path instead of using the default `/api/<name>/`:
+
+```yaml
+proxy_routes:
+  - name: legacy-api
+    path: /legacy/endpoint/
+    target: http://legacy.internal:8000
+    strip_path: true
+    auth_type: none
+```
+
+### Authentication Types
+
+#### Bearer Token Authentication
+
+```yaml
+proxy_routes:
+  - name: secure-api
+    target: http://api.internal:8080
+    strip_path: true
+    auth_type: bearer
+    credentials:
+      token: your-bearer-token
+```
+
+The module adds the header: `Authorization: Bearer your-bearer-token`
+
+#### Basic Authentication
+
+```yaml
+proxy_routes:
+  - name: jenkins
+    target: http://jenkins.internal:8080
+    strip_path: true
+    auth_type: basic
+    credentials:
+      username: api-user
+      password: api-password
+```
+
+The module adds the appropriate `Authorization: Basic <base64>` header.
+
+#### No Authentication
+
+```yaml
+proxy_routes:
+  - name: public-api
+    target: http://public.internal:3000
+    strip_path: true
+    auth_type: none
+```
+
+#### Custom Headers
+
+You can add custom headers to proxied requests:
+
+```yaml
+proxy_routes:
+  - name: custom-service
+    target: http://service.internal:3000/api
+    strip_path: true
+    auth_type: none
+    credentials:
+      headers:
+        X-API-Key: your-api-key
+        X-Service-Version: v1
+```
+
+### Strip Path Behavior
+
+The `strip_path` option controls how paths are forwarded:
+
+- `strip_path: true` - Removes the frontend path prefix before proxying
+  - Request: `/api/maas/machines/`
+  - Proxied: `http://target/machines/`
+
+- `strip_path: false` - Keeps the full path when proxying
+  - Request: `/api/maas/machines/`
+  - Proxied: `http://target/api/maas/machines/`
+
+### Complete Example
+
+```yaml
+modules:
+  entries:
+    helloweb:
+      config:
+        port: 8090
+        debug: true
+        static_path: /
+        proxy_routes:
+          # MAAS API with bearer token
+          - name: maas
+            target: http://192.168.1.100:5240/MAAS/api/2.0
+            strip_path: true
+            auth_type: bearer
+            credentials:
+              token: maas-api-token-here
+          
+          # Jenkins with basic auth
+          - name: jenkins
+            target: http://jenkins.internal:8080
+            strip_path: true
+            auth_type: basic
+            credentials:
+              username: jenkins-user
+              password: jenkins-pass
+          
+          # Custom service with API key header
+          - name: custom-service
+            target: http://service.internal:3000/api
+            strip_path: true
+            auth_type: none
+            credentials:
+              headers:
+                X-API-Key: service-api-key
+                X-Service-Version: v1
+          
+          # Legacy endpoint with custom path
+          - name: legacy-api
+            path: /legacy/endpoint/
+            target: http://legacy.internal:8000
+            strip_path: true
+            auth_type: none
+```
+
+### Security Considerations
+
+1. **Credentials in Configuration**: Store sensitive tokens and passwords securely
+2. **TLS/HTTPS**: Use HTTPS for backend targets when possible
+3. **Access Control**: Consider adding DTAC authentication to your web module endpoints
+4. **Debug Mode**: Disable debug logging in production to avoid leaking sensitive information
+
 ## Troubleshooting
 
 ### Module Not Starting

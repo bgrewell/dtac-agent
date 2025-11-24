@@ -77,33 +77,22 @@ func (h *HelloWebModule) Register(request *api.ModuleRegisterRequest, reply *api
 		Endpoints:    make([]*api.PluginEndpoint, 0),
 	}
 
-	// Parse configuration
-	var config map[string]interface{}
-	err := json.Unmarshal([]byte(request.Config), &config)
+	// Parse configuration using centralized parser
+	var configMap map[string]interface{}
+	err := json.Unmarshal([]byte(request.Config), &configMap)
 	if err != nil {
 		return err
 	}
 
-	// Build web config from parsed values
-	webConfig := modules.WebModuleConfig{
-		Port:        8090, // default
-		StaticPath:  "/",
-		ProxyRoutes: []modules.ProxyRouteConfig{},
-		Debug:       true, // default to debug enabled for examples
+	// Use centralized parsing from modules package
+	webConfig := modules.ParseWebModuleConfig(configMap)
+	
+	// Override defaults for this example module if needed
+	if webConfig.Port == 8080 {
+		webConfig.Port = 8090 // example module default
 	}
-
-	// Update port if provided in config
-	if port, ok := config["port"]; ok {
-		if portFloat, ok := port.(float64); ok {
-			webConfig.Port = int(portFloat)
-		}
-	}
-
-	// Update debug if provided in config
-	if debug, ok := config["debug"]; ok {
-		if debugBool, ok := debug.(bool); ok {
-			webConfig.Debug = debugBool
-		}
+	if !webConfig.Debug {
+		webConfig.Debug = true // enable debug by default for examples
 	}
 
 	h.SetConfig(webConfig)

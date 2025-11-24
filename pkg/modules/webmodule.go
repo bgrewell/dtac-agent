@@ -1,12 +1,18 @@
 package modules
 
 import (
+	"crypto/rand"
 	"embed"
 	"fmt"
 	api "github.com/bgrewell/dtac-agent/api/grpc/go"
+	"io"
 	"io/fs"
+	"math/big"
 	"net/http"
+	"net/url"
+	"strings"
 	"sync"
+	"time"
 )
 
 // WebModuleConfig represents configuration specific to web modules
@@ -23,14 +29,38 @@ type WebModuleConfig struct {
 
 // ProxyRouteConfig defines a proxy route to a backend service
 type ProxyRouteConfig struct {
+	// Name is the identifier for this proxy endpoint (e.g., "maas")
+	// Requests to /api/<name>/* will be proxied to Target
+	Name string `json:"name"`
 	// Path is the frontend path to match (e.g., "/api")
+	// If not specified and Name is provided, defaults to "/api/<name>"
 	Path string `json:"path"`
-	// Target is the backend URL to proxy to
+	// Target is the backend URL to proxy to (e.g., "http://internal.ip/base")
 	Target string `json:"target"`
 	// StripPath indicates whether to remove the path prefix when proxying
 	StripPath bool `json:"strip_path"`
-	// InjectToken indicates whether to inject auth tokens
-	InjectToken bool `json:"inject_token"`
+	// AuthType specifies the authentication type (e.g., "bearer", "basic", "none")
+	AuthType string `json:"auth_type"`
+	// Credentials holds authentication credentials
+	Credentials ProxyCredentials `json:"credentials"`
+}
+
+// ProxyCredentials holds authentication information for proxy routes
+type ProxyCredentials struct {
+	// Token for bearer authentication
+	Token string `json:"token"`
+	// Username for basic authentication
+	Username string `json:"username"`
+	// Password for basic authentication
+	Password string `json:"password"`
+	// OAuthConsumerKey for OAuth 1.0a authentication (part 1 of 3-part key)
+	OAuthConsumerKey string `json:"oauth_consumer_key"`
+	// OAuthToken for OAuth 1.0a authentication (part 2 of 3-part key)
+	OAuthToken string `json:"oauth_token"`
+	// OAuthTokenSecret for OAuth 1.0a authentication (part 3 of 3-part key)
+	OAuthTokenSecret string `json:"oauth_token_secret"`
+	// Headers contains custom headers to add to proxied requests
+	Headers map[string]string `json:"headers"`
 }
 
 // WebModule is a specialized module for hosting web frontends
@@ -56,6 +86,7 @@ type WebModuleBase struct {
 	mu           sync.RWMutex
 	isRunning    bool
 	staticGetter func() fs.FS // Function to get static files from concrete implementation
+	httpClient   *http.Client  // Shared HTTP client for proxy requests
 }
 
 // Register registers the web module with the module manager
@@ -96,6 +127,13 @@ func (w *WebModuleBase) Start() error {
 		return fmt.Errorf("web server is already running")
 	}
 
+	// Initialize HTTP client for proxy requests if not already done
+	if w.httpClient == nil {
+		w.httpClient = &http.Client{
+			Timeout: 30 * time.Second,
+		}
+	}
+
 	// Get static files using the registered getter function
 	var staticFS fs.FS
 	if w.staticGetter != nil {
@@ -116,13 +154,29 @@ func (w *WebModuleBase) Start() error {
 		}
 	}
 
-	// Setup proxy routes (placeholder - will be implemented in future iterations)
+	// Setup proxy routes
 	for _, route := range w.config.ProxyRoutes {
-		w.Log(LoggingLevelDebug, "proxy route configured", map[string]string{
-			"path":   route.Path,
+		// Determine the path to handle
+		path := route.Path
+		if path == "" && route.Name != "" {
+			// Default path to /api/<name>
+			path = "/api/" + route.Name + "/"
+		}
+		
+		// Ensure path ends with "/" for prefix matching
+		if !strings.HasSuffix(path, "/") {
+			path = path + "/"
+		}
+
+		w.Log(LoggingLevelInfo, "proxy route configured", map[string]string{
+			"name":   route.Name,
+			"path":   path,
 			"target": route.Target,
 		})
-		// TODO: Implement proxy handler
+
+		// Create proxy handler for this route
+		handler := w.createProxyHandler(route, path)
+		mux.Handle(path, handler)
 	}
 
 	// Determine port
@@ -302,4 +356,318 @@ func (w *WebModuleBase) logStaticFiles(staticFS fs.FS) {
 			})
 		}
 	}
+}
+
+// normalizePath ensures a path starts with "/" if not empty, or returns "/" if empty
+func normalizePath(path string) string {
+	if path == "" {
+		return "/"
+	}
+	if !strings.HasPrefix(path, "/") {
+		return "/" + path
+	}
+	return path
+}
+
+// createProxyHandler creates an HTTP handler that proxies requests to a backend service
+func (w *WebModuleBase) createProxyHandler(route ProxyRouteConfig, frontendPath string) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		// Parse target URL
+		targetURL, err := url.Parse(route.Target)
+		if err != nil {
+			w.Log(LoggingLevelError, "invalid proxy target URL", map[string]string{
+				"target": route.Target,
+				"error":  err.Error(),
+			})
+			http.Error(rw, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
+		// Build the backend path
+		backendPath := r.URL.Path
+		if route.StripPath {
+			// Remove the frontend path prefix
+			prefix := strings.TrimSuffix(frontendPath, "/")
+			if strings.HasPrefix(backendPath, prefix) {
+				backendPath = strings.TrimPrefix(backendPath, prefix)
+			}
+		}
+
+		// Normalize the backend path
+		backendPath = normalizePath(backendPath)
+
+		// Combine target base path with backend path
+		targetURL.Path = strings.TrimSuffix(targetURL.Path, "/") + backendPath
+		targetURL.RawQuery = r.URL.RawQuery
+
+		// Create the proxy request
+		proxyReq, err := http.NewRequest(r.Method, targetURL.String(), r.Body)
+		if err != nil {
+			w.Log(LoggingLevelError, "failed to create proxy request", map[string]string{
+				"error": err.Error(),
+			})
+			http.Error(rw, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
+		// Copy headers from original request
+		for key, values := range r.Header {
+			for _, value := range values {
+				proxyReq.Header.Add(key, value)
+			}
+		}
+
+		// Add authentication headers based on auth type
+		w.addAuthHeaders(proxyReq, route)
+
+		// Add custom headers from credentials
+		for key, value := range route.Credentials.Headers {
+			proxyReq.Header.Set(key, value)
+		}
+
+		// Log the proxy request if debug is enabled
+		if w.config.Debug {
+			w.Log(LoggingLevelDebug, "proxying request", map[string]string{
+				"method":       r.Method,
+				"from":         r.URL.Path,
+				"to":           targetURL.String(),
+				"auth_type":    route.AuthType,
+				"backend_path": backendPath,
+			})
+		}
+
+		// Execute the proxy request using shared HTTP client
+		resp, err := w.httpClient.Do(proxyReq)
+		if err != nil {
+			w.Log(LoggingLevelError, "proxy request failed", map[string]string{
+				"target": targetURL.String(),
+				"error":  err.Error(),
+			})
+			http.Error(rw, "Bad Gateway", http.StatusBadGateway)
+			return
+		}
+		defer resp.Body.Close()
+
+		// Copy response headers
+		for key, values := range resp.Header {
+			for _, value := range values {
+				rw.Header().Add(key, value)
+			}
+		}
+
+		// Write status code
+		rw.WriteHeader(resp.StatusCode)
+
+		// Copy response body
+		_, err = io.Copy(rw, resp.Body)
+		if err != nil {
+			w.Log(LoggingLevelError, "failed to copy proxy response", map[string]string{
+				"error": err.Error(),
+			})
+		}
+
+		// Log response if debug is enabled
+		if w.config.Debug {
+			w.Log(LoggingLevelDebug, "proxy response", map[string]string{
+				"status_code": fmt.Sprintf("%d", resp.StatusCode),
+				"status_text": resp.Status,
+			})
+		}
+	})
+}
+
+// addAuthHeaders adds authentication headers to the proxy request based on the auth type
+func (w *WebModuleBase) addAuthHeaders(req *http.Request, route ProxyRouteConfig) {
+	authType := strings.ToLower(route.AuthType)
+	
+	switch authType {
+	case "bearer":
+		if route.Credentials.Token != "" {
+			req.Header.Set("Authorization", "Bearer "+route.Credentials.Token)
+		}
+	case "basic":
+		if route.Credentials.Username != "" {
+			req.SetBasicAuth(route.Credentials.Username, route.Credentials.Password)
+		}
+	case "oauth":
+		if route.Credentials.OAuthConsumerKey != "" {
+			// Generate OAuth 1.0a header (PLAINTEXT signature method as used by MAAS)
+			oauthHeader := w.generateOAuthHeader(
+				route.Credentials.OAuthConsumerKey,
+				route.Credentials.OAuthToken,
+				route.Credentials.OAuthTokenSecret,
+			)
+			req.Header.Set("Authorization", oauthHeader)
+		}
+	case "none", "":
+		// No authentication
+	default:
+		w.Log(LoggingLevelWarning, "unknown auth type", map[string]string{
+			"auth_type": route.AuthType,
+		})
+	}
+}
+
+// generateOAuthHeader generates an OAuth 1.0a authorization header using PLAINTEXT signature method
+// This is compatible with MAAS API authentication
+func (w *WebModuleBase) generateOAuthHeader(consumerKey, token, tokenSecret string) string {
+	// Generate random nonce
+	nonce := generateNonce()
+	
+	// Get current timestamp
+	timestamp := fmt.Sprintf("%d", time.Now().Unix())
+	
+	// Build OAuth header using PLAINTEXT signature method
+	// Signature format: &{token_secret} (note the & prefix and no consumer secret)
+	signature := fmt.Sprintf("%%26%s", tokenSecret)
+	
+	header := fmt.Sprintf(
+		"OAuth oauth_consumer_key=\"%s\",oauth_token=\"%s\",oauth_signature_method=\"PLAINTEXT\","+
+			"oauth_timestamp=\"%s\",oauth_nonce=\"%s\",oauth_version=\"1.0\",oauth_signature=\"%s\"",
+		consumerKey, token, timestamp, nonce, signature,
+	)
+	
+	return header
+}
+
+// generateNonce generates a random nonce for OAuth requests
+func generateNonce() string {
+	// Generate a random number up to 10^10
+	max := big.NewInt(10000000000) // 10^10
+	n, err := rand.Int(rand.Reader, max)
+	if err != nil {
+		// Fallback to timestamp-based nonce if crypto/rand fails
+		return fmt.Sprintf("%d", time.Now().UnixNano())
+	}
+	return n.String()
+}
+
+// ParseWebModuleConfig parses a configuration map into a WebModuleConfig struct
+// This centralizes all configuration parsing logic for web modules
+func ParseWebModuleConfig(configMap map[string]interface{}) WebModuleConfig {
+	config := WebModuleConfig{
+		Port:        8080, // default port
+		StaticPath:  "/",
+		ProxyRoutes: []ProxyRouteConfig{},
+		Debug:       false,
+	}
+	
+	// Parse port
+	if port, ok := configMap["port"]; ok {
+		if portFloat, ok := port.(float64); ok {
+			config.Port = int(portFloat)
+		} else if portInt, ok := port.(int); ok {
+			config.Port = portInt
+		}
+	}
+	
+	// Parse static_path
+	if staticPath, ok := configMap["static_path"].(string); ok {
+		config.StaticPath = staticPath
+	}
+	
+	// Parse debug
+	if debug, ok := configMap["debug"].(bool); ok {
+		config.Debug = debug
+	}
+	
+	// Parse proxy_routes
+	if proxyRoutes, ok := configMap["proxy_routes"]; ok {
+		if routesSlice, ok := proxyRoutes.([]interface{}); ok {
+			for _, routeInterface := range routesSlice {
+				if routeMap, ok := routeInterface.(map[string]interface{}); ok {
+					route := parseProxyRoute(routeMap)
+					config.ProxyRoutes = append(config.ProxyRoutes, route)
+				}
+			}
+		}
+	}
+	
+	return config
+}
+
+// parseProxyRoute extracts a single proxy route configuration from a map
+func parseProxyRoute(routeMap map[string]interface{}) ProxyRouteConfig {
+	route := ProxyRouteConfig{}
+	
+	// Parse name
+	if name, ok := routeMap["name"].(string); ok {
+		route.Name = name
+	}
+	
+	// Parse path (optional)
+	if path, ok := routeMap["path"].(string); ok {
+		route.Path = path
+	}
+	
+	// Parse target
+	if target, ok := routeMap["target"].(string); ok {
+		route.Target = target
+	}
+	
+	// Parse strip_path
+	if stripPath, ok := routeMap["strip_path"].(bool); ok {
+		route.StripPath = stripPath
+	}
+	
+	// Parse auth_type
+	if authType, ok := routeMap["auth_type"].(string); ok {
+		route.AuthType = authType
+	}
+	
+	// Parse credentials
+	if credsInterface, ok := routeMap["credentials"]; ok {
+		if credsMap, ok := credsInterface.(map[string]interface{}); ok {
+			route.Credentials = parseProxyCredentials(credsMap)
+		}
+	}
+	
+	return route
+}
+
+// parseProxyCredentials extracts credential information from a map
+func parseProxyCredentials(credsMap map[string]interface{}) ProxyCredentials {
+	creds := ProxyCredentials{}
+	
+	// Parse token (for bearer auth)
+	if token, ok := credsMap["token"].(string); ok {
+		creds.Token = token
+	}
+	
+	// Parse username (for basic auth)
+	if username, ok := credsMap["username"].(string); ok {
+		creds.Username = username
+	}
+	
+	// Parse password (for basic auth)
+	if password, ok := credsMap["password"].(string); ok {
+		creds.Password = password
+	}
+	
+	// Parse OAuth credentials
+	if oauthConsumerKey, ok := credsMap["oauth_consumer_key"].(string); ok {
+		creds.OAuthConsumerKey = oauthConsumerKey
+	}
+	
+	if oauthToken, ok := credsMap["oauth_token"].(string); ok {
+		creds.OAuthToken = oauthToken
+	}
+	
+	if oauthTokenSecret, ok := credsMap["oauth_token_secret"].(string); ok {
+		creds.OAuthTokenSecret = oauthTokenSecret
+	}
+	
+	// Parse headers (for custom header auth)
+	if headersInterface, ok := credsMap["headers"]; ok {
+		if headersMap, ok := headersInterface.(map[string]interface{}); ok {
+			creds.Headers = make(map[string]string)
+			for k, v := range headersMap {
+				if strVal, ok := v.(string); ok {
+					creds.Headers[k] = strVal
+				}
+			}
+		}
+	}
+	
+	return creds
 }
