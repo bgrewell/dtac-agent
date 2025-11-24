@@ -825,7 +825,7 @@ t.Fatalf("Failed to read response body: %v", err)
 bodyStr := string(body)
 
 // Verify content contains empty object
-if !strings.Contains(bodyStr, "window.__DTAC_CONFIG__ = {\n};") {
+if !strings.Contains(bodyStr, "window.__DTAC_CONFIG__ = {};") {
 t.Errorf("Response should contain empty config object, got: %s", bodyStr)
 }
 }
