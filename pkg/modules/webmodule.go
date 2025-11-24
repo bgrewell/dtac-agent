@@ -4,8 +4,11 @@ import (
 	"embed"
 	"fmt"
 	api "github.com/bgrewell/dtac-agent/api/grpc/go"
+	"io"
 	"io/fs"
 	"net/http"
+	"net/url"
+	"strings"
 	"sync"
 )
 
@@ -23,14 +26,32 @@ type WebModuleConfig struct {
 
 // ProxyRouteConfig defines a proxy route to a backend service
 type ProxyRouteConfig struct {
+	// Name is the identifier for this proxy endpoint (e.g., "maas")
+	// Requests to /api/<name>/* will be proxied to Target
+	Name string `json:"name"`
 	// Path is the frontend path to match (e.g., "/api")
+	// If not specified and Name is provided, defaults to "/api/<name>"
 	Path string `json:"path"`
-	// Target is the backend URL to proxy to
+	// Target is the backend URL to proxy to (e.g., "http://internal.ip/base")
 	Target string `json:"target"`
 	// StripPath indicates whether to remove the path prefix when proxying
 	StripPath bool `json:"strip_path"`
-	// InjectToken indicates whether to inject auth tokens
-	InjectToken bool `json:"inject_token"`
+	// AuthType specifies the authentication type (e.g., "bearer", "basic", "none")
+	AuthType string `json:"auth_type"`
+	// Credentials holds authentication credentials
+	Credentials ProxyCredentials `json:"credentials"`
+}
+
+// ProxyCredentials holds authentication information for proxy routes
+type ProxyCredentials struct {
+	// Token for bearer authentication
+	Token string `json:"token"`
+	// Username for basic authentication
+	Username string `json:"username"`
+	// Password for basic authentication
+	Password string `json:"password"`
+	// Headers contains custom headers to add to proxied requests
+	Headers map[string]string `json:"headers"`
 }
 
 // WebModule is a specialized module for hosting web frontends
@@ -116,13 +137,29 @@ func (w *WebModuleBase) Start() error {
 		}
 	}
 
-	// Setup proxy routes (placeholder - will be implemented in future iterations)
+	// Setup proxy routes
 	for _, route := range w.config.ProxyRoutes {
-		w.Log(LoggingLevelDebug, "proxy route configured", map[string]string{
-			"path":   route.Path,
+		// Determine the path to handle
+		path := route.Path
+		if path == "" && route.Name != "" {
+			// Default path to /api/<name>
+			path = "/api/" + route.Name + "/"
+		}
+		
+		// Ensure path ends with "/" for prefix matching
+		if !strings.HasSuffix(path, "/") {
+			path = path + "/"
+		}
+
+		w.Log(LoggingLevelInfo, "proxy route configured", map[string]string{
+			"name":   route.Name,
+			"path":   path,
 			"target": route.Target,
 		})
-		// TODO: Implement proxy handler
+
+		// Create proxy handler for this route
+		handler := w.createProxyHandler(route, path)
+		mux.Handle(path, handler)
 	}
 
 	// Determine port
@@ -301,5 +338,129 @@ func (w *WebModuleBase) logStaticFiles(staticFS fs.FS) {
 				"path":  filePath,
 			})
 		}
+	}
+}
+
+// createProxyHandler creates an HTTP handler that proxies requests to a backend service
+func (w *WebModuleBase) createProxyHandler(route ProxyRouteConfig, frontendPath string) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		// Parse target URL
+		targetURL, err := url.Parse(route.Target)
+		if err != nil {
+			w.Log(LoggingLevelError, "invalid proxy target URL", map[string]string{
+				"target": route.Target,
+				"error":  err.Error(),
+			})
+			http.Error(rw, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
+		// Build the backend path
+		backendPath := r.URL.Path
+		if route.StripPath {
+			// Remove the frontend path prefix
+			backendPath = strings.TrimPrefix(backendPath, strings.TrimSuffix(frontendPath, "/"))
+		}
+
+		// Combine target base path with backend path
+		targetURL.Path = strings.TrimSuffix(targetURL.Path, "/") + backendPath
+		targetURL.RawQuery = r.URL.RawQuery
+
+		// Create the proxy request
+		proxyReq, err := http.NewRequest(r.Method, targetURL.String(), r.Body)
+		if err != nil {
+			w.Log(LoggingLevelError, "failed to create proxy request", map[string]string{
+				"error": err.Error(),
+			})
+			http.Error(rw, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
+		// Copy headers from original request
+		for key, values := range r.Header {
+			for _, value := range values {
+				proxyReq.Header.Add(key, value)
+			}
+		}
+
+		// Add authentication headers based on auth type
+		w.addAuthHeaders(proxyReq, route)
+
+		// Add custom headers from credentials
+		for key, value := range route.Credentials.Headers {
+			proxyReq.Header.Set(key, value)
+		}
+
+		// Log the proxy request if debug is enabled
+		if w.config.Debug {
+			w.Log(LoggingLevelDebug, "proxying request", map[string]string{
+				"method":       r.Method,
+				"from":         r.URL.Path,
+				"to":           targetURL.String(),
+				"auth_type":    route.AuthType,
+				"backend_path": backendPath,
+			})
+		}
+
+		// Execute the proxy request
+		client := &http.Client{}
+		resp, err := client.Do(proxyReq)
+		if err != nil {
+			w.Log(LoggingLevelError, "proxy request failed", map[string]string{
+				"target": targetURL.String(),
+				"error":  err.Error(),
+			})
+			http.Error(rw, "Bad Gateway", http.StatusBadGateway)
+			return
+		}
+		defer resp.Body.Close()
+
+		// Copy response headers
+		for key, values := range resp.Header {
+			for _, value := range values {
+				rw.Header().Add(key, value)
+			}
+		}
+
+		// Write status code
+		rw.WriteHeader(resp.StatusCode)
+
+		// Copy response body
+		_, err = io.Copy(rw, resp.Body)
+		if err != nil {
+			w.Log(LoggingLevelError, "failed to copy proxy response", map[string]string{
+				"error": err.Error(),
+			})
+		}
+
+		// Log response if debug is enabled
+		if w.config.Debug {
+			w.Log(LoggingLevelDebug, "proxy response", map[string]string{
+				"status_code": fmt.Sprintf("%d", resp.StatusCode),
+				"status_text": resp.Status,
+			})
+		}
+	})
+}
+
+// addAuthHeaders adds authentication headers to the proxy request based on the auth type
+func (w *WebModuleBase) addAuthHeaders(req *http.Request, route ProxyRouteConfig) {
+	authType := strings.ToLower(route.AuthType)
+	
+	switch authType {
+	case "bearer":
+		if route.Credentials.Token != "" {
+			req.Header.Set("Authorization", "Bearer "+route.Credentials.Token)
+		}
+	case "basic":
+		if route.Credentials.Username != "" {
+			req.SetBasicAuth(route.Credentials.Username, route.Credentials.Password)
+		}
+	case "none", "":
+		// No authentication
+	default:
+		w.Log(LoggingLevelWarning, "unknown auth type", map[string]string{
+			"auth_type": route.AuthType,
+		})
 	}
 }

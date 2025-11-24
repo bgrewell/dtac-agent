@@ -92,6 +92,41 @@ modules:
       config:
         port: 8090
         debug: true  # Enable debug logging to see HTTP request details
+        proxy_routes:
+          # Example 1: Named endpoint with bearer authentication
+          # Requests to /api/maas/* will be proxied to the MAAS API
+          - name: maas
+            target: http://192.168.1.100:5240/MAAS/api/2.0
+            strip_path: true
+            auth_type: bearer
+            credentials:
+              token: your-maas-api-token-here
+          
+          # Example 2: Named endpoint with basic authentication
+          - name: jenkins
+            target: http://jenkins.internal:8080
+            strip_path: true
+            auth_type: basic
+            credentials:
+              username: api-user
+              password: api-password
+          
+          # Example 3: Named endpoint with custom headers
+          - name: custom-service
+            target: http://service.internal:3000/api
+            strip_path: true
+            auth_type: none
+            credentials:
+              headers:
+                X-API-Key: your-api-key
+                X-Service-Version: v1
+          
+          # Example 4: Custom path (not using default /api/<name>)
+          - name: legacy-api
+            path: /legacy/endpoint/
+            target: http://legacy.internal:8000
+            strip_path: true
+            auth_type: none
       enabled: false
       hash: ""
       user: ""
