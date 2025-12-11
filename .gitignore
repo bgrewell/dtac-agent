@@ -27,6 +27,11 @@ package/
 /agent
 /dtac-agentd
 
+# Plugin binaries
+cmd/plugins/*/hello-plugin
+cmd/plugins/*/hello-standalone
+cmd/plugins/*/*.exe
+
 # Local directories
 .old/
 .scripts/
