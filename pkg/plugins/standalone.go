@@ -20,6 +20,8 @@ type StandaloneConfig struct {
 	TLSKeyPath string
 	// Host specifies the host to bind to (default: 0.0.0.0)
 	Host string
+	// Config is the JSON configuration to pass to the plugin's Register method
+	Config string
 }
 
 // StandaloneOption is a function type for configuring standalone mode
@@ -64,6 +66,13 @@ func WithHost(host string) StandaloneOption {
 	}
 }
 
+// WithConfig sets the plugin configuration JSON
+func WithConfig(config string) StandaloneOption {
+	return func(c *StandaloneConfig) {
+		c.Config = config
+	}
+}
+
 // NewStandaloneConfig creates a new StandaloneConfig with default values and applies options
 func NewStandaloneConfig(opts ...StandaloneOption) *StandaloneConfig {
 	// Start with defaults
@@ -72,6 +81,7 @@ func NewStandaloneConfig(opts ...StandaloneOption) *StandaloneConfig {
 		Protocol: "http",
 		Port:     8080,
 		Host:     "0.0.0.0",
+		Config:   "{}",
 	}
 
 	// Apply options
@@ -107,21 +117,20 @@ func (c *StandaloneConfig) applyEnvVars() {
 	// TLS Certificate path
 	if certPath := os.Getenv("DTAC_STANDALONE_TLS_CERT"); certPath != "" {
 		c.TLSCertPath = certPath
-		if c.TLSKeyPath != "" {
-			c.Protocol = "https"
-		}
 	}
 
 	// TLS Key path
 	if keyPath := os.Getenv("DTAC_STANDALONE_TLS_KEY"); keyPath != "" {
 		c.TLSKeyPath = keyPath
-		if c.TLSCertPath != "" {
-			c.Protocol = "https"
-		}
 	}
 
 	// Host
 	if host := os.Getenv("DTAC_STANDALONE_HOST"); host != "" {
 		c.Host = host
+	}
+
+	// If both TLS cert and key are set, upgrade to HTTPS
+	if c.TLSCertPath != "" && c.TLSKeyPath != "" {
+		c.Protocol = "https"
 	}
 }
