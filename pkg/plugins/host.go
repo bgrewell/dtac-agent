@@ -10,9 +10,17 @@ type PluginHost interface {
 	GetPort() int
 }
 
-// NewPluginHost creates a new PluginHost
-func NewPluginHost(plugin Plugin) (hostPlugin PluginHost, err error) {
+// NewPluginHost creates a new PluginHost with optional standalone configuration
+func NewPluginHost(plugin Plugin, opts ...StandaloneOption) (hostPlugin PluginHost, err error) {
+	// Create standalone config with options
+	standaloneConfig := NewStandaloneConfig(opts...)
 
+	// If standalone mode is enabled, create a REST host
+	if standaloneConfig.Enabled {
+		return NewRESTPluginHost(plugin, standaloneConfig)
+	}
+
+	// Otherwise, create the default gRPC host
 	key := utility.NewRandomSymmetricKey()
 	plug := &DefaultPluginHost{
 		Plugin:     plugin,
