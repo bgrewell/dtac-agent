@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/bgrewell/dtac-agent/internal/authndb"
 	"github.com/bgrewell/dtac-agent/internal/controller"
 	"github.com/bgrewell/dtac-agent/internal/helpers"
