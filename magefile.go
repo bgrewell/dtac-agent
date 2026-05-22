@@ -4,14 +4,20 @@
 package main
 
 import (
+	"archive/tar"
 	"bytes"
+	"compress/gzip"
 	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"gopkg.in/yaml.v3"
 	"io"
 	"io/fs"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"path"
@@ -386,6 +392,242 @@ func buildPlugins(source string, os string, arch string, binary string) error {
 	env["GOARCH"] = arch
 	output := fmt.Sprintf("%s%s", binary, extension)
 	return runWith(env, goexe, "build", "-tags", buildTags(), "-o", output, source)
+}
+
+// osquery embedding -----------------------------------------------------------
+
+const (
+	osqueryVersion       = "5.23.0"
+	osqueryReleasesAPI   = "https://api.github.com/repos/osquery/osquery/releases/tags/"
+	osqueryEmbedDir      = "cmd/plugins/osquery/osqueryplugin/binaries"
+	osqueryEmbedBuildTag = "embed_osquery"
+)
+
+// osqueryEmbedTarget describes one (goos, goarch) build that bundles osqueryd.
+// AssetName is the upstream release asset to download; BinaryInTar is the
+// path of osqueryd within that tarball.
+type osqueryEmbedTarget struct {
+	GOOS        string
+	GOARCH      string
+	AssetName   string
+	BinaryInTar string
+}
+
+// osqueryEmbedTargets lists every platform we can bundle a daemon for.
+// macos amd64 has no native tarball on the upstream release (only .pkg) so
+// it's deliberately omitted — built without -tags=embed_osquery it still
+// works via config.binary_path.
+var osqueryEmbedTargets = []osqueryEmbedTarget{
+	// Linux tarballs use usr/bin/osqueryd as a symlink to the real binary
+	// under opt/osquery/bin/osqueryd — extract the real one or we get
+	// zero bytes back.
+	{"linux", "amd64", "osquery-" + osqueryVersion + "_1.linux_x86_64.tar.gz", "opt/osquery/bin/osqueryd"},
+	{"linux", "arm64", "osquery-" + osqueryVersion + "_1.linux_aarch64.tar.gz", "opt/osquery/bin/osqueryd"},
+	// The macos "bare" tarball is just the daemon binary at the root.
+	{"darwin", "arm64", "osqueryd-macos-bare-" + osqueryVersion + ".tar.gz", "osqueryd"},
+}
+
+// OsqueryBundle downloads osqueryd from the pinned upstream release,
+// verifies SHA256 against the GitHub release metadata, stages the binary
+// under cmd/plugins/osquery/osqueryplugin/binaries/<os-arch>/osqueryd, then
+// builds the osquery plugin with -tags=embed_osquery for each supported
+// platform. The resulting plugin is self-contained — at first run it
+// extracts osqueryd to a content-addressed cache dir.
+//
+// Skips downloads for any platform whose binary is already staged. Use
+// `mage clean` (or rm -rf cmd/plugins/osquery/osqueryplugin/binaries) to
+// force re-fetching.
+func OsqueryBundle() error {
+	fmt.Printf("Bundling osquery %s into plugin\n", osqueryVersion)
+
+	assets, err := fetchOsqueryReleaseAssets()
+	if err != nil {
+		return fmt.Errorf("fetching osquery release metadata: %v", err)
+	}
+
+	for _, t := range osqueryEmbedTargets {
+		targetDir := filepath.Join(osqueryEmbedDir, t.GOOS+"-"+t.GOARCH)
+		targetPath := filepath.Join(targetDir, "osqueryd")
+		if _, err := os.Stat(targetPath); err == nil {
+			fmt.Printf("  osqueryd for %s-%s already staged\n", t.GOOS, t.GOARCH)
+			continue
+		}
+		if err := stageOsqueryBinary(t, assets, targetPath); err != nil {
+			return fmt.Errorf("staging osqueryd for %s-%s: %v", t.GOOS, t.GOARCH, err)
+		}
+	}
+
+	for _, t := range osqueryEmbedTargets {
+		fmt.Printf("  Compiling osquery (embed) for %s %s\n", t.GOOS, t.GOARCH)
+		if err := buildOsqueryEmbedded(t.GOOS, t.GOARCH); err != nil {
+			return fmt.Errorf("building embedded osquery plugin for %s-%s: %v", t.GOOS, t.GOARCH, err)
+		}
+	}
+	return nil
+}
+
+// fetchOsqueryReleaseAssets calls the GitHub release API for the pinned
+// osquery tag and returns a map from asset name to (download URL, sha256).
+// The release API includes a sha256 in the `digest` field for each asset.
+func fetchOsqueryReleaseAssets() (map[string]struct{ URL, SHA256 string }, error) {
+	resp, err := http.Get(osqueryReleasesAPI + osqueryVersion)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 512))
+		return nil, fmt.Errorf("github api returned %d: %s", resp.StatusCode, string(body))
+	}
+
+	var payload struct {
+		Assets []struct {
+			Name               string `json:"name"`
+			BrowserDownloadURL string `json:"browser_download_url"`
+			Digest             string `json:"digest"`
+		} `json:"assets"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+		return nil, err
+	}
+
+	out := make(map[string]struct{ URL, SHA256 string }, len(payload.Assets))
+	for _, a := range payload.Assets {
+		digest := strings.TrimPrefix(a.Digest, "sha256:")
+		out[a.Name] = struct{ URL, SHA256 string }{a.BrowserDownloadURL, digest}
+	}
+	return out, nil
+}
+
+// stageOsqueryBinary downloads, verifies, extracts, and writes one osqueryd
+// binary to targetPath. The intermediate tarball is held in memory — at ~85
+// MiB it's small enough to skip a temp file.
+func stageOsqueryBinary(t osqueryEmbedTarget, assets map[string]struct{ URL, SHA256 string }, targetPath string) error {
+	meta, ok := assets[t.AssetName]
+	if !ok {
+		return fmt.Errorf("asset %q not found in osquery %s release", t.AssetName, osqueryVersion)
+	}
+	if meta.SHA256 == "" {
+		return fmt.Errorf("asset %q has no SHA256 digest in release metadata", t.AssetName)
+	}
+
+	fmt.Printf("  Downloading %s\n", t.AssetName)
+	tarball, err := downloadVerified(meta.URL, meta.SHA256)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("  Extracting %s from %s\n", t.BinaryInTar, t.AssetName)
+	binary, err := readFromTarGz(tarball, t.BinaryInTar)
+	if err != nil {
+		return err
+	}
+	if len(binary) == 0 {
+		return fmt.Errorf("entry %q in %s is empty (likely a symlink — point BinaryInTar at the real target)", t.BinaryInTar, t.AssetName)
+	}
+
+	if err := os.MkdirAll(filepath.Dir(targetPath), 0o755); err != nil {
+		return err
+	}
+	return os.WriteFile(targetPath, binary, 0o755)
+}
+
+// downloadVerified fetches url, streams the bytes into memory while hashing,
+// and returns the body iff the SHA256 matches expected (hex).
+func downloadVerified(url, expected string) ([]byte, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("download %s returned %d", url, resp.StatusCode)
+	}
+	h := sha256.New()
+	var buf bytes.Buffer
+	if _, err := io.Copy(io.MultiWriter(&buf, h), resp.Body); err != nil {
+		return nil, err
+	}
+	got := hex.EncodeToString(h.Sum(nil))
+	if got != expected {
+		return nil, fmt.Errorf("sha256 mismatch: got %s, want %s", got, expected)
+	}
+	return buf.Bytes(), nil
+}
+
+// readFromTarGz walks a gzipped tarball in memory and returns the bytes of
+// the entry whose name matches target. Match is exact, with leading "./"
+// tolerated since some tarballs emit it.
+func readFromTarGz(data []byte, target string) ([]byte, error) {
+	gz, err := gzip.NewReader(bytes.NewReader(data))
+	if err != nil {
+		return nil, err
+	}
+	defer gz.Close()
+	tr := tar.NewReader(gz)
+	for {
+		hdr, err := tr.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		name := strings.TrimPrefix(hdr.Name, "./")
+		if name == target {
+			return io.ReadAll(tr)
+		}
+	}
+	return nil, fmt.Errorf("entry %q not found in tarball", target)
+}
+
+// E2EOsquery runs the DART end-to-end workflow for the osquery plugin.
+// Requires:
+//   - dart CLI on PATH (https://github.com/bgrewell/dart)
+//   - LXD/Incus available locally
+//   - bin/plugins/osquery-linux-amd64.plugin built via `mage osqueryBundle`
+//
+// Pass `-v` through the DART_FLAGS env var for verbose output, e.g.
+//   DART_FLAGS=-v mage e2eOsquery
+func E2EOsquery() error {
+	if _, err := exec.LookPath("dart"); err != nil {
+		return fmt.Errorf("dart CLI not found on PATH; install from https://github.com/bgrewell/dart")
+	}
+	if _, err := os.Stat("bin/plugins/osquery-linux-amd64.plugin"); err != nil {
+		return fmt.Errorf("missing bin/plugins/osquery-linux-amd64.plugin — run `mage osqueryBundle` first")
+	}
+	args := []string{"-c", "test/e2e/osquery-plugin/osquery-plugin.yaml"}
+	if extra := os.Getenv("DART_FLAGS"); extra != "" {
+		args = append(args, strings.Fields(extra)...)
+	}
+	return runWith(nil, "dart", iargs(args)...)
+}
+
+// iargs reshapes []string into the []any signature expected by runWith.
+func iargs(s []string) []any {
+	out := make([]any, len(s))
+	for i, v := range s {
+		out[i] = v
+	}
+	return out
+}
+
+// buildOsqueryEmbedded compiles cmd/plugins/osquery for one platform with
+// the embed_osquery build tag set. The output filename embeds the target
+// triple so cross-builds for different arches don't clobber each other —
+// the agent host should pick e.g. osquery-linux-amd64.plugin.
+func buildOsqueryEmbedded(goos, goarch string) error {
+	extension := ""
+	if goos == "darwin" {
+		extension = ".app"
+	} else if goos == "windows" {
+		extension = ".exe"
+	}
+	output := fmt.Sprintf("bin/plugins/osquery-%s-%s.plugin%s", goos, goarch, extension)
+	env := flagEnv()
+	env["GOOS"] = goos
+	env["GOARCH"] = goarch
+	return runWith(env, goexe, "build", "-tags", osqueryEmbedBuildTag, "-o", output, "cmd/plugins/osquery/main.go")
 }
 
 func Modules() error {

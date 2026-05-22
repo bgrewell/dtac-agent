@@ -1,0 +1,6 @@
+---
+name: osquery
+entry: main.go
+platforms:
+  - linux
+  - darwin

@@ -32,6 +32,9 @@ cmd/plugins/*/hello-plugin
 cmd/plugins/*/hello-standalone
 cmd/plugins/*/*.exe
 
+# Bundled osqueryd binaries fetched by `mage osqueryBundle` (regenerable)
+cmd/plugins/osquery/osqueryplugin/binaries/
+
 # Local directories
 .old/
 .scripts/

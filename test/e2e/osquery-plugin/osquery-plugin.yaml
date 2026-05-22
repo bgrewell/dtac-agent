@@ -1,0 +1,302 @@
+---
+########################################################################################################################
+## Test Suite Configuration                                                                                           ##
+########################################################################################################################
+# End-to-end functional tests for the osquery dtac plugin running in standalone REST mode inside a clean Ubuntu 24.04
+# LXD container. Pushes the embedded plugin binary built by `mage osqueryBundle`, starts it, validates the curated and
+# generic endpoints, and confirms the bundled osqueryd subprocess is reaped on SIGTERM.
+#
+# Prerequisites:
+#   - DART installed (see https://github.com/bgrewell/dart)
+#   - LXD/Incus available and the invoking user is in the lxd group
+#   - `mage osqueryBundle` already ran so bin/plugins/osquery-linux-amd64.plugin exists
+#
+# Invoke from repo root:
+#   dart -c test/e2e/osquery-plugin/osquery-plugin.yaml -v
+suite: dtac osquery Plugin E2E
+
+########################################################################################################################
+## Node Infrastructure Configuration                                                                                  ##
+########################################################################################################################
+# One local orchestrator node (for lxc file push and pre-flight build checks) plus one LXD container that hosts the
+# plugin under test. The container is auto-created/destroyed by DART based on this node definition.
+nodes:
+  # NOTE: option shape differs by nodetype in dart v0.4. The local node reads
+  # `options.shell` directly; the lxd node reads `options.exec_opts.shell`.
+  # aether-ops nests under exec_opts for both, but that silently no-ops on
+  # the local node, leaving commands to exec without a shell — so `if ...`,
+  # `for ...`, and pipelines fail unless wrapped in `bash -c`.
+  - name: localhost
+    type: local
+    options:
+      shell: /bin/bash
+
+  - name: osquery-test
+    type: lxd
+    options:
+      image: ubuntu:24.04
+      instance_type: container
+      exec_opts:
+        shell: /bin/bash
+
+########################################################################################################################
+## Setup — build artifact check, file push, daemon launch                                                            ##
+########################################################################################################################
+setup:
+  - name: "verify embedded plugin binary exists"
+    node: localhost
+    step:
+      type: execute
+      options:
+        command: |
+          if [ ! -x bin/plugins/osquery-linux-amd64.plugin ]; then
+            echo "missing bin/plugins/osquery-linux-amd64.plugin — run 'mage osqueryBundle' first" >&2
+            exit 1
+          fi
+
+  - name: "push plugin binary into container"
+    node: localhost
+    step:
+      type: execute
+      options:
+        command: |
+          lxc file push bin/plugins/osquery-linux-amd64.plugin osquery-test/root/osquery.plugin
+          lxc exec osquery-test -- chmod +x /root/osquery.plugin
+
+  - name: "verify required tools are present in container"
+    node: osquery-test
+    step:
+      type: execute
+      options:
+        command: |
+          command -v curl >/dev/null || { echo "curl missing in container image" >&2; exit 1; }
+          command -v jq   >/dev/null || apt-get update -qq && apt-get install -y -qq jq >/dev/null
+
+  - name: "start plugin in standalone REST mode"
+    node: osquery-test
+    step:
+      type: execute
+      options:
+        command: |
+          DTAC_STANDALONE=true DTAC_STANDALONE_PORT=8080 \
+            nohup /root/osquery.plugin >/tmp/plugin.log 2>&1 &
+          echo $! >/tmp/plugin.pid
+          # let the supervisor settle
+          sleep 1
+
+  - name: "wait for /health to respond"
+    node: osquery-test
+    step:
+      type: execute
+      options:
+        command: |
+          for i in $(seq 1 60); do
+            curl -sf http://127.0.0.1:8080/health >/dev/null && exit 0
+            sleep 1
+          done
+          echo "plugin did not become ready within 60s" >&2
+          cat /tmp/plugin.log >&2 || true
+          exit 1
+        timeout: 90
+
+########################################################################################################################
+## Tests — endpoint surface + lifecycle                                                                              ##
+########################################################################################################################
+tests:
+  - name: "/health reports plugin name and status"
+    node: osquery-test
+    type: execute
+    options:
+      # dart v0.4 only implements `execute`; http_request/port_check are stubs.
+      # curl -f exits non-zero on 4xx/5xx, so a 200 + contains gives both assertions in one call.
+      command: curl -sf http://127.0.0.1:8080/health
+      evaluate:
+        exit_code: 0
+        contains: "OsqueryPlugin"
+
+  - name: "/osquery/os_version returns a non-empty row"
+    node: osquery-test
+    type: execute
+    options:
+      command: |
+        curl -sf http://127.0.0.1:8080/osquery/os_version \
+          | jq -e '.row_count >= 1 and (.rows[0].name | length > 0)'
+      evaluate:
+        exit_code: 0
+
+  - name: "/osquery/processes includes pid 1"
+    node: osquery-test
+    type: execute
+    options:
+      command: |
+        curl -sf http://127.0.0.1:8080/osquery/processes \
+          | jq -e '.rows | any(.pid == "1")'
+      evaluate:
+        exit_code: 0
+
+  - name: "/osquery/listening_ports returns rows"
+    node: osquery-test
+    type: execute
+    options:
+      command: |
+        curl -sf http://127.0.0.1:8080/osquery/listening_ports \
+          | jq -e '.row_count >= 0 and (.rows | type == "array")'
+      evaluate:
+        exit_code: 0
+
+  - name: "/osquery/system_info reports a hostname"
+    node: osquery-test
+    type: execute
+    options:
+      command: |
+        curl -sf http://127.0.0.1:8080/osquery/system_info \
+          | jq -e '.row_count == 1 and (.rows[0].hostname | length > 0)'
+      evaluate:
+        exit_code: 0
+
+  - name: "/osquery/installed_packages returns deb entries"
+    node: osquery-test
+    type: execute
+    options:
+      command: |
+        curl -sf http://127.0.0.1:8080/osquery/installed_packages \
+          | jq -e '.row_count > 0 and (.rows | any(.package_format == "deb"))'
+      evaluate:
+        exit_code: 0
+
+  - name: "/osquery/services lists at least systemd-journald"
+    node: osquery-test
+    type: execute
+    options:
+      command: |
+        curl -sf http://127.0.0.1:8080/osquery/services \
+          | jq -e '.rows | any(.id | tostring | contains("journal"))'
+      evaluate:
+        exit_code: 0
+
+  - name: "/osquery/osquery_info reports the bundled daemon version"
+    node: osquery-test
+    type: execute
+    options:
+      command: |
+        curl -sf http://127.0.0.1:8080/osquery/osquery_info \
+          | jq -e '.row_count >= 1 and (.rows[0].version | startswith("5."))'
+      evaluate:
+        exit_code: 0
+
+  - name: "/osquery/active_sessions returns a (possibly empty) array"
+    node: osquery-test
+    type: execute
+    options:
+      # No inbound SSH in this container, so the rows array should be empty.
+      # The point of the assertion is that the query parses and returns the
+      # standard envelope shape — proving the multi-table join compiles and
+      # the endpoint doesn't 500 when there are no sessions.
+      command: |
+        curl -sf http://127.0.0.1:8080/osquery/active_sessions \
+          | jq -e '.row_count == 0 and (.rows | type == "array")'
+      evaluate:
+        exit_code: 0
+
+  - name: "POST /osquery/query runs arbitrary SQL"
+    node: osquery-test
+    type: execute
+    options:
+      command: |
+        curl -sf -X POST -H 'content-type: application/json' \
+          -d '{"sql":"SELECT name, version FROM os_version"}' \
+          http://127.0.0.1:8080/osquery/query \
+          | jq -e '.row_count == 1 and (.rows[0].name | length > 0)'
+      evaluate:
+        exit_code: 0
+
+  - name: "POST /osquery/query rejects empty body"
+    node: osquery-test
+    type: execute
+    options:
+      command: |
+        CODE=$(curl -s -o /dev/null -w '%{http_code}' \
+          -X POST -H 'content-type: application/json' --data '' \
+          http://127.0.0.1:8080/osquery/query)
+        echo "$CODE"
+        [ "$CODE" = "500" ]
+      evaluate:
+        exit_code: 0
+        contains: "500"
+
+  - name: "bundled osqueryd extracted to content-addressed cache"
+    node: osquery-test
+    type: execute
+    options:
+      command: |
+        find /var/cache/dtac/osquery -name osqueryd -type f \
+          | head -1 | grep -q osqueryd
+      evaluate:
+        exit_code: 0
+
+  - name: "plugin owns its osqueryd child process"
+    node: osquery-test
+    type: execute
+    options:
+      command: |
+        PID=$(cat /tmp/plugin.pid)
+        pgrep -P "$PID" -f osqueryd >/dev/null
+      evaluate:
+        exit_code: 0
+
+  - name: "SIGTERM cleanly stops plugin and reaps osqueryd"
+    node: osquery-test
+    type: execute
+    options:
+      # NOTE: use `pgrep -x osqueryd` (exact process-name match), not
+      # `pgrep -f osqueryd` — the latter scans full command lines and
+      # would match this very script (which contains the literal string
+      # "osqueryd" several times), producing a false positive.
+      command: |
+        PID=$(cat /tmp/plugin.pid)
+        kill -TERM "$PID"
+        for i in $(seq 1 10); do
+          kill -0 "$PID" 2>/dev/null || break
+          sleep 1
+        done
+        if kill -0 "$PID" 2>/dev/null; then
+          echo "plugin pid $PID still running after 10s" >&2
+          exit 1
+        fi
+        sleep 1
+        if pgrep -x osqueryd >/dev/null; then
+          echo "stray osqueryd left behind after plugin shutdown" >&2
+          pgrep -ax osqueryd >&2
+          exit 1
+        fi
+      evaluate:
+        exit_code: 0
+
+########################################################################################################################
+## Teardown — best-effort cleanup; container itself is auto-removed by DART                                          ##
+########################################################################################################################
+teardown:
+  - name: "kill plugin if still running"
+    node: osquery-test
+    step:
+      type: execute
+      options:
+        # `pkill -f` matches against full command lines and would also match
+        # this script's own bash process (which contains the patterns we're
+        # passing). Use `-x` for an exact comm match instead.
+        command: |
+          PID=$(cat /tmp/plugin.pid 2>/dev/null || true)
+          [ -n "$PID" ] && kill -9 "$PID" 2>/dev/null || true
+          pkill -9 -x osquery.plugin 2>/dev/null || true
+          pkill -9 -x osqueryd 2>/dev/null || true
+          true
+
+  - name: "collect plugin log for diagnostics"
+    node: osquery-test
+    step:
+      type: execute
+      options:
+        command: |
+          echo "=== plugin log (tail) ==="
+          tail -50 /tmp/plugin.log 2>/dev/null || true
+          true
