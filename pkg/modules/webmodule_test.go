@@ -705,3 +705,262 @@ func TestProxyRouteConfig_OAuthAuth(t *testing.T) {
 		t.Errorf("Expected status 'authenticated', got '%s'", result["status"])
 	}
 }
+
+// TestRuntimeEnv_ConfigJS tests the /config.js endpoint
+func TestRuntimeEnv_ConfigJS(t *testing.T) {
+// Create web module with runtime environment variables
+webModule := &WebModuleBase{}
+webModule.SetRootPath("test")
+webModule.config = WebModuleConfig{
+Port:       0,
+StaticPath: "/",
+Debug:      true,
+RuntimeEnv: map[string]string{
+"API_URL":      "https://api.example.com",
+"FEATURE_FLAG": "true",
+"VERSION":      "1.0.0",
+},
+}
+
+// Start the web module
+err := webModule.Start()
+if err != nil {
+t.Fatalf("Failed to start web module: %v", err)
+}
+defer webModule.Stop()
+
+// Give the server time to start
+time.Sleep(100 * time.Millisecond)
+
+// Test request to /config.js
+resp, err := http.Get(fmt.Sprintf("http://localhost:%d/config.js", webModule.GetPort()))
+if err != nil {
+t.Fatalf("Failed to make request: %v", err)
+}
+defer resp.Body.Close()
+
+// Check response status
+if resp.StatusCode != http.StatusOK {
+t.Errorf("Expected status 200, got %d", resp.StatusCode)
+}
+
+// Check content type
+contentType := resp.Header.Get("Content-Type")
+if !strings.Contains(contentType, "application/javascript") {
+t.Errorf("Expected content type 'application/javascript', got '%s'", contentType)
+}
+
+// Check cache control headers
+cacheControl := resp.Header.Get("Cache-Control")
+if !strings.Contains(cacheControl, "no-cache") {
+t.Errorf("Expected 'no-cache' in Cache-Control header, got '%s'", cacheControl)
+}
+
+// Read response body
+body, err := io.ReadAll(resp.Body)
+if err != nil {
+t.Fatalf("Failed to read response body: %v", err)
+}
+bodyStr := string(body)
+
+// Verify content contains the JavaScript object
+if !strings.Contains(bodyStr, "window.__DTAC_CONFIG__") {
+t.Errorf("Response should contain 'window.__DTAC_CONFIG__'")
+}
+
+// Verify each env var is present
+if !strings.Contains(bodyStr, "API_URL") {
+t.Errorf("Response should contain 'API_URL'")
+}
+if !strings.Contains(bodyStr, "https://api.example.com") {
+t.Errorf("Response should contain 'https://api.example.com'")
+}
+if !strings.Contains(bodyStr, "FEATURE_FLAG") {
+t.Errorf("Response should contain 'FEATURE_FLAG'")
+}
+if !strings.Contains(bodyStr, "VERSION") {
+t.Errorf("Response should contain 'VERSION'")
+}
+}
+
+// TestRuntimeEnv_ConfigJS_Empty tests /config.js with no runtime env
+func TestRuntimeEnv_ConfigJS_Empty(t *testing.T) {
+// Create web module without runtime environment variables
+webModule := &WebModuleBase{}
+webModule.SetRootPath("test")
+webModule.config = WebModuleConfig{
+Port:       0,
+StaticPath: "/",
+Debug:      true,
+RuntimeEnv: nil, // No runtime env
+}
+
+// Start the web module
+err := webModule.Start()
+if err != nil {
+t.Fatalf("Failed to start web module: %v", err)
+}
+defer webModule.Stop()
+
+// Give the server time to start
+time.Sleep(100 * time.Millisecond)
+
+// Test request to /config.js
+resp, err := http.Get(fmt.Sprintf("http://localhost:%d/config.js", webModule.GetPort()))
+if err != nil {
+t.Fatalf("Failed to make request: %v", err)
+}
+defer resp.Body.Close()
+
+// Check response status
+if resp.StatusCode != http.StatusOK {
+t.Errorf("Expected status 200, got %d", resp.StatusCode)
+}
+
+// Read response body
+body, err := io.ReadAll(resp.Body)
+if err != nil {
+t.Fatalf("Failed to read response body: %v", err)
+}
+bodyStr := string(body)
+
+// Verify content contains empty object
+if !strings.Contains(bodyStr, "window.__DTAC_CONFIG__ = {};") {
+t.Errorf("Response should contain empty config object, got: %s", bodyStr)
+}
+}
+
+// TestRuntimeEnv_ConfigJS_XSSPrevention tests that /config.js escapes dangerous values
+func TestRuntimeEnv_ConfigJS_XSSPrevention(t *testing.T) {
+// Create web module with potentially dangerous values
+webModule := &WebModuleBase{}
+webModule.SetRootPath("test")
+webModule.config = WebModuleConfig{
+Port:       0,
+StaticPath: "/",
+Debug:      true,
+RuntimeEnv: map[string]string{
+"DANGEROUS": "<script>alert(\"xss\")</script>",
+"QUOTES":    "\"value with \"quotes\"",
+"NEWLINES":  "line1\nline2",
+},
+}
+
+// Start the web module
+err := webModule.Start()
+if err != nil {
+t.Fatalf("Failed to start web module: %v", err)
+}
+defer webModule.Stop()
+
+// Give the server time to start
+time.Sleep(100 * time.Millisecond)
+
+// Test request to /config.js
+resp, err := http.Get(fmt.Sprintf("http://localhost:%d/config.js", webModule.GetPort()))
+if err != nil {
+t.Fatalf("Failed to make request: %v", err)
+}
+defer resp.Body.Close()
+
+// Read response body
+body, err := io.ReadAll(resp.Body)
+if err != nil {
+t.Fatalf("Failed to read response body: %v", err)
+}
+bodyStr := string(body)
+
+// Verify dangerous characters are escaped
+if strings.Contains(bodyStr, "<script>") {
+t.Errorf("Response should not contain unescaped '<script>'")
+}
+if strings.Contains(bodyStr, "alert(\"xss\")") {
+t.Errorf("Response should not contain unescaped alert")
+}
+// Check for proper escaping
+if !strings.Contains(bodyStr, "\\u003c") {
+t.Errorf("Response should contain escaped '<' character")
+}
+}
+
+// TestParseWebModuleConfig_RuntimeEnv tests parsing of runtime_env configuration
+func TestParseWebModuleConfig_RuntimeEnv(t *testing.T) {
+configMap := map[string]interface{}{
+"port":        8090,
+"debug":       true,
+"static_path": "/",
+"runtime_env": map[string]interface{}{
+"API_URL":      "https://api.example.com",
+"FEATURE_FLAG": "true",
+"NUMBER_VAL":   42, // Test non-string value conversion
+},
+}
+
+config := ParseWebModuleConfig(configMap)
+
+// Verify basic config
+if config.Port != 8090 {
+t.Errorf("Expected port 8090, got %d", config.Port)
+}
+
+// Verify runtime_env is parsed
+if config.RuntimeEnv == nil {
+t.Fatalf("RuntimeEnv should not be nil")
+}
+
+if config.RuntimeEnv["API_URL"] != "https://api.example.com" {
+t.Errorf("Expected API_URL 'https://api.example.com', got '%s'", config.RuntimeEnv["API_URL"])
+}
+
+if config.RuntimeEnv["FEATURE_FLAG"] != "true" {
+t.Errorf("Expected FEATURE_FLAG 'true', got '%s'", config.RuntimeEnv["FEATURE_FLAG"])
+}
+
+// Verify non-string value is converted to string
+if config.RuntimeEnv["NUMBER_VAL"] != "42" {
+t.Errorf("Expected NUMBER_VAL '42', got '%s'", config.RuntimeEnv["NUMBER_VAL"])
+}
+}
+
+// TestInjectConfigScript tests the HTML injection function
+func TestInjectConfigScript(t *testing.T) {
+tests := []struct {
+name     string
+html     string
+expected string
+}{
+{
+name:     "inject before </head>",
+html:     `<!DOCTYPE html><html><head><title>Test</title></head><body></body></html>`,
+expected: `<!DOCTYPE html><html><head><title>Test</title><script src="/config.js"></script>
+</head><body></body></html>`,
+},
+{
+name:     "inject after <head> if no </head>",
+html:     `<!DOCTYPE html><html><head><title>Test</title><body></body></html>`,
+expected: `<!DOCTYPE html><html><head>
+<script src="/config.js"></script><title>Test</title><body></body></html>`,
+},
+{
+name:     "inject after <body> if no head",
+html:     `<!DOCTYPE html><html><body><p>content</p></body></html>`,
+expected: `<!DOCTYPE html><html><body>
+<script src="/config.js"></script><p>content</p></body></html>`,
+},
+{
+name:     "case insensitive HEAD",
+html:     `<!DOCTYPE html><html><HEAD><title>Test</title></HEAD><body></body></html>`,
+expected: `<!DOCTYPE html><html><HEAD><title>Test</title><script src="/config.js"></script>
+</HEAD><body></body></html>`,
+},
+}
+
+for _, tt := range tests {
+t.Run(tt.name, func(t *testing.T) {
+result := string(injectConfigScript([]byte(tt.html)))
+if result != tt.expected {
+t.Errorf("Expected:\n%s\n\nGot:\n%s", tt.expected, result)
+}
+})
+}
+}

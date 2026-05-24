@@ -13,6 +13,7 @@ import (
 	"net"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -113,13 +114,20 @@ func (mh *DefaultModuleHost) serveStandaloneWeb(webModule WebModule) error {
 	
 	log.Printf("Starting %s in standalone mode (without DTAC)\n", mh.Module.Name())
 	
+	// Build configuration from environment variables
+	config := buildStandaloneConfig()
+	configJSON, err := json.Marshal(config)
+	if err != nil {
+		return fmt.Errorf("failed to marshal config: %w", err)
+	}
+	
 	// Register the module (this may start the web server)
 	request := &api.ModuleRegisterRequest{
-		Config:        "{}",
+		Config:        string(configJSON),
 		DefaultSecure: false,
 	}
 	response := &api.ModuleRegisterResponse{}
-	err := mh.Module.Register(request, response)
+	err = mh.Module.Register(request, response)
 	if err != nil {
 		return fmt.Errorf("failed to register module: %w", err)
 	}
@@ -135,6 +143,7 @@ func (mh *DefaultModuleHost) serveStandaloneWeb(webModule WebModule) error {
 	}
 	
 	log.Printf("Web server listening on http://localhost:%d\n", port)
+	log.Printf("Runtime configuration available at http://localhost:%d/config.js\n", port)
 	log.Println("Press Ctrl+C to stop")
 	
 	// Block forever
@@ -224,4 +233,53 @@ func (mh *DefaultModuleHost) serveDTACMode() error {
 // GetPort returns the port the module host is listening on
 func (mh *DefaultModuleHost) GetPort() int {
 	return mh.port
+}
+
+// buildStandaloneConfig builds a configuration map from environment variables
+// Environment variables with the prefix DTAC_ENV_ are included in runtime_env
+// Other supported environment variables:
+//   - DTAC_PORT: HTTP server port (default: 8080)
+//   - DTAC_DEBUG: Enable debug logging (default: false)
+//   - DTAC_STATIC_PATH: Path for static files (default: /)
+func buildStandaloneConfig() map[string]interface{} {
+	config := make(map[string]interface{})
+	runtimeEnv := make(map[string]string)
+
+	// Parse port from environment variable
+	if portStr := os.Getenv("DTAC_PORT"); portStr != "" {
+		if port, err := strconv.Atoi(portStr); err == nil {
+			config["port"] = port
+		}
+	}
+
+	// Parse debug from environment variable
+	if debugStr := os.Getenv("DTAC_DEBUG"); debugStr != "" {
+		config["debug"] = debugStr == "true" || debugStr == "1"
+	}
+
+	// Parse static path from environment variable
+	if staticPath := os.Getenv("DTAC_STATIC_PATH"); staticPath != "" {
+		config["static_path"] = staticPath
+	}
+
+	// Collect all DTAC_ENV_* environment variables for runtime_env
+	// These will be exposed to the frontend via /config.js
+	const envPrefix = "DTAC_ENV_"
+	for _, env := range os.Environ() {
+		if strings.HasPrefix(env, envPrefix) {
+			parts := strings.SplitN(env, "=", 2)
+			if len(parts) == 2 {
+				// Remove the DTAC_ENV_ prefix from the key
+				key := strings.TrimPrefix(parts[0], envPrefix)
+				runtimeEnv[key] = parts[1]
+			}
+		}
+	}
+
+	// Only add runtime_env if there are values
+	if len(runtimeEnv) > 0 {
+		config["runtime_env"] = runtimeEnv
+	}
+
+	return config
 }
